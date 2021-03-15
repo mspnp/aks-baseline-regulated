@@ -277,8 +277,8 @@
             "resources": [
                 {
                     "type": "extensions",
-                    "name": "OMSExtension",
                     "apiVersion": "2019-12-01",
+                    "name": "OMSExtension",
                     "location": "[parameters('location')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]"
@@ -759,8 +759,8 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "EnsureClusterIdentityHasRbacToSelfManagedResources",
             "apiVersion": "2020-06-01",
+            "name": "EnsureClusterIdentityHasRbacToSelfManagedResources",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]"
             ],
