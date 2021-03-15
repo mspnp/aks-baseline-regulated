@@ -1,0 +1,803 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "nodepoolSubnetResourceIds": {
+            "type": "array",
+            "metadata": {
+                "description": "Subnet resource Ids for all AKS clusters nodepools in all attached spokes to allow necessary outbound traffic through the firewall"
+            }
+        },
+        "location": {
+            "defaultValue": "eastus2",
+            "type": "string",
+            "allowedValues": [
+                "australiaeast",
+                "canadacentral",
+                "centralus",
+                "eastus",
+                "eastus2",
+                "westus2",
+                "francecentral",
+                "germanywestcentral",
+                "northeurope",
+                "southafricanorth",
+                "southcentralus",
+                "uksouth",
+                "westeurope",
+                "japaneast",
+                "southeastasia"
+            ],
+            "metadata": {
+                "description": "The hub's regional affinity. All resources tied to this hub will also be homed in this region.  The network team maintains this approved regional list which is a subset of zones with Availability Zone support."
+            }
+        },
+        "hubVnetAddressSpace": {
+            "defaultValue": "10.200.0.0/24",
+            "type": "string",
+            "maxLength": 18,
+            "minLength": 10,
+            "metadata": {
+                "description": "A /24 to contain the regional firewall, management, and gateway subnet"
+            }
+        },
+        "azureFirewallSubnetAddressSpace": {
+            "defaultValue": "10.200.0.0/26",
+            "type": "string",
+            "maxLength": 18,
+            "minLength": 10,
+            "metadata": {
+                "description": "A /26 under the VNet Address Space for the regional Azure Firewall"
+            }
+        },
+        "azureGatewaySubnetAddressSpace": {
+            "defaultValue": "10.200.0.64/27",
+            "type": "string",
+            "maxLength": 18,
+            "minLength": 10,
+            "metadata": {
+                "description": "A /27 under the VNet Address Space for our regional On-Prem Gateway"
+            }
+        },
+        "azureBastionSubnetAddressSpace": {
+            "defaultValue": "10.200.0.96/27",
+            "type": "string",
+            "maxLength": 18,
+            "minLength": 10,
+            "metadata": {
+                "description": "A /27 under the VNet Address Space for regional Azure Bastion"
+            }
+        }
+    },
+    "variables": {
+        "aksIpGroupName": "[concat('ipg-', parameters('location'), '-AksNodepools')]",
+        "baseFwPipName": "[concat('pip-fw-', parameters('location'))]",
+        "hubFwPipNames": [
+            "[concat(variables('baseFwPipName'), '-default')]",
+            "[concat(variables('baseFwPipName'), '-01')]",
+            "[concat(variables('baseFwPipName'), '-02')]"
+        ],
+        "hubFwName": "[concat('fw-', parameters('location'))]",
+        "hubVNetName": "[concat('vnet-', parameters('location'), '-hub')]",
+        "bastionNetworkNsgName": "[concat('nsg-', parameters('location'), '-bastion')]",
+        "hubLaName": "[concat('la-hub-', parameters('location'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "2020-08-01",
+            "name": "[variables('hubLaName')]",
+            "location": "[parameters('location')]",
+            "comments": "This Log Analytics workspace stores logs from the regional hub network, its spokes, and bastion.",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('bastionNetworkNsgName')]",
+            "location": "[parameters('location')]",
+            "comments": "Wraps the AzureBastion subnet in this regional hub. Source: https://docs.microsoft.com/azure/bastion/bastion-nsg",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowWebExperienceInBound",
+                        "properties": {
+                            "description": "Allow our users in. Update this to be as restrictive as possible.",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowControlPlaneInBound",
+                        "properties": {
+                            "description": "Service Requirement. Allow control plane access. Regional Tag not yet supported.",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHealthProbesInBound",
+                        "properties": {
+                            "description": "Service Requirement. Allow Health Probes.",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowBastionHostToHostInBound",
+                        "properties": {
+                            "description": "Service Requirement. Allow Required Host to Host Communication.",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationPortRanges": [
+                                "8080",
+                                "5701"
+                            ],
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 130,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInBound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSshToVnetOutBound",
+                        "properties": {
+                            "description": "Allow SSH out to the VNet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "22",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowRdpToVnetOutBound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "description": "Allow RDP out to the VNet",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowControlPlaneOutBound",
+                        "properties": {
+                            "description": "Required for control plane outbound. Regional prefix not yet supported",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "AzureCloud",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowBastionHostToHostOutBound",
+                        "properties": {
+                            "description": "Service Requirement. Allow Required Host to Host Communication.",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationPortRanges": [
+                                "8080",
+                                "5701"
+                            ],
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 130,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowBastionCertificateValidationOutBound",
+                        "properties": {
+                            "description": "Service Requirement. Allow Required Session and Certificate Validation.",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "80",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Allow",
+                            "priority": 140,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllOutBound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "logs": [
+                            {
+                                "category": "NetworkSecurityGroupEvent",
+                                "enabled": true
+                            },
+                            {
+                                "category": "NetworkSecurityGroupRuleCounter",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('hubVnetName')]",
+            "location": "[parameters('location')]",
+            "comments": "This is this region's hub network.",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('hubVnetAddressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "AzureFirewallSubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('azureFirewallSubnetAddressSpace')]"
+                        }
+                    },
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('azureGatewaySubnetAddressSpace')]"
+                        }
+                    },
+                    {
+                        "name": "AzureBastionSubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('azureBastionSubnetAddressSpace')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('hubFwPipNames')[copyIndex()]]",
+            "location": "[parameters('location')]",
+            "comments": "This is a public IP for this regional hub's firewall. You'll want as many as necessary to avoid SNAT port exhaustion. Typical production hubs may require 20 IPs -- we only deploy three here as a reference.",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "publicIPAddressVersion": "IPv4"
+            },
+            "copy": {
+                "name": "create-fw-pips",
+                "count": "[length(variables('hubFwPipNames'))]",
+                "mode": "Parallel"
+            }
+        },
+        {
+            "type": "Microsoft.Network/ipGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('aksIpGroupName')]",
+            "location": "[parameters('location')]",
+            "comments": "This holds IP addresses of known nodepool subnets in spokes.",
+            "properties": {
+                "copy": [
+                    {
+                        "name": "ipAddresses",
+                        "count": "[length(parameters('nodepoolSubnetResourceIds'))]",
+                        "input": "[reference(parameters('nodepoolSubnetResourceIds')[copyIndex('ipAddresses')], '2020-05-01').addressPrefix]"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('hubFwName')]",
+            "location": "[parameters('location')]",
+            "comments": "This is the regional Azure Firewall that all regional spoke networks can egress through.",
+            "zones": [
+                "1",
+                "2",
+                "3"
+            ],
+            "dependsOn": [
+                "create-fw-pips",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+            ],
+            "properties": {
+                "additionalProperties": {
+                    "Network.DNS.EnableProxy": "true"
+                },
+                "sku": {
+                    "name": "AZFW_VNet",
+                    "tier": "Standard"
+                },
+                "threatIntelMode": "Deny",
+                "ipConfigurations": [
+                    {
+                        "name": "[variables('hubFwPipNames')[0]]",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVnetName'), 'AzureFirewallSubnet')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('hubFwPipNames')[0])]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('hubFwPipNames')[1]]",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('hubFwPipNames')[1])]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('hubFwPipNames')[2]]",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('hubFwPipNames')[2])]"
+                            }
+                        }
+                    }
+                ],
+                "natRuleCollections": [],
+                "networkRuleCollections": [
+                    {
+                        "name": "org-wide-allowed",
+                        "properties": {
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "priority": 100,
+                            "rules": [
+                                {
+                                    "name": "DNS",
+                                    "description": "Consider restricting this to only DNS servers you expect to be used by spokes of this hub.",
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "protocols": [
+                                        "UDP"
+                                    ],
+                                    "destinationPorts": [
+                                        "53"
+                                    ],
+                                    "destinationAddresses": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AKS-Global-Requirements",
+                        "properties": {
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "priority": 200,
+                            "rules": [
+                                {
+                                    "name": "ntp",
+                                    "description": "Network Time Protocol (NTP) time synchronization for nodepool nodes. These use ubuntu's NTP pools.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        "UDP"
+                                    ],
+                                    "destinationPorts": [
+                                        "123"
+                                    ],
+                                    "destinationAddresses": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "tunnelfront-pod-tcp",
+                                    "description": "Tunnelfront pod to communicate with the tunnel end on the API server. Technically only needed to our API servers instead of AzureCloud.EastUS2. Restrict this to your clusters' Cluster API Public IP; done this way for easy of demonstration. Not needed for private clusters.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "destinationPorts": [
+                                        "9000"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('AzureCloud.', parameters('location'))]"
+                                    ]
+                                },
+                                {
+                                    "name": "tunnelfront-pod-udp",
+                                    "description": "Tunnelfront pod to communicate with the tunnel end on the API server. Technically only needed to our API servers instead of AzureCloud.EastUS2. Restrict this to your clusters' Cluster API Public IP; done this way for easy of demonstration. Not needed for private clusters.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        "UDP"
+                                    ],
+                                    "destinationPorts": [
+                                        "1194"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('AzureCloud.', parameters('location'))]"
+                                    ]
+                                },
+                                {
+                                    "name": "pod-to-api-server",
+                                    "description": "Allows pods to communicate to the Cluster API server (e.g. Flux). Technically only needed to our API servers instead of AzureCloud.EastUS2. Restrict this to your clusters' Cluster API Public IP; done this way for ease of demonstration. Not needed for private clusters.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "destinationPorts": [
+                                        "443"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('AzureCloud.', parameters('location'))]"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "applicationRuleCollections": [
+                    {
+                        "name": "AKS-Global-Requirements",
+                        "properties": {
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "priority": 200,
+                            "rules": [
+                                {
+                                    "name": "nodes-to-api-server",
+                                    "description": "This address is required for Node <-> API server communication.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "[concat('*.hcp.', parameters('location'), '.azmk8s.io')]"
+                                    ]
+                                },
+                                {
+                                    "name": "microsoft-container-registry",
+                                    "description": "Required to access images in Microsoft Container Registry (MCR). This registry contains first-party images (E.g., coreDNS, etc.). These images are required for the correct creation and functioning of the cluster, including scale and upgrade operations.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "mcr.microsoft.com",
+                                        "*.data.mcr.microsoft.com"
+                                    ]
+                                },
+                                {
+                                    "name": "management-plane",
+                                    "description": "This address is required for Kubernetes GET/PUT operations.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "fqdnTags": [
+                                        "AzureKubernetesService"
+                                    ]
+                                },
+                                {
+                                    "name": "aad-auth",
+                                    "description": "This address is required for Azure Active Directory authentication.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "login.microsoftonline.com"
+                                    ]
+                                },
+                                {
+                                    "name": "apt-get",
+                                    "description": "This address is the Microsoft packages repository used for cached apt-get operations. Example packages include Moby, PowerShell, and Azure CLI.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "packages.microsoft.com"
+                                    ]
+                                },
+                                {
+                                    "name": "cluster-binaries",
+                                    "description": "This address is for the repository required to download and install required binaries like kubenet and Azure CNI.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "acs-mirror.azureedge.net"
+                                    ]
+                                },
+                                {
+                                    "name": "ubuntu-security-patches",
+                                    "description": "This address lets the Linux cluster nodes download the required security patches and updates per https://docs.microsoft.com/azure/aks/limit-egress-traffic#optional-recommended-fqdn--application-rules-for-aks-clusters.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 80
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "security.ubuntu.com",
+                                        "azure.archive.ubuntu.com",
+                                        "changelogs.ubuntu.com"
+                                    ]
+                                },
+                                {
+                                    "name": "azure-monitor-addon",
+                                    "description": "All required for Azure Monitor for containers per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your clusters' log analytics instances.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "*.ods.opinsights.azure.com",
+                                        "*.oms.opinsights.azure.com",
+                                        "[concat(parameters('location'), '.monitoring.azure.com')]"
+                                    ]
+                                },
+                                {
+                                    "name": "azure-policy-addon",
+                                    "description": "All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "data.policy.core.windows.net",
+                                        "store.policy.core.windows.net"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "Flux-Requirements",
+                        "properties": {
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "priority": 300,
+                            "rules": [
+                                {
+                                    "name": "flux-to-github",
+                                    "description": "This address is required for Flux <-> Github repository with the desired cluster baseline configuration.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "github.com",
+                                        "api.github.com"
+                                    ]
+                                },
+                                {
+                                    "name": "pull-flux-images",
+                                    "description": "Allows pulling images from public container registries. Not necessary when using your private ACR instance via Private Link for images you've push or imported. Included here only for those that did not fork the repo.",
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "*.docker.com",
+                                        "*.docker.io",
+                                        "docker.io",
+                                        "ghcr.io",
+                                        "github-production-container-registry.s3.amazonaws.com"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "[resourceId('Microsoft.Network/azureFirewalls', variables('hubFwName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "logs": [
+                            {
+                                "category": "AzureFirewallApplicationRule",
+                                "enabled": true
+                            },
+                            {
+                                "category": "AzureFirewallNetworkRule",
+                                "enabled": true
+                            },
+                            {
+                                "category": "AzureFirewallDnsProxy",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "hubVnetId": {
+            "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+            "type": "string"
+        }
+    }
+}
