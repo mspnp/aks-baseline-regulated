@@ -1,6 +1,6 @@
 # Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Industries
 
-This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-secure-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns. **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline), you should strongly consider starting there before continuing here.**
+This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-secure-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns. **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should strongly consider starting there before continuing here.**
 
 > :warning: **These artifacts have not been certified in any official capacity; regulatory compliance is a shared responsibility between you and your hosting provider.** This implementation is designed to aide you on your journey to achieving your compliance, but by itself does not ensure any level of compliance.
 
@@ -46,7 +46,7 @@ Finally, this implementation uses a small custom application as an example workl
 #### In-cluster Open-Source Software components
 
 * [Flux 2 GitOps Operator](https://fluxcd.io)
-* [Traefik Ingress Controller](https://doc.traefik.io/traefik/v1.7/user-guide/kubernetes/)
+* [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
 * [Azure KeyVault Secret Store CSI Provider](https://github.com/Azure/secrets-store-csi-driver-provider-azure)
 * [Kured](https://docs.microsoft.com/azure/aks/node-updates-kured)
 * [Falco](https://falco.org)
@@ -134,7 +134,6 @@ This reference implementation intentionally does not cover more advanced scenari
 * Cluster-contained state (PVC, etc)
 * Windows node pools
 * Scale-to-zero node pools and event-based scaling (KEDA)
-* [Private Kubernetes API Server](https://docs.microsoft.com/azure/aks/private-clusters)
 * [Terraform](https://docs.microsoft.com/azure/developer/terraform/create-k8s-cluster-with-tf-and-aks)
 * [Bedrock](https://github.com/microsoft/bedrock)
 * [dapr](https://github.com/dapr/dapr)
