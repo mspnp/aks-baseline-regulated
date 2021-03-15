@@ -401,9 +401,9 @@
             },
             "resources": [
                 {
-                    "name": "Microsoft.Insights/toHub",
                     "type": "providers/diagnosticSettings",
                     "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/toHub",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]"
                     ],
@@ -424,9 +424,9 @@
             ]
         },
         {
-            "name": "[concat('nsg-', variables('clusterVNetName'), '-appgw')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
+            "name": "[concat('nsg-', variables('clusterVNetName'), '-appgw')]",
             "location": "[parameters('location')]",
             "comments": "NSG on the App Gateway subnet.",
             "properties": {
@@ -503,9 +503,9 @@
             },
             "resources": [
                 {
-                    "name": "Microsoft.Insights/toHub",
                     "type": "providers/diagnosticSettings",
                     "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/toHub",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]"
                     ],
@@ -526,9 +526,9 @@
             ]
         },
         {
-            "name": "[concat('nsg-', variables('clusterVNetName'), '-acragents')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
+            "name": "[concat('nsg-', variables('clusterVNetName'), '-acragents')]",
             "location": "[parameters('location')]",
             "comments": "NSG on the ACR docker subnet.",
             "properties": {
@@ -607,9 +607,9 @@
             },
             "resources": [
                 {
-                    "name": "Microsoft.Insights/toHub",
                     "type": "providers/diagnosticSettings",
                     "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/toHub",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]"
                     ],
