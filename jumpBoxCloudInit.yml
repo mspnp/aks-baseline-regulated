@@ -1,0 +1,13 @@
+#cloud-config
+users:
+  - default
+  - name: opsuser01
+    sudo: False
+    lock_passwd: True
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC0dQuUR0xhsjBbm3otMMIR88hELkXkxjxOCxQ4iKa9CqOoDYUCl20QY+OtpCnviD6/UYPqzee/EzI/L3cYRZulw9kMeYGME4t5c3iDahU+czZDPnd0hvSQvK5havgAr5120Cg6sTRnK10G3kyEz8pMSwSp9CXAOF3l1kRHENpO2jxp3BomRIQl5/HHrIJUXHVgfZ3yVy3oSymaTiCa8FWq/gtE0HWxonmENROdGHVerccotH0T26x4NGTeXrSTt3Xn7GUF2J851CgK+1kl8/P7Pe5Zm2bqNQXEbiZWni+3TtHjaA3rEU/aFuEEVrpeRXjm3GRGgo1cAneIh9eR4azmLPQZeSXKdkTE+cZebtnpUL+hs1V78cDfmycyeCtRZ1lr3gml780/qmcrpyCIAgOIaw1NwlQUAtrVvzvpkYzPdmsQAJpUo1LRs5c0rXWmXDJ2Z56W9l1rfF4WIPd7KR+CT6V+blhPuYnZp/514dFQPJVYim6RYQf++z4HSTnGJFaTc+5GsMh//d1oxf1c05aOZlmk3fWLWbqxhNdOf+aulCYtDyuSrOhOQNZvX+Gnss4IsfrulvuiRHM7zpxjurE48XELRMEj2ZUwL004+xc/y8nkH5RfS5uwshVrhgbl40kURfrFig1F3q/lI+jMICLDkHfrqpC9ylir24+KL96/NQ==
+  - name: opsuser02
+    sudo: False
+    lock_passwd: True
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDLdYkQZqs+RqQwirjOUMKT0aVJxnjOy9nmFnac7/oKhMsMmxaHk66CUeLBGViF9tyPqqP6PgojOOWLkOyfk+Zt91u7vg2xtyogwtNpr1wxMP2p9mWG/kQnYZMk8QjhWlj0oSiLdnVqLj4wqdja7I0NtimaUMquOf2uWSmLMgeWsMjg+jq4O82j6inONkMXEZLRU5Yd+QIW5heXRpT4hFR6HQR46mI/8GXXM8uHpGPrFIeaahD3ECkET17TGbwJ+QxNWRVnFujGqYH9qDl8NNsQwGUltrfwqRMp3n4oy1WCDMyXDpMMCHRJqRZCTMgIUo0Yw6E++ZhQ85sbQSRnmrMeJwL5AaA77zEt83ETBMg9j5OQUbOxpf8ySxd3APRNQKfXdLtheUkR2dBlpE3f5dfvUSAjgJiChFDIKd617vdwUXOat9AMGDMOl/8XWMb2uGgo8OQdNPW/J2scgn8/EeZMcAAEyZdEPOBODGb/xgWDFBACYAtP/GOsx628aaO5H4KheYKsdPtIorOKjg/pgAhUXTS3He6YlXwrVYR8QpHSxoG2osYFcW5/bPE3QaHLQ90XKKkN8xeS1/Qh6+3O+NIHisMMSXumEadESiL7bA0YlSqoHbPoRh0/38i8iLtTllfGyqgArwT6iiQzqkoefCbiN6OrPeVe4y4AXZREux1AXQ==

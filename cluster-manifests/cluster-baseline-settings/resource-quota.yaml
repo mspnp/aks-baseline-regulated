@@ -1,0 +1,35 @@
+  
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: default
+spec:
+  hard:
+    requests.cpu: 17500m
+    requests.memory: 15000Mi
+    requests.storage: "0"
+    limits.cpu: "120"
+    limits.memory: 110000Mi
+    count/persistentvolumeclaims: "0"
+    count/services.loadbalancers: "10"
+    count/services.nodeports: "10"
+
+    # osm-controller
+    count/deployments.apps: "11"
+            
+    # csi-secrets-store, csi-secrets-store-provider-azure
+    # dummy-av, dummy-fim
+    # kured
+    count/daemonsets.apps: "15"
+
+    # osm-controller+validator
+    count/services: "12"
+
+    # csi-secrets-store (3*[oos nodepood nodes] + 3*[ins nodepool nodes] = 12)
+    # csi-secrets-store-provider-azure (1*[oos nodepood nodes] + 1*[ins nodepool nodes] = 4)
+    # dummy-av (1*[all nodes] = 7)
+    # dummy-fim (1*[all nodes] = 7)
+    # kured (1*[all nodes] = 7)
+    # osm-controller (1 = 1)
+    # x~1.5 for scale out / rolling upgrades
+    count/pods: "160"

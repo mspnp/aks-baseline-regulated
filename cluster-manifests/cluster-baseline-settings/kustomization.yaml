@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cluster-baseline-settings
+resources:
+- namespace.yaml
+- resource-quota.yaml
+- limit-range.yaml
+- rbac.yaml
+- secrets-store-csi/driver.yaml
+- secrets-store-csi/keyvault-provider.yaml
+- fim/fim-standin.yaml
+- av/av-standin.yaml
+- kured/kured.yaml
+images:
+- name: busybox
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/library/busybox
+  newTag: 1.33.0
+- name: docker.io/weaveworks/kured
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/weaveworks/kured
