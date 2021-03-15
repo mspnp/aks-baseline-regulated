@@ -456,9 +456,9 @@
             ]
         },
         {
-            "name": "[variables('imageBuilderIpGroupName')]",
             "type": "Microsoft.Network/ipGroups",
             "apiVersion": "2020-05-01",
+            "name": "[variables('imageBuilderIpGroupName')]",
             "location": "[parameters('location')]",
             "comments": "This holds IP addresses of known AKS Jumpbox image building subnets in attached spokes.",
             "properties": {

@@ -316,16 +316,16 @@
             ]
         },
         {
-            "name": "podmi-ingress-controller",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
             "apiVersion": "2018-11-30",
+            "name": "podmi-ingress-controller",
             "location": "[parameters('location')]",
             "comments": "User Managed Identity for the cluster's ingress controller pods. Used for Azure Key Vault Access.",
             "resources": [
                 {
-                    "name": "[concat('Microsoft.Authorization/', guid(resourceGroup().id, variables('managedIdentityOperatorRole')))]",
                     "type": "providers/roleAssignments",
                     "apiVersion": "2020-04-01-preview",
+                    "name": "[concat('Microsoft.Authorization/', guid(resourceGroup().id, variables('managedIdentityOperatorRole')))]",
                     "comments": "Grant the AKS cluster control plane with Managed Identity Operator role permissions over the this ingress controller pod identity so that it can be assigned to the relevant nodepools.",
                     "dependsOn": [
                         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]",
@@ -420,9 +420,9 @@
                     }
                 },
                 {
-                    "name": "Microsoft.Insights/default",
                     "type": "providers/diagnosticSettings",
                     "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
@@ -833,9 +833,9 @@
                             }
                         },
                         {
-                            "name": "[guid(resourceId('Microsoft.Network/privateDnsZones', concat('privatelink.', parameters('location'), '.azmk8s.io')), variables('dnsZoneContributorRole'), variables('clusterControlPlaneIdentityName'))]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(resourceId('Microsoft.Network/privateDnsZones', concat('privatelink.', parameters('location'), '.azmk8s.io')), variables('dnsZoneContributorRole'), variables('clusterControlPlaneIdentityName'))]",
                             "scope": "[concat('Microsoft.Network/privateDnsZones/', concat('privatelink.', parameters('location'), '.azmk8s.io'))]",
                             "properties": {
                                 "roleDefinitionId": "[variables('dnsZoneContributorRole')]",
@@ -1171,9 +1171,9 @@
             },
             "resources": [
                 {
-                    "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), variables('acrPullRole')))]",
                     "type": "providers/roleAssignments",
                     "apiVersion": "2020-04-01-preview",
+                    "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), variables('acrPullRole')))]",
                     "dependsOn": [
                         "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]",
                         "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
@@ -1456,9 +1456,9 @@
             },
             "resources": [
                 {
-                    "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), 'omsagent', variables('monitoringMetricsPublisherRole')))]",
                     "type": "providers/roleAssignments",
                     "apiVersion": "2020-04-01-preview",
+                    "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), 'omsagent', variables('monitoringMetricsPublisherRole')))]",
                     "comments": "Grant the OMS Agent's Managed Identity the metrics publisher role to push alerts",
                     "dependsOn": [
                         "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"

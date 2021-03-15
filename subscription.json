@@ -55,30 +55,30 @@
     },
     "resources": [
         {
-            "name": "[variables('rgName-Hubs')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-10-01",
+            "name": "[variables('rgName-Hubs')]",
             "location": "[variables('deploymentResourceRegion')]",
             "comments": "This contains all of our regional hubs. Typically this would be found in your enterprise's Connectivity subscription."
         },
         {
-            "name": "[variables('rgName-Spokes')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-10-01",
+            "name": "[variables('rgName-Spokes')]",
             "location": "[variables('deploymentResourceRegion')]",
             "comments": "This contains all of our regional spokes. Typically this would be found in your enterprise's Connectivity subscription or in the workload's subscription."
         },
         {
-            "name": "[variables('rgName-bu0001A0005')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-10-01",
+            "name": "[variables('rgName-bu0001A0005')]",
             "location": "[variables('deploymentResourceRegion')]",
             "comments": "This is the resource group for BU001A0005. Typically this would be found in your workload's subscription."
         },
         {
-            "name": "[variables('policyDefinitionName-EnableAksDefender')]",
             "type": "Microsoft.Authorization/policyDefinitions",
             "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-EnableAksDefender')]",
             "properties": {
                 "displayName": "Azure Defender for Kubernetes is enabled",
                 "policyType": "Custom",
@@ -139,9 +139,9 @@
             }
         },
         {
-            "name": "[variables('policyDefinitionName-EnableAcrDefender')]",
             "type": "Microsoft.Authorization/policyDefinitions",
             "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-EnableAcrDefender')]",
             "properties": {
                 "displayName": "Azure Defender for container registries is enabled",
                 "policyType": "Custom",
@@ -202,9 +202,9 @@
             }
         },
         {
-            "name": "[variables('policyDefinitionName-EnableAkvDefender')]",
             "type": "Microsoft.Authorization/policyDefinitions",
             "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-EnableAkvDefender')]",
             "properties": {
                 "displayName": "Azure Defender for Key Vault is enabled",
                 "policyType": "Custom",
@@ -248,9 +248,9 @@
                                         "contentVersion": "1.0.0.0",
                                         "resources": [
                                             {
-                                                "name": "KeyVaults",
                                                 "type": "Microsoft.Security/pricings",
                                                 "apiVersion": "2018-06-01",
+                                                "name": "KeyVaults",
                                                 "properties": {
                                                     "pricingTier": "Standard"
                                                 }
@@ -265,9 +265,9 @@
             }
         },
         {
-            "name": "[variables('policySetDefinitionName-EnableDefender')]",
             "type": "Microsoft.Authorization/policySetDefinitions",
             "apiVersion": "2019-09-01",
+            "name": "[variables('policySetDefinitionName-EnableDefender')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAksDefender'))]",
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAcrDefender'))]",
@@ -295,9 +295,9 @@
             }
         },
         {
-            "name": "[variables('policyDefinitionName-DenyPublicAks')]",
             "type": "Microsoft.Authorization/policyDefinitions",
             "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-DenyPublicAks')]",
             "properties": {
                 "description": "This policy denies the creation of Azure Kubernetes Service non-private clusters",
                 "displayName": "Public network access on AKS API should be disabled",
@@ -326,9 +326,9 @@
             }
         },
         {
-            "name": "[variables('policyDefinitionName-DenyAagWithoutWaf')]",
             "type": "Microsoft.Authorization/policyDefinitions",
             "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-DenyAagWithoutWaf')]",
             "properties": {
                 "description": "This policy denies the creation of Azure Application Gateway without WAF feature",
                 "displayName": "WAF SKU must be enabled on Azure Application Gateway",
@@ -357,9 +357,9 @@
             }
         },
         {
-            "name": "[concat('Apply-', variables('rgName-Hubs'), '-Policies')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "name": "[concat('Apply-', variables('rgName-Hubs'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Hubs')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Hubs'))]"
@@ -372,9 +372,9 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Hubs'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2019-09-01",
+                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Hubs'))]",
                             "comments": "Allowed Resources Policy applied to the hubs RG to only allow select networking and observation resources.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-Hubs'), '] ', reference(variables('policyDefinitionId-AllowedResources'), '2020-09-01').displayName), 125))]",
@@ -407,9 +407,9 @@
             }
         },
         {
-            "name": "[concat('Apply-', variables('rgName-Spokes'), '-Policies')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "name": "[concat('Apply-', variables('rgName-Spokes'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Spokes')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Spokes'))]"
@@ -422,9 +422,9 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Spokes'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2019-09-01",
+                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Spokes'))]",
                             "comments": "Allowed Resources Policy applied to the spoke resource group to only allow select networking resources.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-Spokes'), '] ', reference(variables('policyDefinitionId-AllowedResources'), '2020-09-01').displayName), 125))]",
@@ -452,9 +452,9 @@
             }
         },
         {
-            "name": "[concat('Apply-', variables('rgName-bu0001A0005'), '-Policies')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "name": "[concat('Apply-', variables('rgName-bu0001A0005'), '-Policies')]",
             "resourceGroup": "[variables('rgName-bu0001A0005')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
@@ -468,9 +468,9 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
+                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-bu0001A0005'))]",
                             "comments": "Allowed Resources Policy applied to the appliction resource group to only allow select resources per workload requirements.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-AllowedResources'), '2020-09-01').displayName), 125))]",
@@ -508,9 +508,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-DenyPublicAks'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyPublicAks'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny public AKS clusters policy applied to the appliction resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks')), '2020-09-01').displayName), 125))]",
@@ -521,9 +521,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-DenyAksWithoutPolicy'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyAksWithoutPolicy'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters that do not have Azure Policy enabled in the appliction resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-DenyAksWithoutPolicy'), '2020-09-01').displayName), 125))]",
@@ -534,9 +534,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-DenyAagWithoutWaf'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyAagWithoutWaf'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny public AKS clusters policy applied to the appliction resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAagWithoutWaf')), '2020-09-01').displayName), 125))]",
@@ -547,9 +547,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-DenyAksWithoutRbac'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyAksWithoutRbac'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters without RBAC policy applied to the appliction resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-DenyAksWithoutRbac'), '2020-09-01').displayName), 125))]",
@@ -560,9 +560,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-DenyOldAks'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyOldAks'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters on old version policy applied to the appliction resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-DenyOldAks'), '2020-09-01').displayName), 125))]",
@@ -573,10 +573,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-CustomerManagedEncryption'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
-                            
+                            "name": "[guid(variables('policyDefinitionName-CustomerManagedEncryption'), variables('rgName-bu0001A0005'))]",
                             "comments": "Applying the 'Customer-Managed Disk Encryption' policy to the resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'),'] ', reference(variables('policyDefinitionId-CustomerManagedEncryption'), '2020-09-01').displayName), 125))]",
@@ -586,10 +585,9 @@
                             }
                         },
                         {
-                            "name": "[guid(variables('policyDefinitionName-EncryptionAtHost'), variables('rgName-bu0001A0005'))]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-03-01",
-                            
+                            "name": "[guid(variables('policyDefinitionName-EncryptionAtHost'), variables('rgName-bu0001A0005'))]",
                             "comments": "Applying the 'Encryption at Host' policy to the resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'),'] ', reference(variables('policyDefinitionId-EncryptionAtHost'), '2020-09-01').displayName), 125))]",
@@ -603,9 +601,9 @@
             }
         },
         {
-            "name": "[guid(variables('policySetDefinitionName-EnableDefender'), subscription().id)]",
             "type": "Microsoft.Authorization/policyAssignments",
             "apiVersion": "2019-09-01",
+            "name": "[guid(variables('policySetDefinitionName-EnableDefender'), subscription().id)]",
             "location": "[variables('deploymentResourceRegion')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', variables('policySetDefinitionName-EnableDefender'))]"
