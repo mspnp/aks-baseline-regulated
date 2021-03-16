@@ -611,9 +611,9 @@
         },
         {
             "condition": "[parameters('enableAzureDefender')]",
-            "name": "KeyVaults",
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
+            "name": "KeyVaults",
             "comments": "Enable Azure Defender Standard for Key Vault. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard"
@@ -621,9 +621,9 @@
         },
         {
             "condition": "[parameters('enableAzureDefender')]",
-            "name": "ContainerRegistry",
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
+            "name": "ContainerRegistry",
             "comments": "Enable Azure Defender Standard for Container Registry. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard"
@@ -631,12 +631,32 @@
         },
         {
             "condition": "[parameters('enableAzureDefender')]",
-            "name": "KubernetesService",
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
+            "name": "KubernetesService",
             "comments": "Enable Azure Defender Standard for Kubernetes Service. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard"
+            }
+        },
+        {
+            "condition": "[parameters('enableAzureDefender')]",
+            "type": "Microsoft.Security/pricings",
+            "apiVersion": "2018-06-01",
+            "name": "Arm",
+            "comments": "Enable Azure Defender Standard for Azure Resource Manager. Requires Owner or Security Admin role.",
+            "properties": {
+                "pricingTier": "Standard" // Isn't included in the Azure Policy applications above.
+            }
+        },
+        {
+            "condition": "[parameters('enableAzureDefender')]",
+            "type": "Microsoft.Security/pricings",
+            "apiVersion": "2018-06-01",
+            "name": "Dns",
+            "comments": "Enable Azure Defender Standard for Azure DNS. Requires Owner or Security Admin role.",
+            "properties": {
+                "pricingTier": "Standard" // Isn't included in the Azure Policy applications above.
             }
         }
     ]
