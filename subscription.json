@@ -88,7 +88,6 @@
                     "version": "1.0.0",
                     "category": "Security Center"
                 },
-                "parameters": {},
                 "policyRule": {
                     "if": {
                         "allOf": [
@@ -116,7 +115,6 @@
                                 "location": "[variables('deploymentResourceRegion')]",
                                 "properties": {
                                     "mode": "incremental",
-                                    "parameters": {},
                                     "template": {
                                         "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                         "contentVersion": "1.0.0.0",
@@ -151,7 +149,6 @@
                     "version": "1.0.0",
                     "category": "Security Center"
                 },
-                "parameters": {},
                 "policyRule": {
                     "if": {
                         "allOf": [
@@ -179,7 +176,6 @@
                                 "location": "[variables('deploymentResourceRegion')]",
                                 "properties": {
                                     "mode": "incremental",
-                                    "parameters": {},
                                     "template": {
                                         "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                         "contentVersion": "1.0.0.0",
@@ -214,7 +210,6 @@
                     "version": "1.0.0",
                     "category": "Security Center"
                 },
-                "parameters": {},
                 "policyRule": {
                     "if": {
                         "allOf": [
@@ -242,7 +237,6 @@
                                 "location": "[variables('deploymentResourceRegion')]",
                                 "properties": {
                                     "mode": "incremental",
-                                    "parameters": {},
                                     "template": {
                                         "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                         "contentVersion": "1.0.0.0",
@@ -366,7 +360,6 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "parameters": {},
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
@@ -416,7 +409,6 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "parameters": {},
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
@@ -462,7 +454,6 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "parameters": {},
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
@@ -516,8 +507,7 @@
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks')), '2020-09-01').displayName), 125))]",
                                 "description": "Only support private AKS clusters, deny any other.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]",
-                                "parameters": {}
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]"
                             }
                         },
                         {
@@ -529,8 +519,7 @@
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-DenyAksWithoutPolicy'), '2020-09-01').displayName), 125))]",
                                 "description": "Only support AKS clusters with Azure Policy enabled, deny any other.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[variables('policyDefinitionId-DenyAksWithoutPolicy')]",
-                                "parameters": {}
+                                "policyDefinitionId": "[variables('policyDefinitionId-DenyAksWithoutPolicy')]"
                             }
                         },
                         {
@@ -542,8 +531,7 @@
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAagWithoutWaf')), '2020-09-01').displayName), 125))]",
                                 "description": "Only allow Azure Application Gateway SKU with WAF support.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAagWithoutWaf'))]",
-                                "parameters": {}
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAagWithoutWaf'))]"
                             }
                         },
                         {
@@ -555,8 +543,7 @@
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-DenyAksWithoutRbac'), '2020-09-01').displayName), 125))]",
                                 "description": "Only allow AKS with RBAC support enabled.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[variables('policyDefinitionId-DenyAksWithoutRbac')]",
-                                "parameters": {}
+                                "policyDefinitionId": "[variables('policyDefinitionId-DenyAksWithoutRbac')]"
                             }
                         },
                         {
@@ -568,8 +555,7 @@
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(variables('policyDefinitionId-DenyOldAks'), '2020-09-01').displayName), 125))]",
                                 "description": "Disallow older AKS versions.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[variables('policyDefinitionId-DenyOldAks')]",
-                                "parameters": {}
+                                "policyDefinitionId": "[variables('policyDefinitionId-DenyOldAks')]"
                             }
                         },
                         {
@@ -580,8 +566,7 @@
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'),'] ', reference(variables('policyDefinitionId-CustomerManagedEncryption'), '2020-09-01').displayName), 125))]",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[variables('policyDefinitionId-CustomerManagedEncryption')]",
-                                "parameters": {}
+                                "policyDefinitionId": "[variables('policyDefinitionId-CustomerManagedEncryption')]"
                             }
                         },
                         {
@@ -592,8 +577,7 @@
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'),'] ', reference(variables('policyDefinitionId-EncryptionAtHost'), '2020-09-01').displayName), 125))]",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                                "policyDefinitionId": "[variables('policyDefinitionId-EncryptionAtHost')]",
-                                "parameters": {}
+                                "policyDefinitionId": "[variables('policyDefinitionId-EncryptionAtHost')]"
                             }
                         }
                     ]
@@ -622,8 +606,7 @@
                 },
                 "notScopes": [],
                 "scope": "[subscription().id]",
-                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', variables('policySetDefinitionName-EnableDefender'))]",
-                "parameters": {}
+                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', variables('policySetDefinitionName-EnableDefender'))]"
             }
         },
         {
