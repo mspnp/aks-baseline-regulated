@@ -88,7 +88,7 @@ Now that we have our image building network created, egressing through our hub, 
    ```bash
    IMAGE_TEMPLATE_NAME=$(az deployment group show -g rg-bu0001a0005 -n CreateJumpBoxImageTemplate --query 'properties.outputs.imageTemplateName.value' -o tsv)
 
-   # [This takes about >> thirty minutes << to run.]
+   # [This takes about >> 30 minutes << to run.]
    az image builder run -n $IMAGE_TEMPLATE_NAME -g rg-bu0001a0005
    ```
 
