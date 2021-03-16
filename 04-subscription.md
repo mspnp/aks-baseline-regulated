@@ -30,7 +30,7 @@ To help govern our resources, there are policies we apply over the scope of thes
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
 | Allowed resource types         | rg-bu0001a0005                  | Restricts the workload resource group to just resources necessary for this specific architecture. |
-| No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Cluster API server.             |
+| No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.             |
 | No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                          |
 | No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled. |
 | No AKS clusters without Azure Policy | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have Azure Policy enabled. |

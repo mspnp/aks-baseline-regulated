@@ -96,7 +96,7 @@ This reference implementation logs all AKS control plane interactions in the ass
    | order by TimeGenerated desc 
    ```
 
-This returns all Kubernetes API Server interaction happening in your cluster, OTHER than most `GET` requests. Basically any interaction that might potentially have the capability to modifying the system. Even an "idle" cluster can fill this log quickly (don't be surprised to see over 200 messages in a 30 minute window). Most regulations do not require it, but if you disable `kube-audit-admin` and instead simply enable `kube-audit` the system will _also_ log all of the `GET` (read) requests as well. This will _dramatically_ increase the number of logs, but you will then see 100% of the requests to the API Server. Never enable both at the same time.
+This returns all Kubernetes API Server interaction happening in your cluster, OTHER than most `GET` requests. Basically any interaction that might potentially have the capability to modifying the system. Even an "idle" cluster can fill this log quickly (don't be surprised to see over 200 messages in a 30 minute window). Most regulations do not require it, but if you disable `kube-audit-admin` and instead simply enable `kube-audit` the system will _also_ log all of the `GET` (read) requests as well. This will _dramatically_ increase the number of logs, but you will then see 100% of the requests to the Kubernetes API Server. Never enable both at the same time.
 
 ## Azure Policy Changes
 

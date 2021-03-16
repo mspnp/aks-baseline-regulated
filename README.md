@@ -134,7 +134,6 @@ This reference implementation intentionally does not cover more advanced scenari
 * Cluster-contained state (PVC, etc)
 * Windows node pools
 * Scale-to-zero node pools and event-based scaling (KEDA)
-* [Private Kubernetes API Server](https://docs.microsoft.com/azure/aks/private-clusters)
 * [Terraform](https://docs.microsoft.com/azure/developer/terraform/create-k8s-cluster-with-tf-and-aks)
 * [Bedrock](https://github.com/microsoft/bedrock)
 * [dapr](https://github.com/dapr/dapr)
