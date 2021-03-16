@@ -1074,7 +1074,7 @@
         },
         {
             "type": "Microsoft.Insights/workbooks",
-            "apiVersion": "2018-06-17-preview",
+            "apiVersion": "2020-10-20",
             "name": "[guid(variables('securityCenterSolutionName'))]",
             "location": "[parameters('location')]",
             "comments": "Add the AKS Security Center AKS workbook - https://securityinsights.hosting.portal.azure.net/securityinsights/Content/1.0.01480.0001-210119-121529/Workbooks/AksSecurity.json",
