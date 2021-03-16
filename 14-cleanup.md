@@ -26,7 +26,19 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 1. If any temporary changes were made to Azure AD or Azure RBAC permissions consider removing those as well.
 
-1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] ` and `[your-resource-group-name] `.
+1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] ` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Azure Defender Standard** as part of this as well, you can remove that.
+
+   Execute the following commands will handle all Resource Group-scoped policies:
+
+   ```bash
+   for p in $(az policy assignment list --disable-scope-strict-match --query "[?resourceGroup=='rg-bu0001a0005'].name" -o tsv); do az policy assignment delete -n ${p} -g rg-bu0001a0005; done
+   for p in $(az policy assignment list --disable-scope-strict-match --query "[?resourceGroup=='rg-enterprise-networking-spokes'].name" -o tsv); do az policy assignment delete -n ${p} -g rg-enterprise-networking-spokes; done
+   for p in $(az policy assignment list --disable-scope-strict-match --query "[?resourceGroup=='rg-enterprise-networking-hubs'].name" -o tsv); do az policy assignment delete -n ${p} -g rg-enterprise-networking-hubs; done
+   ```
+
+1. Remove _custom_ Azure Policy definitions.
+
+   From the [Azure Policy Definitions](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) page in the Azure Portal, remove any custom definitions that were included with this walkthrough. This is **Public network access on AKS API should be disabled**, **WAF SKU must be enabled on Azure Application Gateway**, **Azure Defender for Kubernetes is enabled**, **Azure Defender for container registries is enabled**, and **Azure Defender for Key Vault is enabled**. Ensure you do not delete any custom policies that are current assigned to your subscription or policies that were not created through this walkthrough.
 
 1. If Azure Security center was turned on temporarily for this, consider turning that off as well.
 

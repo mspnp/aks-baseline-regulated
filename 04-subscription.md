@@ -30,13 +30,13 @@ To help govern our resources, there are policies we apply over the scope of thes
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
 | Allowed resource types         | rg-bu0001a0005                  | Restricts the workload resource group to just resources necessary for this specific architecture. |
-| No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Cluster API server.             |
+| No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.             |
 | No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                          |
 | No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled. |
 | No AKS clusters without Azure Policy | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have Azure Policy enabled. |
 | No AKS clusters without BYOK OS & Data Disk Encryption | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have customer-managed disk encryption enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
 | No AKS clusters without encryption-at-host | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have the Encryption-At-Host feature enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
-| No App Gateways w/out WAF      | rg-bu0001a0005                  | Restricts the creation of Azure Application Gateway to only the WAF SKU. |
+| No App Gateways without WAF    | rg-bu0001a0005                  | Restricts the creation of Azure Application Gateway to only the WAF SKU. |
 
 For this reference implementation, our Azure Policies applied to these resource groups are maximally restrictive on what resource types are allowed to be deployed and what features they must have enabled/disable. If you alter the deployment by adding additional Azure resources, you may need to update the _Allowed resource types_ policy for that resource group to accommodate your modification.
 

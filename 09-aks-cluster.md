@@ -30,7 +30,7 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 1. Convert your jump box cloud-init (users) file to Base64.
 
    ```bash
-   CLOUDINIT_BASE64=$(base64 -w 0 jumpBoxCloudInit.yml)
+   CLOUDINIT_BASE64=$(base64 jumpBoxCloudInit.yml | tr -d '\n')
    ```
 
    If you need to perform this in Powershell, you can achieve the same with this.
