@@ -114,7 +114,7 @@ And audit results will be sent to Azure Policy about once every 30 minutes. To s
 ContainerLog
 | where Image contains "policy-kubernetes-addon"
 | where LogEntry contains "Sending audit result"
-| order by TimeGenerated desc 
+| order by TimeGenerated desc
 
 ### Next step
 
