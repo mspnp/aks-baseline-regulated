@@ -48,6 +48,10 @@ Azure Container Registry supports the [signing of images](https://docs.microsoft
 
 As mentioned in-line in the walkthrough, AKS' control plane supports both [Azure AD PAM JIT](https://docs.microsoft.com/azure/aks/managed-aad#configure-just-in-time-cluster-access-with-azure-ad-and-aks) and [Conditional Access Policies](https://docs.microsoft.com/azure/aks/managed-aad#use-conditional-access-with-azure-ad-and-aks). We recommend that you minimize standing permissions and leverage JIT access when performing SRE/Ops interactions with your cluster. Likewise, Conditional Access Policies will add additional layers of required authentication validation for privileged access, based on the rules you build.
 
+## Live-site cluster access alternatives
+
+If you wish to add an auditable layer of indirection between cluster & application administrators and the cluster for live-site issues, you might consider a ChatOps approach, in which commands against the cluster are executed by dedicated, hardened compute in a subnet like the one above for deployment but are fronted by a Microsoft Teams integration. That gives you the ability to _limit commands_ executed against the cluster, without necessarily building an ops process based exclusively around jump boxes. Also, you may already have an IAM-gated IT automation platform in place in which pre-defined _actions_ can be constructed within. Its action runners would then execute within the `snet-management-agents` subnet while the initial invocation of the actions is audited and controlled in the IT automation platform.
+
 ## CVE Mitigation
 
 Inline, we talked about many ISV's security agents being able to detect relevant CVEs for your cluster and workloads. But in addition to relying on tooling, you can also see [Microsoft's Security Response Center's 1st-party CVE listings](https://msrc.microsoft.com/update-guide/vulnerability) at any time. Here's [CVE-2021-27075](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-27075), an Information Disclosure entry from March 2021 as an example. No matter how you keep yourself informed about current CVEs, ensure you have a documented plan to stay informed.
