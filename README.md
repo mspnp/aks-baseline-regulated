@@ -103,43 +103,6 @@ Most of the Azure resources deployed in the prior steps will incur ongoing charg
 
 * [ ] [Cleanup all resources](./14-cleanup.md)
 
-## Inner-loop development scripts
-
-We have provided some sample deployment scripts that you could adapt for your own purposes while doing a POC/spike on this. Those scripts are found in the [inner-loop-scripts directory](./inner-loop-scripts). They include some additional considerations and may include some additional narrative as well. Consider checking them out. They consolidate most of the walk-through performed above into combined execution steps.
-
-## Preview features
-
-While this reference implementation tends to avoid _preview_ features of AKS to ensure you have the best customer support experience; there are some features you may wish to evaluate in pre-production clusters that augment your posture around security, manageability, etc. Consider trying out and providing feedback on the following. As these features come out of preview, this reference implementation may be updated to incorporate them.
-
-* [Azure RBAC for Kubernetes Authentication](https://docs.microsoft.com/azure/aks/manage-azure-rbac) - An extension of the Azure AD integration already in this reference implementation. Allowing you to bind Kubernetes authentication to Azure RBAC role assignments.
-* [Host-based encryption](https://docs.microsoft.com/azure/aks/enable-host-encryption) - Leverages added data encryption on your VMs' temp and OS disks.
-* [Generation 2 VM support](https://docs.microsoft.com/azure/aks/cluster-configuration#generation-2-virtual-machines-preview) - Increased memory options, Intel SGX support, and UEFI-based boot architectures.
-* [Auto Upgrade Profile support](https://github.com/Azure/AKS/issues/1303)
-* [Customizable Node & Kublet config](https://github.com/Azure/AKS/issues/323)
-* [GitOps as an add-on](https://github.com/Azure/AKS/issues/1967)
-* [Azure AD Pod Identity as an add-on](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity)
-
-## Advanced topics
-
-This reference implementation intentionally does not cover more advanced scenarios. For example topics like the following are not addressed:
-
-* Cluster lifecycle management with regard to SDLC and GitOps
-* Workload SDLC integration (including concepts like [Bridge to Kubernetes](https://docs.microsoft.com/visualstudio/containers/bridge-to-kubernetes?view=vs-2019), advanced deployment techniques, etc)
-* Mapping decisions to [CIS benchmark controls](https://www.cisecurity.org/benchmark/kubernetes/)
-* Container security
-* Multi-region clusters
-* [Advanced regulatory compliance](https://github.com/Azure/sg-aks-workshop) (FinServ)
-* Multiple (related or unrelated) workloads owned by the same team
-* Multiple workloads owned by disparate teams (AKS as a shared platform in your organization)
-* Cluster-contained state (PVC, etc)
-* Windows node pools
-* Scale-to-zero node pools and event-based scaling (KEDA)
-* [Terraform](https://docs.microsoft.com/azure/developer/terraform/create-k8s-cluster-with-tf-and-aks)
-* [Bedrock](https://github.com/microsoft/bedrock)
-* [dapr](https://github.com/dapr/dapr)
-
-Keep watching this space, as we build out reference implementation guidance on topics such as these. Further guidance delivered will use this baseline AKS implementation as their starting point. If you would like to contribute or suggest a pattern built on this baseline, [please get in touch](./CONTRIBUTING.md).
-
 ## Final thoughts
 
 Kubernetes is a very flexible platform, giving infrastructure and application operators many choices to achieve their business and technology objectives. At points along your journey, you will need to consider when to take dependencies on Azure platform features, OSS solutions, support channels, regulatory compliance, and operational processes. **We encourage this reference implementation to be the place for you to _start_ architectural conversations within your own team; adapting to your specific requirements, and ultimately delivering a solution that delights your customers.**
