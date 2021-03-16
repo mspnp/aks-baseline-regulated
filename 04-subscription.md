@@ -48,9 +48,11 @@ Also, depending on your workload subscription scope, some of the policies applie
 
 As mentioned in the Azure Policy section above, we enable the following Azure Security Center's services.
 
-* [Azure Defender for kubernetes](https://docs.microsoft.com/azure/security-center/defender-for-kubernetes-introduction)
-* [Azure Defender for container registries](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction)
-* [Azure Defender for key vault](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
+* [Azure Defender for Kubernetes](https://docs.microsoft.com/azure/security-center/defender-for-kubernetes-introduction)
+* [Azure Defender for Container Registries](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction)
+* [Azure Defender for Key Vault](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
+* [Azure Defender for Azure DNS](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
+* [Azure Defender for Azure Resource Manager](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
 
 Not only do we enable them in the steps below by default, but also set up an Azure Policy that ensures they stay enabled.
 
@@ -89,7 +91,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 ## Azure Security Benchmark
 
-Your Azure _subscription_ should have the **Azure Security Benchmark** Azure Policy initiative applied. While we could deploy it in ARM (as above), we don't want to step on anything already existing in your subscription, since you can only have it applied once for Security Center to detect it properly. If you have the ability to apply it without any negative impact on other work your subscription, you can do so by doing the following.
+Your Azure _subscription_ should have the **Azure Security Benchmark** Azure Policy initiative applied. While we could deploy it in ARM (as above), we don't want to step on anything already existing in your subscription, since you can only have it applied once for Security Center to detect it properly. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
 
 ### Steps
 
@@ -100,7 +102,7 @@ Your Azure _subscription_ should have the **Azure Security Benchmark** Azure Pol
 1. You'll want to ensure all relevant standards (e.g. **PCI DSS 3.2.1**) are **Enabled** under **Industry & regulatory standards**
 1. The **Regulatory Compliance** dashboard in Security Center might take an hour or two to reflect any modifications you've made.
 
-**None of the above is required for this walkthrough**, but we want to ensure you're aware of these subscription-level policies and how you can enable them for your final implementation. All subscriptions containing PCI workloads should have the **PCI DSS 3.2.1** Industry & regulatory standards reports enabled.
+**None of the above is required for this walkthrough**, but we want to ensure you're aware of these subscription-level policies and how you can enable them for your final implementation. All subscriptions containing PCI workloads should have the **PCI DSS 3.2.1** Industry & regulatory standards reports enabled, which _requires_ that the **Azure Security Benchmark** is applied as the default policy.
 
 ## Other Azure Policies
 
@@ -114,7 +116,7 @@ Consider evaluating additional Azure Policies to help guard your subscription fr
 * External accounts with owner permissions should be removed from your subscription
 * Network interfaces should not have public IPs
 
-Like the Azure Security Benchmark, we'd like to apply these, and similar, in this walkthrough; but we acknowledge that they might be disruptive if you are deploying this walkthrough to a shared subscription with other existing resources. Please take the time to review the [built-in Azure Policies](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) and the [ability to create your own](https://docs.microsoft.com/azure/governance/policy/tutorials/create-and-manage), and craft policies that will help keep you within regulatory compliance from an Azure Resource location & features perspective.
+Like the Azure Security Benchmark, we'd like to apply these, and similar, in this walkthrough; but we acknowledge that they might be disruptive if you are deploying this walkthrough to a subscription with other existing resources. Please take the time to review the [built-in Azure Policies](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) and the [ability to create your own](https://docs.microsoft.com/azure/governance/policy/tutorials/create-and-manage), and craft policies that will help keep you within regulatory compliance from an Azure Resource location & features perspective.
 
 ## Compliance documentation
 
