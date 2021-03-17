@@ -773,11 +773,10 @@
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "name": "[guid(parameters('targetVnetResourceId'), variables('dnsZoneContributorRole'), variables('clusterControlPlaneIdentityName'))]",
-                            "comments": "Allows AKS Cluster Identity to /read and /join/action on the virtual network (required with bring your own private dns.)",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
                             "properties": {
                                 "roleDefinitionId": "[variables('dnsZoneContributorRole')]",
-                                "description": "Allows cluster identity to join the attach custom DNS zone with Private Link information to this virtual network.",
+                                "description": "Allows cluster identity to attach custom DNS zone with Private Link information to this virtual network.",
                                 "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
                                 "principalType": "ServicePrincipal"
                             }
@@ -1178,6 +1177,7 @@
                     ],
                     "properties": {
                         "roleDefinitionId": "[variables('acrPullRole')]",
+                        "description": "Allows the AKS Cluster's kubelet managed identity to pull images from this container registry.",
                         "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-12-01').identityProfile.kubeletidentity.objectId]",
                         "principalType": "ServicePrincipal"
                     }
@@ -1189,7 +1189,8 @@
                     "location": "[parameters('geoRedundancyLocation')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]"
-                    ]
+                    ],
+                    "properties": {}
                 },
                 {
                     "type": "agentPools",
@@ -1456,12 +1457,12 @@
                     "type": "providers/roleAssignments",
                     "apiVersion": "2020-04-01-preview",
                     "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), 'omsagent', variables('monitoringMetricsPublisherRole')))]",
-                    "comments": "Grant the OMS Agent's Managed Identity the metrics publisher role to push alerts",
                     "dependsOn": [
                         "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
                     ],
                     "properties": {
                         "roleDefinitionId": "[variables('monitoringMetricsPublisherRole')]",
+                        "description": "Grant the OMS Agent's Managed Identity the metrics publisher role to push alerts.",
                         "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-12-01').addonProfiles.omsagent.identity.objectId]",
                         "principalType": "ServicePrincipal"
                     }
