@@ -2365,10 +2365,10 @@
                         "value": "audit"
                     },
                     "cpuLimit": {
-                        "value": "2000m"
+                        "value": "1500m"
                     },
                     "memoryLimit": {
-                        "value": "1Gi"
+                        "value": "2Gi"
                     },
                     "excludedNamespaces": {
                         "value": [
