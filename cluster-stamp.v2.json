@@ -2154,10 +2154,7 @@
                         "value": "deny"
                     },
                     "excludedNamespaces": {
-                        "value": [
-                            "kube-system",
-                            "gatekeeper-system"
-                        ]
+                        "value": []
                     }
                 }
             }
