@@ -26,7 +26,7 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 1. If any temporary changes were made to Azure AD or Azure RBAC permissions consider removing those as well.
 
-1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] ` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Azure Defender Standard** as part of this as well, you can remove that.
+1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Azure Defender Standard** as part of this as well, you can remove that.
 
    Execute the following commands will handle all Resource Group-scoped policies:
 

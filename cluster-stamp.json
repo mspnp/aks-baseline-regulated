@@ -2244,9 +2244,9 @@
             "type": "Microsoft.Authorization/policyAssignments",
             "apiVersion": "2020-09-01",
             "name": "[variables('policyAssignmentNameApprovedContainerPortsOnly')]",
-            "comments": "Applying the 'Approved Container Ports Only' policy to the resource group.",
+            "comments": "Applying the 'Approved Container Ports Only' policy to for the workload living in a0005-i and a0005-o namespaces.",
             "properties": {
-                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdApprovedContainerPortsOnly'), '2020-09-01').displayName), 125))]",
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'-a0005] ', reference(variables('policyResourceIdApprovedContainerPortsOnly'), '2020-09-01').displayName), 125))]",
                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
                 "policyDefinitionId": "[variables('policyResourceIdApprovedContainerPortsOnly')]",
                 "parameters": {
@@ -2254,13 +2254,7 @@
                         "value": "audit"
                     },
                     "excludedNamespaces": {
-                        "value": [
-                            "kube-system",
-                            "gatekeeper-system",
-                            "cluster-baseline-settings",
-                            "flux-system",
-                            "ingress-nginx"
-                        ]
+                        "value": []
                     },
                     "namespaces": {
                         "value": [
