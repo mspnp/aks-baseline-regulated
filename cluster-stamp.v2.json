@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "0.0.0.5",
+    "contentVersion": "1.0.2.0",
     "parameters": {
         "targetVnetResourceId": {
             "type": "string",
@@ -87,10 +87,6 @@
                 "description": "For Azure resources that support native geo-redunancy, provide the location the redundant service will have its secondary. Should be different than the location parameter and ideally should be a paired region - https://docs.microsoft.com/azure/best-practices-availability-paired-regions. This region does not need to support availability zones."
             }
         },
-        "kubernetesVersion": {
-            "defaultValue": "1.20.2",
-            "type": "string"
-        },
         "jumpBoxImageResourceId": {
             "type": "string",
             "minLength": 70,
@@ -107,6 +103,8 @@
         }
     },
     "variables": {
+        "kubernetesVersion": "1.20.2",
+
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
         "acrPullRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
@@ -775,11 +773,10 @@
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "name": "[guid(parameters('targetVnetResourceId'), variables('dnsZoneContributorRole'), variables('clusterControlPlaneIdentityName'))]",
-                            "comments": "Allows AKS Cluster Identity to /read and /join/action on the virtual network (required with bring your own private dns.)",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
                             "properties": {
                                 "roleDefinitionId": "[variables('dnsZoneContributorRole')]",
-                                "description": "Allows cluster identity to join the attach custom DNS zone with Private Link information to this virtual network.",
+                                "description": "Allows cluster identity to attach custom DNS zone with Private Link information to this virtual network.",
                                 "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
                                 "principalType": "ServicePrincipal"
                             }
@@ -1180,6 +1177,7 @@
                     ],
                     "properties": {
                         "roleDefinitionId": "[variables('acrPullRole')]",
+                        "description": "Allows the AKS Cluster's kubelet managed identity to pull images from this container registry.",
                         "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-12-01').identityProfile.kubeletidentity.objectId]",
                         "principalType": "ServicePrincipal"
                     }
@@ -1270,7 +1268,7 @@
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
             ],
             "properties": {
-                "kubernetesVersion": "[parameters('kubernetesVersion')]",
+                "kubernetesVersion": "[variables('kubernetesVersion')]",
                 "dnsPrefix": "[uniqueString(subscription().subscriptionId, resourceGroup().id, variables('clusterName'))]",
                 "agentPoolProfiles": [
                     {
@@ -1288,7 +1286,7 @@
                         "mode": "System",
                         "scaleSetPriority": "Regular",
                         "scaleSetEvictionPolicy": "Delete",
-                        "orchestratorVersion": "[parameters('kubernetesVersion')]",
+                        "orchestratorVersion": "[variables('kubernetesVersion')]",
                         "enableNodePublicIP": false,
                         "maxPods": 30,
                         "availabilityZones": [
@@ -1321,7 +1319,7 @@
                         "mode": "User",
                         "scaleSetPriority": "Regular",
                         "scaleSetEvictionPolicy": "Delete",
-                        "orchestratorVersion": "[parameters('kubernetesVersion')]",
+                        "orchestratorVersion": "[variables('kubernetesVersion')]",
                         "enableNodePublicIP": false,
                         "maxPods": 30,
                         "availabilityZones": [
@@ -1354,7 +1352,7 @@
                         "mode": "User",
                         "scaleSetPriority": "Regular",
                         "scaleSetEvictionPolicy": "Delete",
-                        "orchestratorVersion": "[parameters('kubernetesVersion')]",
+                        "orchestratorVersion": "[variables('kubernetesVersion')]",
                         "enableNodePublicIP": false,
                         "maxPods": 30,
                         "availabilityZones": [
@@ -1470,12 +1468,12 @@
                     "type": "providers/roleAssignments",
                     "apiVersion": "2020-04-01-preview",
                     "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), 'omsagent', variables('monitoringMetricsPublisherRole')))]",
-                    "comments": "Grant the OMS Agent's Managed Identity the metrics publisher role to push alerts",
                     "dependsOn": [
                         "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
                     ],
                     "properties": {
                         "roleDefinitionId": "[variables('monitoringMetricsPublisherRole')]",
+                        "description": "Grant the OMS Agent's Managed Identity the metrics publisher role to push alerts.",
                         "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-12-01').addonProfiles.omsagent.identity.objectId]",
                         "principalType": "ServicePrincipal"
                     }
@@ -2156,10 +2154,7 @@
                         "value": "deny"
                     },
                     "excludedNamespaces": {
-                        "value": [
-                            "kube-system",
-                            "gatekeeper-system"
-                        ]
+                        "value": []
                     }
                 }
             }
@@ -2260,9 +2255,9 @@
             "type": "Microsoft.Authorization/policyAssignments",
             "apiVersion": "2020-09-01",
             "name": "[variables('policyAssignmentNameApprovedContainerPortsOnly')]",
-            "comments": "Applying the 'Approved Container Ports Only' policy to the resource group.",
+            "comments": "Applying the 'Approved Container Ports Only' policy to for the workload living in a0005-i and a0005-o namespaces.",
             "properties": {
-                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdApprovedContainerPortsOnly'), '2020-09-01').displayName), 125))]",
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'-a0005] ', reference(variables('policyResourceIdApprovedContainerPortsOnly'), '2020-09-01').displayName), 125))]",
                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
                 "policyDefinitionId": "[variables('policyResourceIdApprovedContainerPortsOnly')]",
                 "parameters": {
@@ -2270,13 +2265,7 @@
                         "value": "audit"
                     },
                     "excludedNamespaces": {
-                        "value": [
-                            "kube-system",
-                            "gatekeeper-system",
-                            "cluster-baseline-settings",
-                            "flux-system",
-                            "ingress-nginx"
-                        ]
+                        "value": []
                     },
                     "namespaces": {
                         "value": [

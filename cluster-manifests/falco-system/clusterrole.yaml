@@ -6,9 +6,6 @@ metadata:
   name: aks-falco
   labels:
     app: aks-falco
-    chart: "falco-1.7.3"
-    release: "aks"
-    heritage: "Helm"
 rules:
   - apiGroups:
       - extensions

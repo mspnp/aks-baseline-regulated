@@ -8,11 +8,11 @@ spec:
     requests.cpu: "5"
     requests.memory: 8Gi
     requests.storage: "0"
-    limits.cpu: "10"
-    limits.memory: 16Gi
+    limits.cpu: "7"
+    limits.memory: 20Gi
     count/persistentvolumeclaims: "0"
     count/services.loadbalancers: "0"
     count/deployments.apps: "1"
     count/daemonset.apps: "2"
     count/services: "0"
-    count/pods: "20"
+    count/pods: "14"

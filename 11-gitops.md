@@ -182,10 +182,6 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 
 In summary, there should be a stated objective in your team that routine processes (especially bootstrapping new clusters), are never performed by a human via direct access tools `kubectl` -- _Zero-kubectl starting from Day 0_. Any ad-hoc human interaction with the cluster introduces risk and audit trail concerns. Obviously, live-site issues will require humans to perform out-of-the-norm practices to triage and address critical issues. Reserve your usage of direct access tooling like this for those times.
 
-## Live-site cluster access alternatives
-
-If you wish to add an auditable layer of indirection between users and the cluster for live-site issues, you might consider a ChatOps approach, in which commands against the cluster are executed by dedicated, hardened compute in a subnet like the one above for deployment but are fronted by a Microsoft Teams integration. That gives you the ability to log _all commands_ executed against the cluster, without necessarily building an ops process based exclusively around jump boxes. Also, you may already have an IAM-gated IT automation platform in place in which pre-defined _actions_ can be constructed within. Its action runners would then execute within the `snet-management-agents` subnet while the initial invocation of the actions is audited and controlled in the IT automation platform.
-
 ## GitOps configuration
 
 The GitOps implementation in this reference architecture is _intentionally simplistic_. Flux is configured to simply monitor manifests in ALL namespaces. It doesn't account for concepts like:

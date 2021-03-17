@@ -1,4 +1,3 @@
----
 # Source: falco/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -7,9 +6,6 @@ metadata:
   namespace: falco-system
   labels:
     app: aks-falco
-    chart: "falco-1.7.3"
-    release: "aks"
-    heritage: "Helm"
 data:
   falco.yaml: |-
     # File(s) or Directories containing Falco rules, loaded at startup.

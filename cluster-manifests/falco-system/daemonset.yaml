@@ -1,4 +1,3 @@
----
 # Source: falco/templates/daemonset.yaml
 apiVersion: apps/v1
 kind: DaemonSet
@@ -7,9 +6,6 @@ metadata:
   namespace: falco-system
   labels:
     app: aks-falco
-    chart: "falco-1.7.3"
-    release: "aks"
-    heritage: "Helm"
     pci-scope: out-of-scope
 spec:
   selector:

@@ -31,7 +31,7 @@ The quarantine pattern is ideal for detecting issues with newly pushed images, b
 
 ## In-cluster scanning
 
-Using a security agent that is container-aware and can operate from within the cluster is another layer of defense, and is the closest to the actual runtime. This should be used to detect threats that were not detectable in an earlier stage. Having an in-cluster runtime security agent be your _only_ issue detection point is _too late_ in the process. These agents come at a cost (compute power, operational complexity, their own security posture), but are often times still considered a valuable addition to your overall defense in depth position. This topic is covered a bit more on the next page.
+Using a security agent that is container-aware and can operate from within the cluster is another layer of defense, and is the closest to the actual runtime. This should be used to detect threats that were not detectable in an earlier stage, such as reporting on CVE issues on your current running inventory or unexpected runtime behavior. Having an in-cluster runtime security agent be your _only_ issue detection point is _too late_ in the process. These agents come at a cost (compute power, operational complexity, their own security posture), but are often times still considered a valuable addition to your overall defense in depth position. This topic is covered a bit more on the next page.
 
 **Static analysis, registry scanning, and continuous scanning should be the workflow for all of your images; both your own first party and any third party images you use.**
 

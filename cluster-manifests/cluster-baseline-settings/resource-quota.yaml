@@ -32,4 +32,4 @@ spec:
     # kured (1*[all nodes] = 7)
     # osm-controller (1 = 1)
     # x~1.5 for scale out / rolling upgrades
-    count/pods: "160"
+    count/pods: "60"

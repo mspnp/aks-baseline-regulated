@@ -6,8 +6,8 @@ metadata:
 spec:
   limits:
   - max:
-      cpu: 11500m
-      memory: 1512Mi
+      cpu: 500m
+      memory: 200Mi
     min:
       cpu: 0m
       memory: 0Mi
