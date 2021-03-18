@@ -1,6 +1,6 @@
 # Clean up
 
-After you are done exploring your deployed [AKS Baseline Cluster for Regulated Workloads](./), you'll want to delete the created Azure resources to prevent undesired costs from accruing. Follow these steps to delete all resources created as part of this reference implementation.
+After you are done exploring your deployed [AKS Baseline Cluster for Regulated Workloads](/), you'll want to delete the created Azure resources to prevent undesired costs from accruing. Follow these steps to delete all resources created as part of this reference implementation.
 
 ## Steps
 
@@ -50,4 +50,4 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 ### Next step
 
-:arrow_forward: [Back to main README](./README.md)
+:arrow_forward: [Back to main README](/README.md)

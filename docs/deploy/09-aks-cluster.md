@@ -1,6 +1,6 @@
 # Deploy the Regulated Industries AKS Cluster
 
-Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](./) is deploying the AKS cluster and its adjacent Azure resources.
+Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster and its adjacent Azure resources.
 
 ## Expected results
 

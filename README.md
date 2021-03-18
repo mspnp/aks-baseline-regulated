@@ -82,59 +82,59 @@ Ultimately, lifecycle/SDLC management of your cluster, its dependencies, and you
 
 There are considerations that must be addressed before you start deploying your cluster. Do I have enough permissions in my subscription and AD tenant to do a deployment of this size? How much of this will be handled by my team directly vs having another team be responsible?
 
-* [ ] Begin by ensuring you [install and meet the prerequisites](./01-prerequisites.md).
-* [ ] [Procure required TLS certificates](./02-ca-certificates.md).
-* [ ] Plan your [Azure Active Directory integration](./03-aad.md).
-* [ ] [Apply Azure Policy and Azure Defender configuration](./04-subscription.md) to your target subscription.
+* [ ] Begin by ensuring you [install and meet the prerequisites](./docs/deploy/01-prerequisites.md).
+* [ ] [Procure required TLS certificates](./docs/deploy/02-ca-certificates.md).
+* [ ] Plan your [Azure Active Directory integration](./docs/deploy/03-aad.md).
+* [ ] [Apply Azure Policy and Azure Defender configuration](./docs/deploy/04-subscription.md) to your target subscription.
 
 ### 2. Build regional networking hub
 
 This reference implementation is built on a traditional hub-spoke model, typical found in your organization's _Connectivity_ subscription. The hub will contain Azure Firewall, DNS forwarder, and Azure Bastion services.
 
-* [ ] [Build the regional hub](./05-networking-hub.md) to control and monitor spoke traffic.
+* [ ] [Build the regional hub](./docs/deploy/05-networking-hub.md) to control and monitor spoke traffic.
 
 ### 3. Plan Kubernetes API server access
 
 Because the AKS server is a "private cluster" the control plane is not exposed to the internet. Management now can only be performed with network line of sight to the private endpoint exposed by AKS. In this case, you'll build a Azure Bastion-fronted jump box.
 
-* [ ] [Build cluster operations VM image](./06-aks-jumpboximage.md) in an isolated network spoke.
-* [ ] [Build cloud-init configuration](./07-aks-jumpbox-users.md) for the operations VM image.
+* [ ] [Build cluster operations VM image](./docs/deploy/06-aks-jumpboximage.md) in an isolated network spoke.
+* [ ] [Build cloud-init configuration](./docs/deploy/07-aks-jumpbox-users.md) for the operations VM image.
 
 ### 4. Deploy the cluster
 
 Deploy the Azure resources that make up the primary runtime components of this architecture; the AKS cluster itself, jump box, Azure Container Registry, Azure Application Gateway, and Azure Key Vault.
 
-* [ ] [Deploy the target network spoke](./08-cluster-networking.md) that the cluster will be homed to.
-* [ ] [Deploy the AKS cluster](./09-aks-cluster.md) and supporting services.
+* [ ] [Deploy the target network spoke](./docs/deploy/08-cluster-networking.md) that the cluster will be homed to.
+* [ ] [Deploy the AKS cluster](./docs/deploy/09-aks-cluster.md) and supporting services.
 
 #### and then bootstrap it
 
 Bootstrapping your cluster should be seen as a direct _immediate follow_ of deploying any cluster. This takes the raw AKS cluster and enrolls it in GitOps which will adds workload-agnostic baseline functionality (such as security agents).
 
-* [ ] [Quarantine & import all bootstrap images](./10-pre-bootstrap.md) to Azure Container Registry.
-* [ ] [Place the cluster under GitOps management](./09-gitops.md).
+* [ ] [Quarantine & import all bootstrap images](./docs/deploy/10-pre-bootstrap.md) to Azure Container Registry.
+* [ ] [Place the cluster under GitOps management](./docs/deploy/09-gitops.md).
 
 ### 5. Deploy your workload
 
 A simple workload made up of four interconnected services is manually deployed across two namespaces to illustrate concepts such as nodepool placement, zero-trust network policies, and external infrastructure protections offered by the applied NSGs and Azure Firewall rules.
 
-* [ ] [Deploy the workload](./12-workload.md).
+* [ ] [Deploy the workload](./docs/deploy/12-workload.md).
 
 ### 6. :checkered_flag: Validation
 
 Now that the cluster and the sample workload is deployed; now it's time to look at how the cluster is functioning.
 
-* [ ] [Perform end-to-end deployment validation](./13-validation.md).
+* [ ] [Perform end-to-end deployment validation](./docs/deploy/13-validation.md).
 
 ### 7. :broom: Clean up resources
 
 Most of the Azure resources deployed in the prior steps will have ongoing billing impact unless removed.
 
-* [ ] [Cleanup all resources](./14-cleanup.md)
+* [ ] [Cleanup all resources](./docs/deploy/14-cleanup.md)
 
 ## Separation of duties
 
-All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Azure AD role guide](./16-rbac-suggestions.md)** shipped as part of this reference implementation.
+All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Azure AD role guide](./docs/rbac-suggestions.md)** shipped as part of this reference implementation.
 
 ## Is that all, what about .... !?
 
@@ -142,7 +142,7 @@ Yes, there are concerns that do extend beyond what this implementation could rea
 
 For your implementation, take this starting point and please add on additional security measures talked about throughout the walkthrough that were not directly impacted. Enable JIT and Conditional Access Policies, leverage Encryption-at-Host features if applicable to your workload, etc.
 
-**For a list of additional considerations for your architecture, please see our [Additional Considerations](./15-additional-considerations.md) document.**
+**For a list of additional considerations for your architecture, please see our [Additional Considerations](./docs/additional-considerations.md) document.**
 
 ## Cost
 
