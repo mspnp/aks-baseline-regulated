@@ -1,6 +1,6 @@
 # AKS baseline Network Topology
 
-> Note: This is part of the Azure Kubernetes Service (AKS) Baseline Cluster reference implementation. For more information check out the [readme file in the root](/README.md).
+> Note: This is part of the Azure Kubernetes Service (AKS) Baseline Cluster reference implementation. For more information check out the [readme file in the root](../README.md).
 
 ## Hub VNet
 
