@@ -134,7 +134,7 @@ Most of the Azure resources deployed in the prior steps will have ongoing billin
 
 ## Separation of duties
 
-All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider reviewing our [Azure AD role guide](./16-rbac-suggestions.md) shipped as part of this reference implementation.
+All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Azure AD role guide](./16-rbac-suggestions.md)** shipped as part of this reference implementation.
 
 ## Is that all, what about .... !?
 
@@ -142,7 +142,7 @@ Yes, there are concerns that do extend beyond what this implementation could rea
 
 For your implementation, take this starting point and please add on additional security measures talked about throughout the walkthrough that were not directly impacted. Enable JIT and Conditional Access Policies, leverage Encryption-at-Host features if applicable to your workload, etc.
 
-For a list of additional considerations for your architecture, please see our [Additional Considerations](./15-additional-considerations.md) document.
+**For a list of additional considerations for your architecture, please see our [Additional Considerations](./15-additional-considerations.md) document.**
 
 ## Cost
 

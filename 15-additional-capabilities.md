@@ -108,4 +108,4 @@ Your build agents should be as air-gapped as practical from your cluster, reserv
 
 ## Next step
 
-:arrow_forward: [Back to main README](./README.md)
+:arrow_forward: [Back to main README](./README.md#is-that-all-what-about--)

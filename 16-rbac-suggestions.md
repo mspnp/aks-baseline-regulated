@@ -64,4 +64,4 @@ The above, where they materialize in-cluster, would be mapped to distinct, custo
 
 ## Next step
 
-:arrow_forward: [Back to main README](./README.md)
+:arrow_forward: [Back to main README](./README.md#separation-of-duties)
