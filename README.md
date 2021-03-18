@@ -45,6 +45,7 @@ Finally, this implementation uses a small custom application as an example workl
   * Private Cluster (Kubernetes API Server)
   * [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity)
 * Azure Virtual Networks (hub-spoke)
+  * Hub-proxied DNS
   * Azure Firewall managed egress
   * Hub-proxied DNS
   * BYO Private DNS Zone for AKS
