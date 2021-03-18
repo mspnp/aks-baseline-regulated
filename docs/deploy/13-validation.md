@@ -1,6 +1,6 @@
 # End-to-End Validation
 
-Now that you have a [simulated regulated workload deployed](./12-workload.md), you can start validating and exploring this reference implementation of the [AKS Baseline Cluster for Regulated Workloads](./). In addition to the workload, there are some observability validation you can perform as well.
+Now that you have a [simulated regulated workload deployed](./12-workload.md), you can start validating and exploring this reference implementation of the [AKS Baseline Cluster for Regulated Workloads](/). In addition to the workload, there are some observability validation you can perform as well.
 
 ## Validate the Web App
 
