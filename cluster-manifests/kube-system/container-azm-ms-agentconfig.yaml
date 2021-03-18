@@ -1,5 +1,5 @@
-apiVersion: v1
 kind: ConfigMap
+apiVersion: v1
 metadata:
   name: container-azm-ms-agentconfig
   namespace: kube-system
@@ -11,21 +11,21 @@ data:
     [log_collection_settings]
        [log_collection_settings.stdout]
           enabled = true
-          exclude_namespaces = ["kube-system"]
+          exclude_namespaces = []
        [log_collection_settings.stderr]
           enabled = true
-          exclude_namespaces = ["kube-system"]
+          exclude_namespaces = []
        [log_collection_settings.env_var]
           enabled = true
        [log_collection_settings.enrich_container_logs]
-          enabled = false
+          enabled = true
        [log_collection_settings.collect_all_kube_events]
           enabled = false
   prometheus-data-collection-settings: |-
     [prometheus_data_collection_settings.cluster]
         interval = "1m"
         monitor_kubernetes_pods = true
-        monitor_kubernetes_pods_namespaces = ["a0008","cluster-baseline-settings"]
+        monitor_kubernetes_pods_namespaces = ["a0005-i", "a0005-o", "cluster-baseline-settings", "flux-system", "falco-system", "ingress-nginx", "osm-system"]
     [prometheus_data_collection_settings.node]
         interval = "1m"
         urls = ["http://$NODE_IP:9103/metrics"]
@@ -43,3 +43,6 @@ data:
     [integrations.azure_network_policy_manager]
         collect_basic_metrics = true
         collect_advanced_metrics = false
+  agent-settings: |-
+    [agent_settings.health_model]
+        enabled = true

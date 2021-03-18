@@ -3,4 +3,5 @@
 *.key
 *.pfx
 *.pem
+*.pub
 sp.json

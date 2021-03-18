@@ -1,0 +1,2435 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.2.0",
+    "parameters": {
+        "targetVnetResourceId": {
+            "type": "string",
+            "minLength": 79,
+            "metadata": {
+                "description": "The regional network spoke VNet Resource ID that the cluster will be joined to"
+            }
+        },
+        "clusterAdminAadGroupObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure AD Group in the identified tenant that will be granted the highly privileged cluster-admin role."
+            }
+        },
+        "k8sControlPlaneAuthorizationTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Your AKS control plane Cluster API authentication tenant"
+            }
+        },
+        "appGatewayListenerCertificate": {
+            "type": "string",
+            "metadata": {
+                "description": "The certificate data for app gateway TLS termination. It is base64"
+            }
+        },
+        "aksIngressControllerCertificate": {
+            "type": "string",
+            "metadata": {
+                "description": "The base 64 encoded AKS Ingress Controller public certificate (as .crt or .cer) to be stored in Azure Key Vault as secret and referenced by Azure Application Gateway as a trusted root certificate."
+            }
+        },
+        "location": {
+            "defaultValue": "eastus2",
+            "type": "string",
+            "allowedValues": [
+                "australiaeast",
+                "canadacentral",
+                "centralus",
+                "eastus",
+                "eastus2",
+                "westus2",
+                "francecentral",
+                "germanywestcentral",
+                "northeurope",
+                "southafricanorth",
+                "southcentralus",
+                "uksouth",
+                "westeurope",
+                "japaneast",
+                "southeastasia"
+            ],
+            "metadata": {
+                "description": "AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters."
+            }
+        },
+        "geoRedundancyLocation": {
+            "defaultValue": "centralus",
+            "type": "string",
+            "allowedValues": [
+                "australiasoutheast",
+                "canadaeast",
+                "eastus2",
+                "westus",
+                "centralus",
+                "westcentralus",
+                "francesouth",
+                "germanynorth",
+                "westeurope",
+                "ukwest",
+                "northeurope",
+                "japanwest",
+                "southafricawest",
+                "northcentralus",
+                "eastasia",
+                "eastus",
+                "westus2",
+                "francecentral",
+                "uksouth",
+                "japaneast",
+                "southeastasia"
+            ],
+            "metadata": {
+                "description": "For Azure resources that support native geo-redunancy, provide the location the redundant service will have its secondary. Should be different than the location parameter and ideally should be a paired region - https://docs.microsoft.com/azure/best-practices-availability-paired-regions. This region does not need to support availability zones."
+            }
+        },
+        "jumpBoxImageResourceId": {
+            "type": "string",
+            "minLength": 70,
+            "metadata": {
+                "description": "The Azure resource ID of a VM image that will be used for the jump box."
+            }
+        },
+        "jumpBoxCloudInitAsBase64": {
+            "type": "string",
+            "minLength": 100,
+            "metadata": {
+                "description": "A cloud init file (starting with #cloud-config) as a base 64 encoded string used to perform image customization on the jump box VMs. Used for user-management in this context."
+            }
+        }
+    },
+    "variables": {
+        "kubernetesVersion": "1.20.2",
+
+        "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+        "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
+        "acrPullRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+        "dnsZoneContributorRole": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/b12aa53e-6015-4669-85d0-8515ebb3ae7f')]",
+        "managedIdentityOperatorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/f1a07417-d97a-45cb-824c-7a7467783830')]",
+
+        "subRgUniqueString": "[uniqueString('aks', subscription().subscriptionId, resourceGroup().id)]",
+
+        "nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
+        "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
+        "logAnalyticsWorkspaceName": "[concat('la-', variables('clusterName'))]",
+        "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
+        "vmInsightsSolutionName": "[concat('VMInsights(', variables('logAnalyticsWorkspaceName'),')')]",
+        "securityCenterSolutionName": "[concat('SecurityInsights(', variables('logAnalyticsWorkspaceName'),')')]",
+        "defaultAcrName": "[concat('acraks', variables('subRgUniqueString'))]",
+
+        "vNetResourceGroup": "[split(parameters('targetVnetResourceId'),'/')[4]]",
+        "vnetName": "[split(parameters('targetVnetResourceId'),'/')[8]]",
+        "vnetSystemNodePoolSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-systemnodepool')]",
+        "vnetInScopeNodePoolSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-inscopenodepools')]",
+        "vnetPrivateLinkSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-privatelinkendpoints')]",
+        "vnetAcrBuildSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-management-acragents')]",
+        "vnetOutOfScopeNodePoolSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-outofscopenodepools')]",
+        "vnetIngressServicesSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
+        "vnetManagementOpsSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-management-ops')]",
+
+        "agwName": "[concat('apw-', variables('clusterName'))]",
+        "apwResourceId": "[resourceId('Microsoft.Network/applicationGateways', variables('agwName'))]",
+
+        "jumpBoxDefaultAdminUserName": "[uniqueString(variables('clusterName'), resourceGroup().id)]",
+
+        "clusterControlPlaneIdentityName": "[concat('mi-', variables('clusterName'), '-controlplane')]",
+
+        "keyVaultName": "[concat('kv-', variables('clusterName'))]",
+
+        "policyResourceIdAKSLinuxRestrictive": "/providers/Microsoft.Authorization/policySetDefinitions/42b8ef37-b724-4e24-bbc8-7a7708edfe00",
+        "policyResourceIdEnforceHttpsIngress": "/providers/Microsoft.Authorization/policyDefinitions/1a5b4dca-0b6f-4cf5-907c-56316bc1bf3d",
+        "policyResourceIdEnforceInternalLoadBalancers": "/providers/Microsoft.Authorization/policyDefinitions/3fc4dc25-5baf-40d8-9b05-7fe74c1bc64e",
+        "policyResourceIdRoRootFilesystem": "/providers/Microsoft.Authorization/policyDefinitions/df49d893-a74c-421d-bc95-c663042e5b80",
+        "policyResourceIdEnforceResourceLimits": "/providers/Microsoft.Authorization/policyDefinitions/e345eecc-fa47-480f-9e88-67dcc122b164",
+        "policyResourceIdEnforceImageSource": "/providers/Microsoft.Authorization/policyDefinitions/febd0533-8e55-448f-b837-bd0e06f16469",
+        "policyResourceIdBlockDefaultNamespace": "/providers/Microsoft.Authorization/policyDefinitions/9f061a12-e40d-4183-a00e-171812443373",
+        "policyResourceIdApprovedContainerPortsOnly": "/providers/Microsoft.Authorization/policyDefinitions/440b515e-a580-421e-abeb-b159a61ddcbc",
+        "policyResourceIdApprovedServicePortsOnly": "/providers/Microsoft.Authorization/policyDefinitions/233a2a17-77ca-4fb1-9b6b-69223d272a44",
+        "policyResourceIdMustUseSpecifiedLabels": "/providers/Microsoft.Authorization/policyDefinitions/46592696-4c7b-4bf3-9e45-6c2763bdc0a6",
+        "policyResourceIdMustUseTheseExternalIps": "/providers/Microsoft.Authorization/policyDefinitions/d46c275d-1680-448d-b2ec-e495a3b6cc89",
+        "policyResourceIdMustNotAutomountApiCreds": "/providers/Microsoft.Authorization/policyDefinitions/423dd1ba-798e-40e4-9c4d-b6902674b423",
+        "policyAssignmentNameAKSLinuxRestrictive": "[guid(variables('policyResourceIdAKSLinuxRestrictive'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameEnforceHttpsIngress": "[guid(variables('policyResourceIdEnforceHttpsIngress'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameEnforceInternalLoadBalancers": "[guid(variables('policyResourceIdEnforceInternalLoadBalancers'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameRoRootFilesystem": "[guid(variables('policyResourceIdRoRootFilesystem'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameEnforceResourceLimits": "[guid(variables('policyResourceIdEnforceResourceLimits'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameEnforceImageSource": "[guid(variables('policyResourceIdEnforceImageSource'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameBlockDefaultNamespace": "[guid(variables('policyResourceIdBlockDefaultNamespace'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameApprovedContainerPortsOnly": "[guid(variables('policyResourceIdApprovedContainerPortsOnly'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameApprovedServicePortsOnly": "[guid(variables('policyResourceIdApprovedServicePortsOnly'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameMustUseSpecifiedLabels": "[guid(variables('policyResourceIdMustUseSpecifiedLabels'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameMustUseTheseExternalIps": "[guid(variables('policyResourceIdMustUseTheseExternalIps'), resourceGroup().name, variables('clusterName'))]",
+        "policyAssignmentNameMustNotAutomountApiCreds": "[guid(variables('policyResourceIdMustNotAutomountApiCreds'), resourceGroup().name, variables('clusterName'))]",
+
+        "aksSecurityCenterWorkbookData": "{\"version\":\"Notebook/1.0\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## AKS Security\\n\"},\"name\":\"text - 2\"},{\"type\":9,\"content\":{\"version\":\"KqlParameterItem/1.0\",\"crossComponentResources\":[\"{workspaces}\"],\"parameters\":[{\"id\":\"311d3728-7f8a-4b16-8a34-097d099323d5\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"subscription\",\"label\":\"Subscription\",\"type\":6,\"isRequired\":true,\"multiSelect\":true,\"quote\":\"'\",\"delimiter\":\",\",\"value\":[],\"typeSettings\":{\"additionalResourceOptions\":[],\"includeAll\":false,\"showDefault\":false}},{\"id\":\"3a56d260-4fb9-46d6-b121-cea854104c91\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"workspaces\",\"label\":\"Workspaces\",\"type\":5,\"isRequired\":true,\"multiSelect\":true,\"quote\":\"'\",\"delimiter\":\",\",\"query\":\"where type =~ 'microsoft.operationalinsights/workspaces'\\r\\n| where strcat('/subscriptions/',subscriptionId) in ({subscription})\\r\\n| project id\",\"crossComponentResources\":[\"{subscription}\"],\"typeSettings\":{\"additionalResourceOptions\":[\"value::all\"]},\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\",\"value\":[\"value::all\"]},{\"id\":\"9615cea6-c661-470a-b4ae-1aab8ae6f448\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"clustername\",\"label\":\"Cluster name\",\"type\":5,\"isRequired\":true,\"multiSelect\":true,\"quote\":\"'\",\"delimiter\":\",\",\"query\":\"where type == \\\"microsoft.containerservice/managedclusters\\\"\\r\\n| where strcat('/subscriptions/',subscriptionId) in ({subscription})\\r\\n| distinct tolower(id)\",\"crossComponentResources\":[\"{subscription}\"],\"value\":[\"value::all\"],\"typeSettings\":{\"resourceTypeFilter\":{\"microsoft.containerservice/managedclusters\":true},\"additionalResourceOptions\":[\"value::all\"],\"showDefault\":false},\"timeContext\":{\"durationMs\":86400000},\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\"},{\"id\":\"236c00ec-1493-4e60-927a-a18b8b120cd5\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"timeframe\",\"label\":\"Time range\",\"type\":4,\"description\":\"Time\",\"isRequired\":true,\"value\":{\"durationMs\":172800000},\"typeSettings\":{\"selectableValues\":[{\"durationMs\":300000},{\"durationMs\":900000},{\"durationMs\":1800000},{\"durationMs\":3600000},{\"durationMs\":14400000},{\"durationMs\":43200000},{\"durationMs\":86400000},{\"durationMs\":172800000},{\"durationMs\":259200000},{\"durationMs\":604800000},{\"durationMs\":1209600000},{\"durationMs\":2419200000},{\"durationMs\":2592000000},{\"durationMs\":5184000000},{\"durationMs\":7776000000}],\"allowCustom\":true},\"timeContext\":{\"durationMs\":86400000}},{\"id\":\"bf0a3e4f-fff9-450c-b9d3-c8c1dded9787\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"nodeRgDetails\",\"type\":1,\"query\":\"where type == \\\"microsoft.containerservice/managedclusters\\\"\\r\\n| where tolower(id) in ({clustername})\\r\\n| project nodeRG = properties.nodeResourceGroup, subscriptionId, id = toupper(id)\\r\\n| project nodeRgDetails = strcat('\\\"', nodeRG, \\\";\\\", subscriptionId, \\\";\\\", id, '\\\"')\",\"crossComponentResources\":[\"value::all\"],\"isHiddenWhenLocked\":true,\"timeContext\":{\"durationMs\":86400000},\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\"},{\"id\":\"df53126c-c40f-43d5-b99f-97ee3785c086\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"diagnosticClusters\",\"type\":1,\"query\":\"union withsource=_TableName *\\r\\n| where _TableName == \\\"AzureDiagnostics\\\" and Category == \\\"kube-audit\\\"\\r\\n| summarize diagnosticClusters = dcount(ResourceId)\\r\\n| project isDiagnosticCluster = iff(diagnosticClusters > 0, \\\"yes\\\", \\\"no\\\")\",\"crossComponentResources\":[\"{workspaces}\"],\"isHiddenWhenLocked\":true,\"timeContext\":{\"durationMs\":172800000},\"timeContextFromParameter\":\"timeframe\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"}],\"style\":\"pills\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"},\"name\":\"parameters - 3\"},{\"type\":11,\"content\":{\"version\":\"LinkItem/1.0\",\"style\":\"tabs\",\"links\":[{\"id\":\"07cf87dc-8234-47db-850d-ec41b2687b2a\",\"cellValue\":\"mainTab\",\"linkTarget\":\"parameter\",\"linkLabel\":\"Azure Defender for Kubernetes\",\"subTarget\":\"alerts\",\"preText\":\"\",\"style\":\"link\"},{\"id\":\"44033ee6-d83e-4253-a732-c258ef1da545\",\"cellValue\":\"mainTab\",\"linkTarget\":\"parameter\",\"linkLabel\":\"Analytics over Diagnostic logs\",\"subTarget\":\"diagnostics\",\"style\":\"link\"}]},\"name\":\"links - 22\"},{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## Azure Defender for AKS coverage\"},\"name\":\"text - 10\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"datatable (Event:string)\\r\\n    [\\\"AKS Workbook\\\"]\\r\\n| extend cluster = (strcat(\\\"[\\\", \\\"{clustername}\\\", \\\"]\\\"))\\r\\n| extend cluster = todynamic(replace(\\\"'\\\", '\\\"', cluster))\\r\\n| mvexpand cluster\\r\\n| extend subscriptionId = extract(@\\\"/subscriptions/([^/]+)\\\", 1, tostring(cluster))\\r\\n| summarize AksClusters = count() by subscriptionId, DefenderForAks = 0\\r\\n| union\\r\\n(\\r\\nsecurityresources\\r\\n| where type =~ \\\"microsoft.security/pricings\\\"\\r\\n| where name == \\\"KubernetesService\\\"\\r\\n| project DefenderForAks = iif(properties.pricingTier == 'Standard', 1, 0), AksClusters = 0, subscriptionId\\r\\n)\\r\\n| summarize AksClusters = sum(AksClusters), DefenderForAks = sum(DefenderForAks) by subscriptionId\\r\\n| project Subscription = strcat('/subscriptions/', subscriptionId), [\\\"AKS clusters\\\"] = AksClusters, ['Defender for AKS'] = iif(DefenderForAks > 0,'yes','no'), ['Onboard Azure Defender'] = iif(DefenderForAks > 0, '', 'https://ms.portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/26')\\r\\n| order by ['Defender for AKS'] asc\",\"size\":0,\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\",\"crossComponentResources\":[\"{subscription}\"],\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"Defender for AKS\",\"formatter\":18,\"formatOptions\":{\"thresholdsOptions\":\"icons\",\"thresholdsGrid\":[{\"operator\":\"==\",\"thresholdValue\":\"no\",\"representation\":\"4\",\"text\":\"\"},{\"operator\":\"Default\",\"thresholdValue\":null,\"representation\":\"success\",\"text\":\"\"}]}},{\"columnMatch\":\"Onboard Azure Defender\",\"formatter\":7,\"formatOptions\":{\"linkTarget\":\"Url\",\"linkLabel\":\"\"}}]}},\"customWidth\":\"66\",\"name\":\"query - 9\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"datatable (Event:string)\\r\\n    [\\\"AKS Workbook\\\"]\\r\\n| extend cluster = (strcat(\\\"[\\\", \\\"{clustername}\\\", \\\"]\\\"))\\r\\n| extend cluster = todynamic(replace(\\\"'\\\", '\\\"', cluster))\\r\\n| mvexpand cluster\\r\\n| extend subscriptionId = extract(@\\\"/subscriptions/([^/]+)\\\", 1, tostring(cluster))\\r\\n| summarize AksClusters = count() by subscriptionId, DefenderForAks = 0\\r\\n| union\\r\\n(\\r\\nsecurityresources\\r\\n| where type =~ \\\"microsoft.security/pricings\\\"\\r\\n| where name == \\\"KubernetesService\\\"\\r\\n| project DefenderForAks = iif(properties.pricingTier == 'Standard', 1, 0), AksClusters = 0, subscriptionId\\r\\n)\\r\\n| summarize AksClusters = sum(AksClusters), DefenderForAks = sum(DefenderForAks) by subscriptionId\\r\\n| project Subscription = 1, ['Defender for AKS'] = iif(DefenderForAks > 0,'Protected by Azure Defender','Not protected by Azure Defender')\",\"size\":0,\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\",\"crossComponentResources\":[\"{subscription}\"],\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"query - 11\"},{\"type\":1,\"content\":{\"json\":\"### AKS alerts overview\"},\"name\":\"text - 21\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| project image = tostring(todynamic(ExtendedProperties)[\\\"Container image\\\"]), AlertType\\r\\n| where image != \\\"\\\"\\r\\n| summarize AlertTypes = dcount(AlertType) by image\\r\\n| where AlertTypes > 1\\r\\n//| render piechart \\r\\n\",\"size\":4,\"title\":\"Images with multiple alerts\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"image\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"AlertTypes\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"customWidth\":\"33\",\"name\":\"query - 12\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| project AlertType, name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize AlertTypes = dcount(AlertType)  by  name\\r\\n| where AlertTypes > 1\\r\\n\",\"size\":4,\"title\":\"Clusters with multiple alert types\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"name\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"AlertTypes\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"customWidth\":\"33\",\"name\":\"query - 12 - Copy\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| project AlertType, name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize count() by name\\r\\n\\r\\n\",\"size\":4,\"title\":\"Alerts triggered by cluster\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"name\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"count_\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"customWidth\":\"33\",\"name\":\"query - 12 - Copy - Copy\"},{\"type\":1,\"content\":{\"json\":\"### Seucirty alerts details\\r\\n\\r\\nTo filter, press on the severities below.\\r\\nYou can also filter based on a specific resource.\"},\"name\":\"text - 18\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert\\r\\n| where TimeGenerated {timeframe}\\r\\n| extend rg = extract(@\\\"/resourcegroups/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend sub = extract(@\\\"/subscriptions/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend nodesDetailsArr = todynamic('{nodeRgDetails}')\\r\\n| mv-expand singleNodeDetails = nodesDetailsArr\\r\\n| extend singleNodeArr = split(singleNodeDetails, \\\";\\\")\\r\\n| where tolower(singleNodeArr[0]) == rg and tolower(singleNodeArr[1]) == sub\\r\\n| project AlertSeverity\\r\\n| union\\r\\n(\\r\\nSecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| project AlertSeverity\\r\\n)\\r\\n| summarize count() by AlertSeverity\",\"size\":0,\"title\":\"Alerts by severity\",\"exportMultipleValues\":true,\"exportedParameters\":[{\"fieldName\":\"AlertSeverity\",\"parameterName\":\"severity\",\"parameterType\":1,\"quote\":\"\"}],\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"AlertSeverity\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"count_\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"customWidth\":\"11\",\"name\":\"Alerts by severity\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert\\r\\n| where TimeGenerated {timeframe}\\r\\n| where \\\"{severity}\\\" has AlertSeverity or isempty(\\\"{severity}\\\")\\r\\n| extend rg = extract(@\\\"/resourcegroups/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend sub = extract(@\\\"/subscriptions/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend nodesDetailsArr = todynamic('{nodeRgDetails}')\\r\\n| mv-expand singleNodeDetails = nodesDetailsArr\\r\\n| extend singleNodeArr = split(singleNodeDetails, \\\";\\\")\\r\\n| where tolower(singleNodeArr[0]) == rg and tolower(singleNodeArr[1]) == sub\\r\\n| project ResourceId\\r\\n| union\\r\\n(\\r\\nSecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where \\\"{severity}\\\" has AlertSeverity or isempty(\\\"{severity}\\\")\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| project ResourceId\\r\\n)\\r\\n| summarize Alerts = count() by ResourceId\\r\\n| order by Alerts desc\\r\\n| limit 10\",\"size\":0,\"title\":\"Resources with most alerts\",\"exportFieldName\":\"ResourceId\",\"exportParameterName\":\"selectedResource\",\"exportDefaultValue\":\"not_selected\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"Alerts\",\"formatter\":4,\"formatOptions\":{\"palette\":\"red\"}}]}},\"customWidth\":\"22\",\"name\":\"Resources with most alerts\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"\\r\\nSecurityAlert\\r\\n| where TimeGenerated {timeframe}\\r\\n| where \\\"{severity}\\\" has AlertSeverity or isempty(\\\"{severity}\\\")\\r\\n| extend rg = extract(@\\\"/resourcegroups/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend sub = extract(@\\\"/subscriptions/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend nodesDetailsArr = todynamic('{nodeRgDetails}')\\r\\n| mv-expand singleNodeDetails = nodesDetailsArr\\r\\n| extend singleNodeArr = split(singleNodeDetails, \\\";\\\")\\r\\n| where tolower(singleNodeArr[0]) == rg and tolower(singleNodeArr[1]) == sub\\r\\n| extend AlertResourceType = \\\"VM alerts\\\"\\r\\n| union\\r\\n(\\r\\nSecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where \\\"{severity}\\\" has AlertSeverity or isempty(\\\"{severity}\\\")\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| extend AlertResourceType = \\\"Cluster alerts\\\"\\r\\n)\\r\\n| summarize Alerts = count() by bin(TimeGenerated, {timeframe:grain}), AlertResourceType\",\"size\":0,\"title\":\"Alerts over time\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"timechart\"},\"customWidth\":\"66\",\"name\":\"Alerts over time\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert\\r\\n| where TimeGenerated {timeframe}\\r\\n| where \\\"{severity}\\\" has AlertSeverity or isempty(\\\"{severity}\\\")\\r\\n| extend rg = extract(@\\\"/resourcegroups/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend sub = extract(@\\\"/subscriptions/([^/]+)\\\", 1, tolower(ResourceId))\\r\\n| extend nodesDetailsArr = todynamic('{nodeRgDetails}')\\r\\n| mv-expand singleNodeDetails = nodesDetailsArr\\r\\n| extend singleNodeArr = split(singleNodeDetails, \\\";\\\")\\r\\n| where tolower(singleNodeArr[0]) == rg and tolower(singleNodeArr[1]) == sub\\r\\n| where tolower(ResourceId) == tolower(\\\"{selectedResource}\\\") or \\\"{selectedResource}\\\" == \\\"not_selected\\\"\\r\\n| project [\\\"Resource name\\\"] = ResourceId, TimeGenerated, AlertSeverity, [\\\"AKS cluster\\\"] = toupper(singleNodeArr[2]), DisplayName, AlertLink\\r\\n| union\\r\\n(\\r\\nSecurityAlert\\r\\n| where TimeGenerated {timeframe}\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where \\\"{severity}\\\" has AlertSeverity or isempty(\\\"{severity}\\\")\\r\\n| where AlertType startswith \\\"AKS_\\\"\\r\\n| where tolower(ResourceId) == tolower(\\\"{selectedResource}\\\") or \\\"{selectedResource}\\\" == \\\"not_selected\\\"\\r\\n| project [\\\"Resource name\\\"] = ResourceId, TimeGenerated, AlertSeverity, [\\\"AKS cluster\\\"] = ResourceId, DisplayName, AlertLink\\r\\n)\\r\\n| order by TimeGenerated asc\",\"size\":0,\"title\":\"Azure Defender alerts\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"AlertLink\",\"formatter\":7,\"formatOptions\":{\"linkTarget\":\"Url\",\"linkLabel\":\"Go to alert \"}}],\"filter\":true},\"sortBy\":[]},\"name\":\"Azure Defender alerts\",\"styleSettings\":{\"showBorder\":true}}]},\"conditionalVisibility\":{\"parameterName\":\"mainTab\",\"comparison\":\"isEqualTo\",\"value\":\"alerts\"},\"name\":\"Defender Alerts\"},{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## Diagnostic logs coverage\"},\"name\":\"text - 15\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"union withsource=_TableName *\\r\\n| where _TableName == \\\"AzureDiagnostics\\\" and Category == \\\"kube-audit\\\"\\r\\n| summarize count() by ResourceId = tolower(ResourceId)\\r\\n| summarize logsClusters = make_set(ResourceId)\\r\\n| extend selectedClusters = \\\"[{clustername}]\\\"\\r\\n| extend selectedClusters = replace(\\\"'\\\", '\\\"', selectedClusters)\\r\\n| extend selectedClusters = todynamic(selectedClusters)\\r\\n| mv-expand clusterId = selectedClusters\\r\\n| project clusterId = toupper(tostring(clusterId)), [\\\"Diagnostic logs\\\"] = (logsClusters has tostring(clusterId))\\r\\n| extend [\\\"Diagnostic settings\\\"] = iff([\\\"Diagnostic logs\\\"] == false, strcat(\\\"https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource\\\", clusterId, \\\"/diagnostics\\\"), \\\"\\\")\\r\\n\",\"size\":0,\"timeContext\":{\"durationMs\":172800000},\"timeContextFromParameter\":\"timeframe\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"Diagnostic logs\",\"formatter\":18,\"formatOptions\":{\"thresholdsOptions\":\"icons\",\"thresholdsGrid\":[{\"operator\":\"==\",\"thresholdValue\":\"false\",\"representation\":\"critical\",\"text\":\"\"},{\"operator\":\"Default\",\"thresholdValue\":null,\"representation\":\"success\",\"text\":\"\"}]}},{\"columnMatch\":\"Diagnostic settings\",\"formatter\":7,\"formatOptions\":{\"linkTarget\":\"Url\"}}],\"filter\":true,\"sortBy\":[{\"itemKey\":\"$gen_thresholds_Diagnostic logs_1\",\"sortOrder\":2}]},\"sortBy\":[{\"itemKey\":\"$gen_thresholds_Diagnostic logs_1\",\"sortOrder\":2}]},\"customWidth\":\"66\",\"name\":\"query - 14\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"union withsource=_TableName *\\r\\n| where _TableName == \\\"AzureDiagnostics\\\" and Category == \\\"kube-audit\\\"\\r\\n| summarize count() by ResourceId = tolower(ResourceId)\\r\\n| summarize logsClusters = make_set(ResourceId)\\r\\n| extend selectedClusters = \\\"[{clustername}]\\\"\\r\\n| extend selectedClusters = replace(\\\"'\\\", '\\\"', selectedClusters)\\r\\n| extend selectedClusters = todynamic(selectedClusters)\\r\\n| mv-expand clusterId = selectedClusters\\r\\n| project clusterId = toupper(tostring(clusterId)), hasDiagnosticLogs = (logsClusters has tostring(clusterId))\\r\\n| summarize [\\\"number of clusters\\\"] = count() by hasDiagnosticLogs\\r\\n| extend hasDiagnosticLogs = iff(hasDiagnosticLogs == true, \\\"Clusters with Diagnostic logs\\\", \\\"Clusters without Diagnostic logs\\\")\\r\\n\",\"size\":0,\"timeContext\":{\"durationMs\":172800000},\"timeContextFromParameter\":\"timeframe\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"query - 17\"},{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## Cluster operations\"},\"name\":\"text - 16\"},{\"type\":11,\"content\":{\"version\":\"LinkItem/1.0\",\"style\":\"tabs\",\"links\":[{\"id\":\"3f616701-fd4b-482c-aff1-a85414daa05c\",\"cellValue\":\"dispalyedGraph\",\"linkTarget\":\"parameter\",\"linkLabel\":\"Masterclient operations\",\"subTarget\":\"masterclient\",\"preText\":\"\",\"style\":\"link\"},{\"id\":\"e6fa55f1-7d57-4f5e-8e83-429740853731\",\"cellValue\":\"dispalyedGraph\",\"linkTarget\":\"parameter\",\"linkLabel\":\"Pod creation operations\",\"subTarget\":\"podCreation\",\"style\":\"link\"},{\"id\":\"f4c46251-0090-4ca3-a81c-0686bff3ff35\",\"cellValue\":\"dispalyedGraph\",\"linkTarget\":\"parameter\",\"linkLabel\":\"Secret get\\\\list operations\",\"subTarget\":\"secretOperation\",\"style\":\"link\"}]},\"name\":\"links - 11\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"AzureDiagnostics \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where log_s has \\\"masterclient\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n| project TimeGenerated, ResourceId, username = tostring(log_s[\\\"user\\\"].username)\\r\\n| where username == \\\"masterclient\\\"\\r\\n| extend name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize count() by name, bin(TimeGenerated, 1h)\",\"size\":0,\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"timechart\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"name\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"count_\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}},\"chartSettings\":{\"yAxis\":[\"count_\"]}},\"conditionalVisibility\":{\"parameterName\":\"dispalyedGraph\",\"comparison\":\"isEqualTo\",\"value\":\"masterclient\"},\"name\":\"Masterclient operations\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"AzureDiagnostics\\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where log_s has \\\"pods\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n| project AzureResourceId = ResourceId, TimeGenerated,\\r\\n RequestURI = tostring(log_s[\\\"requestURI\\\"]),\\r\\n Verb = tostring(log_s[\\\"verb\\\"]),\\r\\n ObjectRef = log_s[\\\"objectRef\\\"],\\r\\n ResponseStatus = log_s[\\\"responseStatus\\\"]\\r\\n//Main query\\r\\n| where ObjectRef.resource == \\\"pods\\\" and Verb == \\\"create\\\" and ResponseStatus.code startswith \\\"20\\\"\\r\\n  and RequestURI endswith \\\"/pods\\\"\\r\\n| extend name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, AzureResourceId)\\r\\n| summarize count() by name, bin(TimeGenerated, 1h)\",\"size\":0,\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"timechart\"},\"conditionalVisibility\":{\"parameterName\":\"dispalyedGraph\",\"comparison\":\"isEqualTo\",\"value\":\"podCreation\"},\"name\":\"pods creation\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"AzureDiagnostics\\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where log_s has \\\"secrets\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n| project AzureResourceId = ResourceId, TimeGenerated,\\r\\n RequestURI = tostring(log_s[\\\"requestURI\\\"]),\\r\\n Verb = tostring(log_s[\\\"verb\\\"]),\\r\\n ObjectRef = log_s[\\\"objectRef\\\"],\\r\\n ResponseStatus = log_s[\\\"responseStatus\\\"]\\r\\n//Main query\\r\\n| where ObjectRef.resource == \\\"secrets\\\" and (Verb == \\\"list\\\" or Verb == \\\"get\\\") and ResponseStatus.code startswith \\\"20\\\"\\r\\n| where ObjectRef.name != \\\"tunnelfront\\\" and ObjectRef.name != \\\"tunnelend\\\" and ObjectRef.name != \\\"kubernetes-dashboard-key-holder\\\"\\r\\n| extend name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, AzureResourceId)\\r\\n| summarize count() by name, bin(TimeGenerated, 1h)\",\"size\":0,\"timeContext\":{\"durationMs\":172800000},\"timeContextFromParameter\":\"timeframe\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"timechart\",\"gridSettings\":{\"sortBy\":[{\"itemKey\":\"count_\",\"sortOrder\":2}]},\"sortBy\":[{\"itemKey\":\"count_\",\"sortOrder\":2}]},\"conditionalVisibility\":{\"parameterName\":\"dispalyedGraph\",\"comparison\":\"isEqualTo\",\"value\":\"secretOperation\"},\"name\":\"secrets operation\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"let ascAlerts = \\nunion withsource=_TableName *\\n| where _TableName == \\\"SecurityAlert\\\"\\n| where tolower(ResourceId) in ({clustername})\\n| where TimeGenerated {timeframe}\\n| extend AlertType = column_ifexists(\\\"AlertType\\\", \\\"\\\")\\n| where AlertType == \\\"AKS_PrivilegedContainer\\\"\\n| extend ExtendedProperties = column_ifexists(\\\"ExtendedProperties\\\", todynamic(\\\"\\\"))\\n| extend ExtendedProperties = parse_json(ExtendedProperties)\\n| extend AlertLink = column_ifexists(\\\"AlertLink\\\", \\\"\\\")\\n| summarize arg_min(TimeGenerated, AlertLink) by AzureResourceId = ResourceId, name = tostring(ExtendedProperties[\\\"Pod name\\\"]), podNamespace =  tostring(ExtendedProperties[\\\"Namespace\\\"])\\n;\\nlet podOperations = AzureDiagnostics\\n| where Category == \\\"kube-audit\\\"\\n| where tolower(ResourceId) in ({clustername})\\n| where TimeGenerated {timeframe}\\n| where log_s has \\\"privileged\\\"\\n| project TimeGenerated, parse_json(log_s), ResourceId\\n| project AzureResourceId = ResourceId, TimeGenerated,\\n RequestURI = tostring(log_s[\\\"requestURI\\\"]),\\n Verb = tostring(log_s[\\\"verb\\\"]),\\n ObjectRef = log_s[\\\"objectRef\\\"],\\n RequestObject = log_s[\\\"requestObject\\\"],\\n ResponseStatus = log_s[\\\"responseStatus\\\"],\\n ResponseObject = log_s[\\\"responseObject\\\"]\\n//Main query\\n| where ObjectRef.resource == \\\"pods\\\" and Verb == \\\"create\\\" and ResponseStatus.code startswith \\\"20\\\" and RequestObject has \\\"privileged\\\"\\n  and RequestURI endswith \\\"/pods\\\"\\n| extend containers = RequestObject.spec.containers\\n| mvexpand containers\\n| where containers.securityContext.privileged == true\\n| summarize TimeGenerated = min(TimeGenerated) by\\n            name = tostring(ResponseObject.metadata.name),\\n            podNamespace = tostring(ResponseObject.metadata.namespace),\\n            imageName = tostring(containers.image),\\n            containerName = tostring(containers.name),\\n            AzureResourceId\\n| extend id = strcat(name,\\\";\\\", AzureResourceId)\\n| extend parent = AzureResourceId\\n| join kind=leftouter (ascAlerts) on AzureResourceId, name, podNamespace\\n;\\nlet cached = materialize(podOperations)\\n;\\nlet clusters = cached | distinct AzureResourceId\\n;\\n// Main query\\ncached\\n| union\\n(\\nclusters\\n| project \\n            name = AzureResourceId,\\n            id = AzureResourceId,\\n            parent = \\\"\\\"      \\n)\\n| project-away name1, podNamespace1, TimeGenerated1\",\"size\":1,\"title\":\"Privileged containers creation\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"table\",\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"name\",\"formatter\":13,\"formatOptions\":{\"linkTarget\":null,\"showIcon\":true}},{\"columnMatch\":\"AzureResourceId\",\"formatter\":5},{\"columnMatch\":\"id\",\"formatter\":5},{\"columnMatch\":\"parent\",\"formatter\":5},{\"columnMatch\":\"AlertLink\",\"formatter\":7,\"formatOptions\":{\"linkTarget\":\"Url\",\"linkLabel\":\"\"}}],\"hierarchySettings\":{\"idColumn\":\"id\",\"parentColumn\":\"parent\",\"treeType\":0,\"expanderColumn\":\"name\"}},\"sortBy\":[]},\"customWidth\":\"66\",\"name\":\"Privileged container\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType == \\\"AKS_PrivilegedContainer\\\"\\r\\n| project name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize alert = count() by name\",\"size\":1,\"title\":\"AKS clusters with related Azure Defender alerts\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"piechart\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"name\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"alert\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}},\"graphSettings\":{\"type\":0,\"topContent\":{\"columnMatch\":\"name\",\"formatter\":1},\"centerContent\":{\"columnMatch\":\"alert\",\"formatter\":1,\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"customWidth\":\"33\",\"name\":\"query - 7\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"let baseQuery = AzureDiagnostics \\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where log_s has \\\"exec\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n| project TimeGenerated,\\r\\n          AzureResourceId = ResourceId,\\r\\n          User = log_s[\\\"user\\\"],\\r\\n          StageTimestamp = todatetime(log_s[\\\"stageTimestamp\\\"]),\\r\\n          Timestamp = todatetime(log_s[\\\"timestamp\\\"]),\\r\\n          Stage = tostring(log_s[\\\"stage\\\"]),\\r\\n          RequestURI = tostring(log_s[\\\"requestURI\\\"]),\\r\\n          UserAgent = tostring(log_s[\\\"userAgent\\\"]),\\r\\n          Verb = tostring(log_s[\\\"verb\\\"]),\\r\\n          ObjectRef = log_s[\\\"objectRef\\\"],\\r\\n          ResponseStatus = log_s[\\\"responseStatus\\\"]\\r\\n| where ObjectRef.resource == \\\"pods\\\" and Verb == \\\"create\\\" and ResponseStatus.code == 101 and ObjectRef.subresource == \\\"exec\\\"\\r\\n| project operationTime = TimeGenerated,\\r\\n          RequestURI,\\r\\n          podName       = tostring(ObjectRef.name),\\r\\n          podNamespace  = tostring(ObjectRef.namespace),\\r\\n          username      = tostring(User.username),\\r\\n          AzureResourceId\\r\\n// Parse the exec command\\r\\n| extend commands =  extractall(@\\\"command=([^\\\\&]*)\\\", RequestURI)\\r\\n| extend commandsStr = url_decode(strcat_array(commands, \\\" \\\"))\\r\\n| project-away ['commands'], RequestURI\\r\\n| where username != \\\"aksProblemDetector\\\"\\r\\n;\\r\\nlet cached = materialize(baseQuery);\\r\\nlet execOperations = \\r\\ncached\\r\\n| summarize operationTime = min(operationTime), numberOfPerations = count() by name = commandsStr, username, podNamespace, podName, AzureResourceId\\r\\n| extend id = name\\r\\n| extend parentId = podName\\r\\n| project id, parentId, name, operationTime, numberOfPerations, podNamespace, username, AzureResourceId\\r\\n;\\r\\nlet podOperations = \\r\\ncached\\r\\n| summarize operationTime = min(operationTime), numberOfPerations = count() by name = podName, podNamespace, AzureResourceId\\r\\n| extend id = name\\r\\n| extend parentId = AzureResourceId\\r\\n| project id, parentId, name, operationTime, numberOfPerations, podNamespace, username = \\\"\\\", AzureResourceId\\r\\n;\\r\\nlet clusterOperations = \\r\\ncached\\r\\n| summarize operationTime = min(operationTime), numberOfPerations = count() by name = AzureResourceId\\r\\n| extend id = name\\r\\n| extend parentId = \\\"\\\"\\r\\n| project id, parentId, name, operationTime, numberOfPerations, username = \\\"\\\", podNamespace = \\\"\\\", AzureResourceId = name\\r\\n;\\r\\nunion clusterOperations, podOperations, execOperations\",\"size\":1,\"title\":\"exec commands\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"table\",\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"id\",\"formatter\":5},{\"columnMatch\":\"parentId\",\"formatter\":5},{\"columnMatch\":\"numberOfPerations\",\"formatter\":4,\"formatOptions\":{\"palette\":\"blue\",\"compositeBarSettings\":{\"labelText\":\"\",\"columnSettings\":[]}}},{\"columnMatch\":\"AzureResourceId\",\"formatter\":5}],\"hierarchySettings\":{\"idColumn\":\"id\",\"parentColumn\":\"parentId\",\"treeType\":0,\"expanderColumn\":\"name\",\"expandTopLevel\":false}}},\"customWidth\":\"33\",\"name\":\"exec commands\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where AlertType == \\\"AKS_MaliciousContainerExec\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| project TimeGenerated, ResourceId, ExtendedProperties = todynamic(ExtendedProperties)\\r\\n| project TimeGenerated, ResourceId, [\\\"Pod name\\\"] = ExtendedProperties[\\\"Pod name\\\"], Command = ExtendedProperties[\\\"Command\\\"]\",\"size\":1,\"title\":\"Related Azure Defender alerts details\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"gridSettings\":{\"sortBy\":[{\"itemKey\":\"TimeGenerated\",\"sortOrder\":1}]},\"sortBy\":[{\"itemKey\":\"TimeGenerated\",\"sortOrder\":1}]},\"customWidth\":\"33\",\"name\":\"query - 9\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where AlertType == \\\"AKS_MaliciousContainerExec\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| project name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize alert = count() by name\",\"size\":1,\"title\":\"AKS clusters with related Azure Defender alerts\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"query - 8\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"let ascAlerts = \\r\\nunion withsource=_TableName *\\r\\n| where _TableName == \\\"SecurityAlert\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| extend AlertType = column_ifexists(\\\"AlertType\\\", \\\"\\\")\\r\\n| where AlertType == \\\"AKS_SensitiveMount\\\"\\r\\n| extend ExtendedProperties = column_ifexists(\\\"ExtendedProperties\\\", todynamic(\\\"\\\"))\\r\\n| extend ExtendedProperties = parse_json(ExtendedProperties)\\r\\n| extend AlertLink = column_ifexists(\\\"AlertLink\\\", \\\"\\\")\\r\\n| summarize arg_min(TimeGenerated, AlertLink) by AzureResourceId = ResourceId, containerName = tostring(ExtendedProperties[\\\"Container name\\\"]), mountPath = tostring(ExtendedProperties[\\\"Sensitive mount path\\\"])\\r\\n;\\r\\nlet podOperations = \\r\\nAzureDiagnostics \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where log_s has \\\"hostPath\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n//Parsing\\r\\n| project AzureResourceId = ResourceId, TimeGenerated,\\r\\n Verb = tostring(log_s[\\\"verb\\\"]),\\r\\n ObjectRef = log_s[\\\"objectRef\\\"],\\r\\n RequestObject = log_s[\\\"requestObject\\\"],\\r\\n ResponseStatus = log_s[\\\"responseStatus\\\"],\\r\\n ResponseObject = log_s[\\\"responseObject\\\"]\\r\\n//\\r\\n//Main query\\r\\n//\\r\\n| where ObjectRef.resource == \\\"pods\\\" and Verb == \\\"create\\\" and ResponseStatus.code startswith \\\"20\\\" and RequestObject has \\\"hostPath\\\"\\r\\n| extend volumes = RequestObject.spec.volumes\\r\\n| mvexpand volumes\\r\\n| extend mountPath = volumes.hostPath.path\\r\\n| where mountPath != \\\"\\\" \\r\\n| extend container = RequestObject.spec.containers\\r\\n| mvexpand container\\r\\n| extend  detectionTime = TimeGenerated\\r\\n| project detectionTime,\\r\\n          podName = ResponseObject.metadata.name,\\r\\n          podNamespace = ResponseObject.metadata.namespace,\\r\\n          containerName = container.name,\\r\\n          containerImage = container.image,\\r\\n          mountPath,\\r\\n          mountName = volumes.name,\\r\\n          AzureResourceId,\\r\\n          container\\r\\n| extend volumeMounts = container.volumeMounts\\r\\n| mv-expand volumeMounts\\r\\n| where tostring(volumeMounts.name) == tostring(mountName)\\r\\n| summarize operationTime = min(detectionTime) by AzureResourceId, name = tostring(podName),tostring(podNamespace), tostring(containerName), tostring(containerImage), tostring(mountPath), tostring(mountName)\\r\\n| extend id = strcat(name, \\\";\\\", AzureResourceId)\\r\\n| extend parent = AzureResourceId\\r\\n| join kind=leftouter (ascAlerts) on AzureResourceId, containerName, mountPath\\r\\n;\\r\\nlet cached = materialize(podOperations)\\r\\n;\\r\\nlet clusters = cached | distinct AzureResourceId\\r\\n;\\r\\n// Main query\\r\\ncached\\r\\n| union\\r\\n(\\r\\nclusters\\r\\n| project \\r\\n            name = toupper(AzureResourceId),\\r\\n            id = AzureResourceId,\\r\\n            parent = \\\"\\\"      \\r\\n)\\r\\n| project-away containerName1, mountPath1, TimeGenerated\\r\\n\",\"size\":1,\"title\":\"hostPath mount\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"AzureResourceId\",\"formatter\":5},{\"columnMatch\":\"name\",\"formatter\":13,\"formatOptions\":{\"linkTarget\":null,\"showIcon\":true}},{\"columnMatch\":\"id\",\"formatter\":5},{\"columnMatch\":\"parent\",\"formatter\":5},{\"columnMatch\":\"AzureResourceId1\",\"formatter\":5},{\"columnMatch\":\"AlertLink\",\"formatter\":7,\"formatOptions\":{\"linkTarget\":\"Url\"}}],\"hierarchySettings\":{\"idColumn\":\"id\",\"parentColumn\":\"parent\",\"treeType\":0,\"expanderColumn\":\"name\"}},\"sortBy\":[]},\"customWidth\":\"66\",\"name\":\"query - 10\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where AlertType == \\\"AKS_SensitiveMount\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| project name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize alert = count() by name\",\"size\":1,\"title\":\"AKS clusters with related Azure Defender alerts\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"piechart\",\"sortBy\":[]},\"customWidth\":\"33\",\"name\":\"query - 10\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"let bindingOper = AzureDiagnostics\\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where log_s has \\\"clusterrolebindings\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n//Parsing\\r\\n| project AzureResourceId = ResourceId, TimeGenerated,\\r\\n RequestURI = tostring(log_s[\\\"requestURI\\\"]),\\r\\n User = log_s[\\\"user\\\"],\\r\\n Verb = tostring(log_s[\\\"verb\\\"]),\\r\\n ObjectRef = log_s[\\\"objectRef\\\"],\\r\\n RequestObject = log_s[\\\"requestObject\\\"],\\r\\n ResponseStatus = log_s[\\\"responseStatus\\\"]\\r\\n| where ObjectRef.resource == \\\"clusterrolebindings\\\" and Verb == \\\"create\\\" and ResponseStatus.code startswith \\\"20\\\" and RequestObject.roleRef.name == \\\"cluster-admin\\\"   \\r\\n| extend subjects = RequestObject.subjects\\r\\n| mv-expand subjects\\r\\n| project AzureResourceId, TimeGenerated, subjectName = tostring(subjects.name), subjectKind = tostring(subjects[\\\"kind\\\"]), bindingName = tostring(ObjectRef.name)\\r\\n| summarize operationTime = min(TimeGenerated) by AzureResourceId, subjectName, subjectKind, bindingName\\r\\n| extend id = strcat(subjectName, \\\";\\\", AzureResourceId)\\r\\n| extend parent = AzureResourceId\\r\\n;\\r\\nlet cached = materialize(bindingOper)\\r\\n;\\r\\nlet clusters = cached | distinct AzureResourceId\\r\\n;\\r\\n// Main query\\r\\ncached\\r\\n| union\\r\\n(\\r\\nclusters\\r\\n| project \\r\\n            name = AzureResourceId,\\r\\n            id = AzureResourceId,\\r\\n            parent = \\\"\\\"      \\r\\n)\",\"size\":1,\"title\":\"Cluster-admin binding\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"table\",\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"AzureResourceId\",\"formatter\":5},{\"columnMatch\":\"id\",\"formatter\":5},{\"columnMatch\":\"parent\",\"formatter\":5},{\"columnMatch\":\"name\",\"formatter\":13,\"formatOptions\":{\"linkTarget\":null,\"showIcon\":true}}],\"hierarchySettings\":{\"idColumn\":\"id\",\"parentColumn\":\"parent\",\"treeType\":0,\"expanderColumn\":\"name\"}}},\"customWidth\":\"66\",\"name\":\"query - 5\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityAlert \\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where AlertType == \\\"AKS_ClusterAdminBinding\\\"\\r\\n| project name = extract(@\\\"/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/(.+)\\\", 1, ResourceId)\\r\\n| summarize count() by name\",\"size\":1,\"title\":\"AKS clusters with related Azure Defender alerts\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"],\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"query - 11\",\"styleSettings\":{\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"AzureDiagnostics\\r\\n| where Category == \\\"kube-audit\\\"\\r\\n| where tolower(ResourceId) in ({clustername})\\r\\n| where TimeGenerated {timeframe}\\r\\n| where log_s has \\\"events\\\"\\r\\n| project TimeGenerated, parse_json(log_s), ResourceId\\r\\n//Parsing\\r\\n| project AzureResourceId = ResourceId, \\r\\n TimeGenerated,\\r\\n SourceIPs = tostring(log_s[\\\"sourceIPs\\\"][0]),\\r\\n User = log_s[\\\"user\\\"],\\r\\n Verb = tostring(log_s[\\\"verb\\\"]),\\r\\n ObjectRef = log_s[\\\"objectRef\\\"],\\r\\n ResponseStatus = log_s[\\\"responseStatus\\\"]\\r\\n| where ObjectRef.resource == \\\"events\\\" and Verb == \\\"delete\\\" and ResponseStatus.code == 200\\r\\n| project TimeGenerated, AzureResourceId, username = tostring(User.username), ipAddr = tostring(SourceIPs), \\r\\n          eventName = tostring(ObjectRef.name), eventNamespace = tostring(ObjectRef.namespace), status = tostring(ResponseStatus.code)\\r\\n| summarize operationTime = min(TimeGenerated), eventNames = make_set(eventName, 10) by\\r\\n                                        AzureResourceId, \\r\\n                                        eventNamespace,\\r\\n                                        username,\\r\\n                                        ipAddr\\r\\n// Format the list of the event names\\r\\n| extend eventNames = substring(eventNames, 1 , strlen(eventNames) - 2)\\r\\n| extend eventNames = replace('\\\"', \\\"\\\", eventNames)\\r\\n| extend eventNames = replace(\\\",\\\", \\\", \\\", eventNames)\",\"size\":1,\"title\":\"Delete events\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{workspaces}\"]},\"name\":\"query - 6\",\"styleSettings\":{\"showBorder\":true}}]},\"conditionalVisibility\":{\"parameterName\":\"diagnosticClusters\",\"comparison\":\"isEqualTo\",\"value\":\"yes\"},\"name\":\"diagnosticData\"},{\"type\":1,\"content\":{\"json\":\"No Diagnostic Logs data in the selected workspaces. \\r\\nTo enable Diagnostic Logs for your AKS cluster: Go to your AKS cluster --> Diagnostic settings --> Add diagnostic setting --> Select \\\"kube-audit\\\" and send the data to your workspace.\\r\\n\\r\\nGet more details here: https://docs.microsoft.com/azure/aks/view-master-logs\",\"style\":\"info\"},\"conditionalVisibility\":{\"parameterName\":\"diagnosticClusters\",\"comparison\":\"isEqualTo\",\"value\":\"no\"},\"name\":\"text - 4\"}]},\"conditionalVisibility\":{\"parameterName\":\"mainTab\",\"comparison\":\"isEqualTo\",\"value\":\"diagnostics\"},\"name\":\"diagnostics\"}],\"fromTemplateId\":\"sentinel-AksWorkbook\",\"$schema\":\"https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json\"}"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "name": "[variables('clusterControlPlaneIdentityName')]",
+            "location": "[parameters('location')]",
+            "comments": "The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)"
+        },
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "name": "mi-appgateway-frontend",
+            "location": "[parameters('location')]",
+            "comments": "User Managed Identity that App Gateway is assigned. Used for Azure Key Vault Access."
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2020-12-01",
+            "name": "vmss-jumpboxes",
+            "comments": "Hosts the VMs used as AKS jumpboxes. Using VMSS as a way to manage spanning fault and update domains.",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions', variables('vmInsightsSolutionName'))]"
+            ],
+            "location": "[parameters('location')]",
+            "zones": ["1", "2", "3"],
+            "sku": {
+                "name": "Standard_DS1_v2",
+                "tier": "Standard",
+                "capacity": 2
+            },
+            "properties": {
+                "additionalCapabilities": {
+                    "ultraSSDEnabled": false
+                },
+                "overprovision": false,
+                "singlePlacementGroup": true,
+                "upgradePolicy": {
+                    "mode": "Automatic"
+                },
+                "zoneBalance": false,
+                "virtualMachineProfile": {
+                    "diagnosticsProfile": {
+                        "bootDiagnostics": {
+                            "enabled": true
+                        }
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "aksjmp",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": true,
+                            "provisionVMAgent": true,
+                            "ssh": {
+                                "publicKeys": [
+                                    {
+                                        "path": "[concat('/home/', variables('jumpBoxDefaultAdminUserName'), '/.ssh/authorized_keys')]",
+                                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCcFvQl2lYPcK1tMB3Tx2R9n8a7w5MJCSef14x0ePRFr9XISWfCVCNKRLM3Al/JSlIoOVKoMsdw5farEgXkPDK5F+SKLss7whg2tohnQNQwQdXit1ZjgOXkis/uft98Cv8jDWPbhwYj+VH/Aif9rx8abfjbvwVWBGeA/OnvfVvXnr1EQfdLJgMTTh+hX/FCXCqsRkQcD91MbMCxpqk8nP6jmsxJBeLrgfOxjH8RHEdSp4fF76YsRFHCi7QOwTE/6U+DpssgQ8MTWRFRat97uTfcgzKe5MOfuZHZ++5WFBgaTr1vhmSbXteGiK7dQXOk2cLxSvKkzeaiju9Jy6hoSl5oMygUVd5fNPQ94QcqTkMxZ9tQ9vPWOHwbdLRD31Ses3IBtDV+S6ehraiXf/L/e0jRUYk8IL/J543gvhOZ0hj2sQqTj9XS2hZkstZtrB2ywrJzV5ByETUU/oF9OsysyFgnaQdyduVqEPHaqXqnJvBngqqas91plyT3tSLMez3iT0s= unused-generated-by-azure"
+                                    }
+                                ]
+                            }
+                        },
+                        "customData": "[parameters('jumpBoxCloudInitAsBase64')]",
+                        "adminUsername": "[variables('jumpBoxDefaultAdminUserName')]"
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadOnly",
+                            "diffDiskSettings": {
+                                "option": "Local"
+                            },
+                            "osType": "Linux"
+                        },
+                        "imageReference": {
+                            "id": "[parameters('jumpBoxImageResourceId')]"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "vnet-spoke-BU0001A0005-01-nic01",
+                                "properties": {
+                                    "primary": true,
+                                    "enableIPForwarding": false,
+                                    "enableAcceleratedNetworking": false,
+                                    "networkSecurityGroup": "[null()]",
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "default",
+                                            "properties": {
+                                                "primary": true,
+                                                "privateIPAddressVersion": "IPv4",
+                                                "publicIPAddressConfiguration": "[null()]",
+                                                "subnet": {
+                                                    "id": "[variables('vnetManagementOpsSubnetResourceId')]"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "resources": [
+                {
+                    "type": "extensions",
+                    "apiVersion": "2019-12-01",
+                    "name": "OMSExtension",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                        "type": "OmsAgentForLinux",
+                        "typeHandlerVersion": "1.13",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "stopOnMultipleConnections": true,
+                            "azureResourceId": "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]",
+                            "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName')), '2020-10-01').customerId]"
+                        },
+                        "protectedSettings": {
+                            "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName')), '2020-10-01').primarySharedKey]"
+                        }
+                    }
+                },
+                {
+                    "type": "extensions",
+                    "apiVersion": "2019-12-01",
+                    "name": "DependencyAgentLinux",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                        "type": "DependencyAgentLinux",
+                        "typeHandlerVersion": "9.10",
+                        "autoUpgradeMinorVersion": true
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "name": "podmi-ingress-controller",
+            "location": "[parameters('location')]",
+            "comments": "User Managed Identity for the cluster's ingress controller pods. Used for Azure Key Vault Access.",
+            "resources": [
+                {
+                    "type": "providers/roleAssignments",
+                    "apiVersion": "2020-04-01-preview",
+                    "name": "[concat('Microsoft.Authorization/', guid(resourceGroup().id, variables('managedIdentityOperatorRole')))]",
+                    "comments": "Grant the AKS cluster control plane with Managed Identity Operator role permissions over the this ingress controller pod identity so that it can be assigned to the relevant nodepools.",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]",
+                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
+                        
+                    ],
+                    "properties": {
+                        "roleDefinitionId": "[variables('managedIdentityOperatorRole')]",
+                        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                        "principalType": "ServicePrincipal"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('keyVaultName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
+            ],
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')).tenantId]",
+                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')).principalId]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ],
+                            "certificates": [
+                                "get"
+                            ],
+                            "keys": []
+                        }
+                    },
+                    {
+                        "tenantId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).tenantId]",
+                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).principalId]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ],
+                            "certificates": [
+                                "get"
+                            ],
+                            "keys": []
+                        }
+                    }
+                ],
+                "sku": {
+                    "family": "A",
+                    "name": "standard"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Allow",
+                    "ipRules": [],
+                    "virtualNetworkRules": []
+                },
+                "enabledForDeployment": false,
+                "enabledForDiskEncryption": false,
+                "enabledForTemplateDeployment": false,
+                "enableSoftDelete": true
+            },
+            "resources": [
+                {
+                    "type": "secrets",
+                    "apiVersion": "2019-09-01",
+                    "name": "sslcert",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName') )]"
+                    ],
+                    "properties": {
+                        "value": "[parameters('appGatewayListenerCertificate')]",
+                        "recoveryLevel": "Purgeable"
+                    }
+                },
+                {
+                    "type": "secrets",
+                    "apiVersion": "2019-09-01",
+                    "name": "appgw-ingress-internal-aks-ingress-contoso-com-tls",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "value": "[parameters('aksIngressControllerCertificate')]",
+                        "recoveryLevel": "Purgeable"
+                    }
+                },
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "AuditEvent",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-11-01",
+            "name": "[concat('pe-', variables('keyVaultName'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ],
+            "properties": {
+                "subnet": {
+                    "id": "[variables('vnetPrivateLinkSubnetResourceId')]"
+                },
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[concat('to-', variables('vnetName'))]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                            "groupIds": [
+                                "vault"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "privateDnsZoneGroups",
+                    "apiVersion": "2020-11-01",
+                    "name": "[concat('for-', variables('keyVaultName'))]",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', concat('pe-', variables('keyVaultName')))]"
+                    ],
+                    "properties": {
+                        "privateDnsZoneConfigs": [
+                            {
+                                "name": "privatelink-akv-net",
+                                "properties": {
+                                    "privateDnsZoneId": "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-11-01",
+            "name": "[concat('pe-', variables('defaultAcrName'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries/replications', variables('defaultAcrName'), parameters('geoRedundancyLocation'))]"
+            ],
+            "properties": {
+                "subnet": {
+                    "id": "[variables('vnetPrivateLinkSubnetResourceId')]"
+                },
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[concat('to-', variables('vnetName'))]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]",
+                            "groupIds": [
+                                "registry"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "privateDnsZoneGroups",
+                    "apiVersion": "2020-11-01",
+                    "name": "[concat('for-', variables('defaultAcrName'))]",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', concat('pe-', variables('defaultAcrName')))]"
+                    ],
+                    "properties": {
+                        "privateDnsZoneConfigs": [
+                            {
+                                "name": "privatelink-azurecr-io",
+                                "properties": {
+                                    "privateDnsZoneId": "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Network/privateDnsZones', 'privatelink.azurecr.io')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "2020-11-01",
+            "name": "[variables('agwName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName') )]"
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]": {}
+                }
+            },
+            "zones": [
+                "1",
+                "2",
+                "3"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "WAF_v2",
+                    "tier": "WAF_v2"
+                },
+                "sslPolicy": {
+                    "policyType": "Custom",
+                    "cipherSuites": [
+                        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+                    ],
+                    "minProtocolVersion": "TLSv1_2"
+                },
+                "trustedRootCertificates": [
+                    {
+                        "name": "root-cert-wildcard-aks-ingress-contoso",
+                        "properties": {
+                            "keyVaultSecretId": "[concat(reference(variables('keyVaultName')).vaultUri,'secrets/appgw-ingress-internal-aks-ingress-contoso-com-tls')]"
+                        }
+                    }
+                ],
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "apw-ip-configuration",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-applicationgateway')]"
+                            }
+                        }
+                    }
+                ],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "apw-frontend-ip-configuration",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0005-00')]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "apw-frontend-ports",
+                        "properties": {
+                            "port": 443
+                        }
+                    }
+                ],
+                "autoscaleConfiguration": {
+                    "minCapacity": 0,
+                    "maxCapacity": 10
+                },
+                "webApplicationFirewallConfiguration": {
+                    "enabled": true,
+                    "firewallMode": "Prevention",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.1",
+                    "disabledRuleGroups": [],
+                    "requestBodyCheck": true,
+                    "maxRequestBodySizeInKb": 128,
+                    "fileUploadLimitInMb": 100
+                },
+                "enableHttp2": false,
+                "sslCertificates": [
+                    {
+                        "name": "[concat(variables('agwName'), '-ssl-certificate')]",
+                        "properties": {
+                            "keyVaultSecretId": "[concat(reference(variables('keyVaultName')).vaultUri,'secrets/sslcert')]"
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "probe-bu0001a0005-00.aks-ingress.contoso.com",
+                        "properties": {
+                            "protocol": "Https",
+                            "path": "/favicon.ico",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": true,
+                            "minServers": 0,
+                            "match": {}
+                        }
+                    },
+                    {
+                        "name": "ingress-controller",
+                        "properties": {
+                            "protocol": "Https",
+                            "path": "/healthz",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": true,
+                            "minServers": 0,
+                            "match": {}
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "bu0001a0005-00.aks-ingress.contoso.com",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    /* This is the IP address that our ingress controller will request */
+                                    "ipAddress": "10.240.4.4"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "aks-ingress-contoso-backendpool-httpsettings",
+                        "properties": {
+                            "port": 443,
+                            "protocol": "Https",
+                            "cookieBasedAffinity": "Disabled",
+                            "hostName": "bu0001a0005-00.aks-ingress.contoso.com",
+                            "pickHostNameFromBackendAddress": false,
+                            "requestTimeout": 20,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('agwName')),'/probes/probe-bu0001a0005-00.aks-ingress.contoso.com')]"
+                            },
+                            "trustedRootCertificates": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('agwName')), '/trustedRootCertificates/root-cert-wildcard-aks-ingress-contoso')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "listener-https",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(variables('apwResourceId'), '/frontendIPConfigurations/apw-frontend-ip-configuration')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(variables('apwResourceId'), '/frontendPorts/apw-frontend-ports')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(variables('apwResourceId'), '/sslCertificates/', variables('agwName'), '-ssl-certificate')]"
+                            },
+                            "hostName": "bicycle.contoso.com",
+                            "hostNames": [],
+                            "requireServerNameIndication": true
+                        }
+                    }
+                ],
+                "requestRoutingRules": [
+                    {
+                        "name": "apw-routing-rules",
+                        "properties": {
+                            "ruleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(variables('apwResourceId'), '/httpListeners/listener-https')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(variables('apwResourceId'), '/backendAddressPools/bu0001a0005-00.aks-ingress.contoso.com')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(variables('apwResourceId'), '/backendHttpSettingsCollection/aks-ingress-contoso-backendpool-httpsettings')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "/providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/applicationGateways', variables('agwName'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "ApplicationGatewayAccessLog",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ApplicationGatewayPerformanceLog",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ApplicationGatewayFirewallLog",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "EnsureClusterIdentityHasRbacToSelfManagedResources",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]"
+            ],
+            "resourceGroup": "[variables('vNetResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(parameters('targetVnetResourceId'), variables('dnsZoneContributorRole'), variables('clusterControlPlaneIdentityName'))]",
+                            "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('dnsZoneContributorRole')]",
+                                "description": "Allows cluster identity to attach custom DNS zone with Private Link information to this virtual network.",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(variables('vnetSystemNodePoolSubnetResourceId'), variables('networkContributorRole'), variables('clusterControlPlaneIdentityName'))]",
+                            "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'), '/subnets/', 'snet-cluster-systemnodepool')]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "description": "Allows cluster identity to join the nodepool vmss resources to this subnet.",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(variables('vnetInScopeNodePoolSubnetResourceId'), variables('networkContributorRole'), variables('clusterControlPlaneIdentityName'))]",
+                            "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'), '/subnets/', 'snet-cluster-inscopenodepools')]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "description": "Allows cluster identity to join the nodepool vmss resources to this subnet.",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(variables('vnetOutOfScopeNodePoolSubnetResourceId'), variables('networkContributorRole'), variables('clusterControlPlaneIdentityName'))]",
+                            "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'), '/subnets/', 'snet-cluster-outofscopenodepools')]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "description": "Allows cluster identity to join the nodepool vmss resources to this subnet.",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(variables('vnetIngressServicesSubnetResourceId'), variables('networkContributorRole'), variables('clusterControlPlaneIdentityName'))]",
+                            "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'), '/subnets/', 'snet-cluster-ingressservices')]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "description": "Allows cluster identity to join load balancers (ingress resources) to this subnet.",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(resourceId('Microsoft.Network/privateDnsZones', concat('privatelink.', parameters('location'), '.azmk8s.io')), variables('dnsZoneContributorRole'), variables('clusterControlPlaneIdentityName'))]",
+                            "scope": "[concat('Microsoft.Network/privateDnsZones/', concat('privatelink.', parameters('location'), '.azmk8s.io'))]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('dnsZoneContributorRole')]",
+                                "description": "Allows cluster identity to manage zone Entries for cluster's Private Link configuration.",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "2020-08-01",
+            "name": "[variables('logAnalyticsWorkspaceName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": 90,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+            },
+            "resources": [
+                {
+                    "type": "savedSearches",
+                    "apiVersion": "2020-08-01",
+                    "name": "AllPrometheus",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "eTag": "*",
+                        "category": "Prometheus",
+                        "displayName": "All collected Prometheus information",
+                        "query": "InsightsMetrics | where Namespace == \"prometheus\"",
+                        "version": 1
+                    }
+                },
+                {
+                    "type": "savedSearches",
+                    "apiVersion": "2020-08-01",
+                    "name": "ForbiddenReponsesOnIngress",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "eTag": "*",
+                        "category": "Prometheus",
+                        "displayName": "Increase number of forbidden response on the Ingress Controller",
+                        "query": "let value = toscalar(InsightsMetrics | where Namespace == \"prometheus\" and Name == \"traefik_entrypoint_requests_total\" | where parse_json(Tags).code == 403 | summarize Value = avg(Val) by bin(TimeGenerated, 5m) | summarize min = min(Value)); InsightsMetrics | where Namespace == \"prometheus\" and Name == \"traefik_entrypoint_requests_total\" | where parse_json(Tags).code == 403 | summarize AggregatedValue = avg(Val)-value by bin(TimeGenerated, 5m) | order by TimeGenerated | render barchart",
+                        "version": 1
+                    }
+                },
+                {
+                    "type": "savedSearches",
+                    "apiVersion": "2020-08-01",
+                    "name": "NodeRebootRequested",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "eTag": "*",
+                        "category": "Prometheus",
+                        "displayName": "Nodes reboot required by kured",
+                        "query": "InsightsMetrics | where Namespace == \"prometheus\" and Name == \"kured_reboot_required\" | where Val > 0",
+                        "version": 1
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Insights/scheduledQueryRules",
+            "apiVersion": "2020-05-01-preview",
+            "name": "Image Imported into ACR from source other than approved Quarantine",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]"
+            ],
+            "properties": {
+                "description":"The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.",
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "operator": "GreaterThan",
+                            "query": "ContainerRegistryRepositoryEvents\r\n| where OperationName == \"importImage\" and Repository startswith \"live/\" and MediaType !startswith strcat(_ResourceId, \"/quarantine\")",
+                            "threshold": 0,
+                            "timeAggregation": "Count",
+                            "dimensions": [],
+                            "failingPeriods": {
+                                "minFailingPeriodsToAlert": 1,
+                                "numberOfEvaluationPeriods": 1
+                            },
+                            "resourceIdColumn": ""
+                        }
+                    ]
+                },
+                "enabled": true,
+                "evaluationFrequency": "PT10M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]"
+                ],
+                "severity": 3,
+                "windowSize": "PT10M",
+                "muteActionsDuration": null,
+                "overrideQueryTimeRange": null
+            }
+        },
+        {
+            "type": "Microsoft.Insights/scheduledQueryRules",
+            "apiVersion": "2020-05-01-preview",
+            "name": "PodFailedScheduledQuery",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+            ],
+            "properties": {
+                "description":"Example from: https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-alerts",
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "metricMeasureColumn": "FailedCount",
+                            "operator": "GreaterThan",
+                            "query": "let trendBinSize = 1m;\r\nKubePodInventory\r\n| distinct ClusterName, TimeGenerated\r\n| summarize ClusterSnapshotCount = count() by bin(TimeGenerated, trendBinSize), ClusterName\r\n| join hint.strategy=broadcast (\r\n    KubePodInventory\r\n    | distinct ClusterName, Computer, PodUid, TimeGenerated, PodStatus\r\n    | summarize TotalCount = count(),\r\n        PendingCount = sumif(1, PodStatus =~ \"Pending\"),\r\n        RunningCount = sumif(1, PodStatus =~ \"Running\"),\r\n        SucceededCount = sumif(1, PodStatus =~ \"Succeeded\"),\r\n        FailedCount = sumif(1, PodStatus =~ \"Failed\")\r\n        by ClusterName, bin(TimeGenerated, trendBinSize)\r\n    )\r\n    on ClusterName, TimeGenerated \r\n| extend UnknownCount = TotalCount - PendingCount - RunningCount - SucceededCount - FailedCount\r\n| project TimeGenerated,\r\n    ClusterName,\r\n    TotalCount = todouble(TotalCount) / ClusterSnapshotCount,\r\n    PendingCount = todouble(PendingCount) / ClusterSnapshotCount,\r\n    RunningCount = todouble(RunningCount) / ClusterSnapshotCount,\r\n    SucceededCount = todouble(SucceededCount) / ClusterSnapshotCount,\r\n    FailedCount = todouble(FailedCount) / ClusterSnapshotCount,\r\n    UnknownCount = todouble(UnknownCount) / ClusterSnapshotCount\r\n",
+                            "threshold": 3,
+                            "timeAggregation": "Average",
+                            "dimensions": [],
+                            "failingPeriods": {
+                                "minFailingPeriodsToAlert": 1,
+                                "numberOfEvaluationPeriods": 1
+                            },
+                            "resourceIdColumn": ""
+                        }
+                    ]
+                },
+                "enabled": true,
+                "evaluationFrequency": "PT5M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "windowSize": "PT5M",
+                "muteActionsDuration": null,
+                "overrideQueryTimeRange": "P2D"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/activityLogAlerts",
+            "apiVersion": "2017-04-01",
+            "name": "AllAzureAdvisorAlert",
+            "location": "Global",
+            "properties": {
+                "scopes": [
+                    "[resourceGroup().id]"
+                ],
+                "condition": {
+                    "allOf": [
+                        {
+                            "field": "category",
+                            "equals": "Recommendation"
+                        },
+                        {
+                            "field": "operationName",
+                            "equals": "Microsoft.Advisor/recommendations/available/action"
+                        }
+                    ]
+                },
+                "actions": {
+                    "actionGroups": [
+                    ]
+                },
+                "enabled": true,
+                "description": "All azure advisor alerts"
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[variables('containerInsightsSolutionName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            ],
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[variables('containerInsightsSolutionName')]",
+                "product": "OMSGallery/ContainerInsights",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[variables('vmInsightsSolutionName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            ],
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[variables('vmInsightsSolutionName')]",
+                "product": "OMSGallery/VMInsights",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[variables('securityCenterSolutionName')]",
+            "location": "[parameters('location')]",
+            "comments": "Enables Azure Sentinal on this workspace.",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            ],
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[variables('securityCenterSolutionName')]",
+                "product": "OMSGallery/SecurityInsights",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/workbooks",
+            "apiVersion": "2020-10-20",
+            "name": "[guid(variables('securityCenterSolutionName'))]",
+            "location": "[parameters('location')]",
+            "comments": "Add the AKS Security Center AKS workbook - https://securityinsights.hosting.portal.azure.net/securityinsights/Content/1.0.01480.0001-210119-121529/Workbooks/AksSecurity.json",
+            "tags": {
+                "hidden-title": "[concat('Azure Kubernetes Service (AKS) Security - ', variables('logAnalyticsWorkspaceName'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationsManagement/solutions', variables('securityCenterSolutionName'))]"
+            ],
+            "kind": "shared",
+            "properties": {
+                "displayName": "[concat('Azure Kubernetes Service (AKS) Security - ', variables('logAnalyticsWorkspaceName'))]",
+                "serializedData": "[variables('aksSecurityCenterWorkbookData')]",
+                "version": "1.0",
+                "category": "sentinel",
+                "sourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "tags": [
+                    "AksSecurityWorkbook",
+                    "1.2"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('AzureAppGatewayAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            ],
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('AzureAppGatewayAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
+                "product": "OMSGallery/AzureAppGatewayAnalytics",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('KeyVaultAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            ],
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('KeyVaultAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
+                "product": "OMSGallery/KeyVaultAnalytics",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2020-11-01-preview",
+            "name": "[variables('defaultAcrName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Premium"
+            },
+            "properties": {
+                "adminUserEnabled": false,
+                "networkRuleSet": {
+                    "defaultAction": "Deny",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
+                "policies": {
+                    "quarantinePolicy": {
+                        "status": "disabled"
+                    },
+                    "trustPolicy": {
+                        "type": "Notary",
+                        "status": "enabled"
+                    },
+                    "retentionPolicy": {
+                        "days": 15,
+                        "status": "enabled"
+                    }
+                },
+                "publicNetworkAccess": "Disabled",
+                "encryption": {
+                    "status": "disabled"
+                },
+                "dataEndpointEnabled": true,
+                "networkRuleBypassOptions": "AzureServices",
+                "zoneRedundancy": "Disabled" // This Preview feature only supports three regions at this time, and eastus2's paired region (centralus), does not support this. So disabling for now.
+            },
+            "resources": [
+                {
+                    "type": "providers/roleAssignments",
+                    "apiVersion": "2020-04-01-preview",
+                    "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), variables('acrPullRole')))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]",
+                        "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                    ],
+                    "properties": {
+                        "roleDefinitionId": "[variables('acrPullRole')]",
+                        "description": "Allows the AKS Cluster's kubelet managed identity to pull images from this container registry.",
+                        "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-12-01').identityProfile.kubeletidentity.objectId]",
+                        "principalType": "ServicePrincipal"
+                    }
+                },
+                {
+                    "type": "replications",
+                    "apiVersion": "2019-05-01",
+                    "name": "[parameters('geoRedundancyLocation')]",
+                    "location": "[parameters('geoRedundancyLocation')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]"
+                    ],
+                    "properties": {}
+                },
+                {
+                    "type": "agentPools",
+                    "apiVersion": "2019-06-01-preview",
+                    "name": "acragent",
+                    "location": "[parameters('location')]",
+                    "comments": "ACR Build Agent pool",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]"
+                    ],
+                    "properties": {
+                        "count": 1,
+                        "os": "Linux",
+                        "tier": "S1",
+                        "virtualNetworkSubnetResourceId": "[variables('vnetAcrBuildSubnetResourceId')]"
+                    }
+                },
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                        "metrics": [
+                            {
+                                "timeGrain": "PT1M",
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ],
+                        "logs": [
+                            {
+                                "category": "ContainerRegistryRepositoryEvents",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ContainerRegistryLoginEvents",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-12-01",
+            "name": "[variables('clusterName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationsManagement/solutions', variables('containerInsightsSolutionName'))]",
+                "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Resources/deployments', 'EnsureClusterIdentityHasRbacToSelfManagedResources')]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]",
+                // You want policies created before cluster because they take some time to be made available and we want them
+                // to apply to your cluster as soon as possible. Nothing in this cluster "technically" depends on these existing,
+                // just trying to get coverage as soon as possible.
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameAKSLinuxRestrictive'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceHttpsIngress'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceInternalLoadBalancers'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameMustNotAutomountApiCreds'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameMustUseSpecifiedLabels'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameMustUseTheseExternalIps'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameApprovedContainerPortsOnly'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameApprovedServicePortsOnly'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameRoRootFilesystem'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameBlockDefaultNamespace'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceResourceLimits'))]",
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceImageSource'))]",
+                // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
+            ],
+            "properties": {
+                "kubernetesVersion": "[variables('kubernetesVersion')]",
+                "dnsPrefix": "[uniqueString(subscription().subscriptionId, resourceGroup().id, variables('clusterName'))]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "npsystem",
+                        "count": 3,
+                        "vmSize": "Standard_DS2_v2",
+                        "osDiskSizeGB": 80,
+                        "osDiskType": "Ephemeral",
+                        "osType": "Linux",
+                        "minCount": 3,
+                        "maxCount": 4,
+                        "vnetSubnetID": "[variables('vnetSystemNodePoolSubnetResourceId')]",
+                        "enableAutoScaling": true,
+                        "type": "VirtualMachineScaleSets",
+                        "mode": "System",
+                        "scaleSetPriority": "Regular",
+                        "scaleSetEvictionPolicy": "Delete",
+                        "orchestratorVersion": "[variables('kubernetesVersion')]",
+                        "enableNodePublicIP": false,
+                        "maxPods": 30,
+                        "availabilityZones": [
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "upgradeSettings": {
+                            "maxSurge": "33%"
+                        },
+                        "tags": {
+                            "pci-scope": "out-of-scope"
+                        }/* Currently not supported by Azure Policy Add-On ,
+                        "nodeTaints": [
+                            "CriticalAddonsOnly=true:NoSchedule"
+                        ]*/
+                    },
+                    {
+                        "name": "npinscope01",
+                        "count": 2,
+                        "vmSize": "Standard_DS3_v2",
+                        "osDiskSizeGB": 120,
+                        "osDiskType": "Ephemeral",
+                        "osType": "Linux",
+                        "minCount": 2,
+                        "maxCount": 5,
+                        "vnetSubnetID": "[variables('vnetInScopeNodePoolSubnetResourceId')]",
+                        "enableAutoScaling": true,
+                        "type": "VirtualMachineScaleSets",
+                        "mode": "User",
+                        "scaleSetPriority": "Regular",
+                        "scaleSetEvictionPolicy": "Delete",
+                        "orchestratorVersion": "[variables('kubernetesVersion')]",
+                        "enableNodePublicIP": false,
+                        "maxPods": 30,
+                        "availabilityZones": [
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "upgradeSettings": {
+                            "maxSurge": "33%"
+                        },
+                        "nodeLabels": {
+                            "pci-scope": "in-scope"
+                        },
+                        "tags": {
+                            "pci-scope": "in-scope"
+                        }
+                    },
+                    {
+                        "name": "npooscope01",
+                        "count": 2,
+                        "vmSize": "Standard_DS3_v2",
+                        "osDiskSizeGB": 120,
+                        "osDiskType": "Ephemeral",
+                        "osType": "Linux",
+                        "minCount": 2,
+                        "maxCount": 5,
+                        "vnetSubnetID": "[variables('vnetOutOfScopeNodePoolSubnetResourceId')]",
+                        "enableAutoScaling": true,
+                        "type": "VirtualMachineScaleSets",
+                        "mode": "User",
+                        "scaleSetPriority": "Regular",
+                        "scaleSetEvictionPolicy": "Delete",
+                        "orchestratorVersion": "[variables('kubernetesVersion')]",
+                        "enableNodePublicIP": false,
+                        "maxPods": 30,
+                        "availabilityZones": [
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "upgradeSettings": {
+                            "maxSurge": "33%"
+                        },
+                        "nodeLabels": {
+                            "pci-scope": "out-of-scope"
+                        },
+                        "tags": {
+                            "pci-scope": "out-of-scope"
+                        }
+                    }
+                ],
+                "servicePrincipalProfile": {
+                    "clientId": "msi"
+                },
+                "addonProfiles": {
+                    "httpApplicationRouting": {
+                        "enabled": false
+                    },
+                    "omsagent": {
+                        "enabled": true,
+                        "config": {
+                            "logAnalyticsWorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                        }
+                    },
+                    "aciConnectorLinux": {
+                        "enabled": false
+                    },
+                    "azurepolicy": {
+                        "enabled": true,
+                        "config": {
+                            "version": "v2"
+                        }
+                    }
+                },
+                "nodeResourceGroup": "[variables('nodeResourceGroupName')]",
+                "enableRBAC": true,
+                "enablePodSecurityPolicy": false,
+                "maxAgentPools": 3,
+                "networkProfile": {
+                    "networkPlugin": "azure",
+                    "networkPolicy": "azure",
+                    "outboundType": "userDefinedRouting",
+                    "loadBalancerSku": "standard",
+                    "loadBalancerProfile": "[json('null')]",
+                    "serviceCidr": "172.16.0.0/16",
+                    "dnsServiceIP": "172.16.0.10",
+                    "dockerBridgeCidr": "172.18.0.1/16"
+                },
+                "aadProfile": {
+                    "managed": true,
+                    "enableAzureRBAC": false,
+                    "adminGroupObjectIDs": [
+                        "[parameters('clusterAdminAadGroupObjectId')]"
+                    ],
+                    "tenantID": "[parameters('k8sControlPlaneAuthorizationTenantId')]"
+                },
+                "autoScalerProfile": {
+                    "balance-similar-node-groups": "false",
+                    "expander": "random",
+                    "max-empty-bulk-delete": "10",
+                    "max-graceful-termination-sec": "600",
+                    "max-node-provision-time": "15m",
+                    "max-total-unready-percentage": "45",
+                    "new-pod-scale-up-delay": "0s",
+                    "ok-total-unready-count": "3",
+                    "scale-down-delay-after-add": "10m",
+                    "scale-down-delay-after-delete": "20s",
+                    "scale-down-delay-after-failure": "3m",
+                    "scale-down-unneeded-time": "10m",
+                    "scale-down-unready-time": "20m",
+                    "scale-down-utilization-threshold": "0.5",
+                    "scan-interval": "10s",
+                    "skip-nodes-with-local-storage": "true",
+                    "skip-nodes-with-system-pods": "true"
+                },
+                /*"autoUpgradeProfile": {
+                    "upgradeChannel": "none"
+                },*/
+                "apiServerAccessProfile": {
+                    "enablePrivateCluster": true,
+                    "privateDNSZone": "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Network/privateDnsZones', concat('privatelink.', parameters('location') ,'.azmk8s.io'))]"
+                },
+                "podIdentityProfile": { 
+                    "enabled": true,
+                    "userAssignedIdentities": [
+                        {
+                            "name": "podmi-ingress-controller",
+                            "namespace": "ingress-nginx",
+                            "identity": {
+                                "resourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]",
+                                "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).clientId]",
+                                "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).principalId]"
+                            }
+                        }
+                    ]
+                }
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]": {}
+                }
+            },
+            "resources": [
+                {
+                    "type": "providers/roleAssignments",
+                    "apiVersion": "2020-04-01-preview",
+                    "name": "[concat('Microsoft.Authorization/', guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), 'omsagent', variables('monitoringMetricsPublisherRole')))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                    ],
+                    "properties": {
+                        "roleDefinitionId": "[variables('monitoringMetricsPublisherRole')]",
+                        "description": "Grant the OMS Agent's Managed Identity the metrics publisher role to push alerts.",
+                        "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-12-01').addonProfiles.omsagent.identity.objectId]",
+                        "principalType": "ServicePrincipal"
+                    }
+                },
+                {
+                    "type": "/providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "cluster-autoscaler",
+                                "enabled": true
+                            },
+                            {
+                                "category": "kube-controller-manager",
+                                "enabled": true
+                            },
+                            {
+                                "category": "kube-audit-admin",
+                                "enabled": true
+                            },
+                            {
+                                "category": "guard",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Node CPU utilization high for ', variables('clusterName'), ' CI-1')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "host",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "cpuUsagePercentage",
+                            "metricNamespace": "Insights.Container/nodes",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 80.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "Node CPU utilization across the cluster.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Node working set memory utilization high for ', variables('clusterName'), ' CI-2')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "host",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "memoryWorkingSetPercentage",
+                            "metricNamespace": "Insights.Container/nodes",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 80.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "Node working set memory utilization across the cluster.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Jobs completed more than 6 hours ago for ', variables('clusterName'), ' CI-11')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "controllerName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "kubernetes namespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "completedJobsCount",
+                            "metricNamespace": "Insights.Container/pods",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 0.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors completed jobs (more than 6 hours ago).",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT1M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Container CPU usage high for ', variables('clusterName'), ' CI-9')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "controllerName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "kubernetes namespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "cpuExceededPercentage",
+                            "metricNamespace": "Insights.Container/containers",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 90.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors container CPU utilization.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Container working set memory usage high for ', variables('clusterName'), ' CI-10')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "controllerName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "kubernetes namespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "memoryWorkingSetExceededPercentage",
+                            "metricNamespace": "Insights.Container/containers",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 90.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors container working set memory utilization.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Pods in failed state for ', variables('clusterName'), ' CI-4')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "phase",
+                                    "operator": "Include",
+                                    "values": [
+                                        "Failed"
+                                    ]
+                                }
+                            ],
+                            "metricName": "podCount",
+                            "metricNamespace": "Insights.Container/pods",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 0.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "Pod status monitoring.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Disk usage high for ', variables('clusterName'), ' CI-5')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "host",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "device",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "DiskUsedPercentage",
+                            "metricNamespace": "Insights.Container/nodes",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 80.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors disk usage for all nodes and storage devices.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Nodes in not ready status for ', variables('clusterName'), ' CI-3')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "status",
+                                    "operator": "Include",
+                                    "values": [
+                                        "NotReady"
+                                    ]
+                                }
+                            ],
+                            "metricName": "nodesCount",
+                            "metricNamespace": "Insights.Container/nodes",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 0.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "Node status monitoring.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Containers getting OOM killed for ', variables('clusterName'), ' CI-6')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "kubernetes namespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "controllerName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "oomKilledContainerCount",
+                            "metricNamespace": "Insights.Container/pods",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 0.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors number of containers killed due to out of memory (OOM) error.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT1M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Persistent volume usage high for ', variables('clusterName'), ' CI-18')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "podName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "kubernetesNamespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "pvUsageExceededPercentage",
+                            "metricNamespace": "Insights.Container/persistentvolumes",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 80.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors persistent volume utilization.",
+                "enabled": false,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Pods not in ready state for ', variables('clusterName'), ' CI-8')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "controllerName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "kubernetes namespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "PodReadyPercentage",
+                            "metricNamespace": "Insights.Container/pods",
+                            "name": "Metric1",
+                            "operator": "LessThan",
+                            "threshold": 80.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors for excessive pods not in the ready state.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "microsoft.containerservice/managedclusters",
+                "windowSize": "PT5M"
+            }
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[concat('Restarting container count for ', variables('clusterName'), ' CI-7')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+            ],
+            "properties": {
+                "actions": [],
+                "criteria": {
+                    "allOf": [
+                        {
+                            "criterionType": "StaticThresholdCriterion",
+                            "dimensions": [
+                                {
+                                    "name": "kubernetes namespace",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "name": "controllerName",
+                                    "operator": "Include",
+                                    "values": [
+                                        "*"
+                                    ]
+                                }
+                            ],
+                            "metricName": "restartingContainerCount",
+                            "metricNamespace": "Insights.Container/pods",
+                            "name": "Metric1",
+                            "operator": "GreaterThan",
+                            "threshold": 0.0,
+                            "timeAggregation": "Average",
+                            "skipMetricValidation": true
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "description": "This alert monitors number of containers restarting across the cluster.",
+                "enabled": true,
+                "evaluationFrequency": "PT1M",
+                "scopes": [
+                    "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                ],
+                "severity": 3,
+                "targetResourceType": "Microsoft.ContainerService/managedClusters",
+                "windowSize": "PT1M"
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameAKSLinuxRestrictive')]",
+            "comments": "Applying the 'AKS Linux Restrictive' policy to the resource group",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdAKSLinuxRestrictive'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdAKSLinuxRestrictive')]",
+                "parameters": {
+                    "effect": {
+                        "value": "audit"
+                    },
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameEnforceHttpsIngress')]",
+            "comments": "Applying the 'Enforce HTTPS ingress in Kubernetes cluster' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdEnforceHttpsIngress'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdEnforceHttpsIngress')]",
+                "parameters": {
+                    "effect": {
+                        "value": "deny"
+                    },
+                    "excludedNamespaces": {
+                        "value": []
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameEnforceInternalLoadBalancers')]",
+            "comments": "Applying the 'Enforce internal load balancers in Kubernetes cluster' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdEnforceInternalLoadBalancers'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdEnforceInternalLoadBalancers')]",
+                "parameters": {
+                    "effect": {
+                        "value": "deny"
+                    },
+                    "excludedNamespaces": {
+                        "value": []
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameMustNotAutomountApiCreds')]",
+            "comments": "Applying the 'No Automount of API credentials' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdMustNotAutomountApiCreds'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdMustNotAutomountApiCreds')]",
+                "parameters": {
+                    "effect": {
+                        "value": "deny"
+                    },
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system",
+                            "flux-system",    // Required by Flux
+                            "falco-system",   // Required by Falco
+                            "osm-system",     // Required by OSM
+                            "ingress-nginx",  // Required by NGINX
+                            "cluster-baseline-settings" // Required by KeyVault CSI & Kured
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameMustUseSpecifiedLabels')]",
+            "comments": "Applying the 'Must use specific labels' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdMustUseSpecifiedLabels'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdMustUseSpecifiedLabels')]",
+                "parameters": {
+                    "effect": {
+                        "value": "audit"
+                    },
+                    "labelsList": {
+                        "value": [
+                            "pci-scope"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameMustUseTheseExternalIps')]",
+            "comments": "Applying the 'Approved External IP Addresses' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdMustUseTheseExternalIps'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdMustUseTheseExternalIps')]",
+                "parameters": {
+                    "effect": {
+                        "value": "deny"
+                    },
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system"
+                        ]
+                    },
+                    "allowedExternalIPs": {
+                        "value": []  // No external IPs allowed (LoadBalancer Service types do not apply to this policy)
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameApprovedContainerPortsOnly')]",
+            "comments": "Applying the 'Approved Container Ports Only' policy to for the workload living in a0005-i and a0005-o namespaces.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'-a0005] ', reference(variables('policyResourceIdApprovedContainerPortsOnly'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdApprovedContainerPortsOnly')]",
+                "parameters": {
+                    "effect": {
+                        "value": "audit"
+                    },
+                    "excludedNamespaces": {
+                        "value": []
+                    },
+                    "namespaces": {
+                        "value": [
+                            "a0005-i",
+                            "a0005-o"
+                        ]
+                    },
+                    "allowedContainerPortsList": {
+                        "value": [
+                            "8080",   // ASP.net service listens on this
+                            "15000",  // envoy proxy for service mesh
+                            "15003",  // envoy proxy for service mesh
+                            "15010"   // envoy proxy for service mesh
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameApprovedServicePortsOnly')]",
+            "comments": "Applying the 'Approved Service Ports Only' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdApprovedServicePortsOnly'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdApprovedServicePortsOnly')]",
+                "parameters": {
+                    "effect": {
+                        "value": "audit"
+                    },
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system",
+                            "osm-system"
+                        ]
+                    },
+                    "allowedServicePortsList": {
+                        "value": [
+                            "443",  // ingress-controller
+                            "80",   // flux source-controller and microservice workload
+                            "8080"  // web-frontend workload
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameRoRootFilesystem')]",
+            "comments": "Applying the 'Kubernetes cluster containers should run with a read only root file system' policy to the resource group.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdRoRootFilesystem'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdRoRootFilesystem')]",
+                "parameters": {
+                    "effect": {
+                        "value": "audit"
+                    },
+                    // Not all workloads support this. E.g. ASP.NET requires a non-readonly root file system to handle request buffering when there is memory pressure.
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameBlockDefaultNamespace')]",
+            "comments": "Applying the 'Block Default Namespace' policy at the resource group level.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdBlockDefaultNamespace'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdBlockDefaultNamespace')]",
+                "parameters": {
+                    "effect": {
+                        "value": "deny"
+                    },
+                    "excludedNamespaces": {
+                        "value": []
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentNameEnforceResourceLimits')]",
+            "comments": "Applying the 'Container Images Resource Limits' policy at the resource group level.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdEnforceResourceLimits'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdEnforceResourceLimits')]",
+                "parameters": {
+                    "effect": {
+                        "value": "audit"
+                    },
+                    "cpuLimit": {
+                        "value": "2000m"
+                    },
+                    "memoryLimit": {
+                        "value": "1Gi"
+                    },
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-03-01",
+            "name": "[variables('policyAssignmentNameEnforceImageSource')]",
+            "comments": "Applying the 'Allowed Container Images' regex policy at the resource group level.",
+            "properties": {
+                "displayName": "[trim(take(concat('[', variables('clusterName'),'] ', reference(variables('policyResourceIdEnforceImageSource'), '2020-09-01').displayName), 125))]",
+                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                "policyDefinitionId": "[variables('policyResourceIdEnforceImageSource')]",
+                "parameters": {
+                    "allowedContainerImagesRegex": {
+                        "value": "[concat(variables('defaultAcrName'),'.azurecr.io/live/.+$|mcr.microsoft.com/oss/.+$')]"
+                    },
+                    "effect": {
+                        "value": "deny"
+                    },
+                    "excludedNamespaces": {
+                        "value": [
+                            "kube-system",
+                            "gatekeeper-system"
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "aksClusterName": {
+            "type": "string",
+            "value": "[variables('clusterName')]"
+        },
+        "agwName": {
+            "type": "string",
+            "value": "[variables('agwName')]"
+        },
+        "keyVaultName": {
+            "type": "string",
+            "value": "[variables('keyVaultName')]"
+        },
+        "containerRegistryName": {
+            "type": "string",
+            "value": "[variables('defaultAcrName')]"
+        },
+        "quarantineContainerRegistryName": {
+            "type": "string",
+            "value": "[variables('defaultAcrName')]"
+        }
+    }
+}

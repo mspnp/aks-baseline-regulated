@@ -1,24 +1,26 @@
-#  Mapping k8s cluster user facing roles to AAD groups: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+# Mapping k8s user facing roles to AAD groups: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: ClusterRoleBinding
 #metadata:
-#  name: cluster-admins
+#  name: aksrbac-cluster-admin
 #roleRef:
 #  apiGroup: rbac.authorization.k8s.io
 #  kind: ClusterRole
 #  name: cluster-admin
 #subjects:
-#  - kind: Group
-#    name: <replace-with-an-aad-group-object-id-for-this-cluster-role-binding>
+#- apiGroup: rbac.authorization.k8s.io
+#  kind: Group
+#  name: <replace-with-an-aad-group-object-id-for-this-cluster-wide-maximally-privileged-admin-role -- consider mapping all cluster-admin roles via the cluster's arm template instead of here.>
 #---
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: ClusterRoleBinding
 #metadata:
-#  name: cluster-viewers
+#  name: aksrbac-cluster-viewer
 #roleRef:
 #  apiGroup: rbac.authorization.k8s.io
 #  kind: ClusterRole
 #  name: view
 #subjects:
-#  - kind: Group
-#    name: <replace-with-an-aad-group-object-id-for-this-cluster-role-binding>
+#- apiGroup: rbac.authorization.k8s.io
+#  kind: Group
+#  name: <replace-with-an-aad-group-object-id-for-this-cluster-wide-view-role>

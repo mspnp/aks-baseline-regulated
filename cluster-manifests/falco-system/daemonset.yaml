@@ -1,0 +1,115 @@
+# Source: falco/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: aks-falco
+  namespace: falco-system
+  labels:
+    app: aks-falco
+    pci-scope: out-of-scope
+spec:
+  selector:
+    matchLabels:
+      app: aks-falco
+      role: security
+      pci-scope: out-of-scope
+  template:
+    metadata:
+      name: aks-falco
+      labels:
+        app: aks-falco
+        role: security
+        pci-scope: out-of-scope
+      annotations:
+        checksum/config: c8d2718dd632fb0254f5f202c1063b5bbeb21382d762acbe2390da1ea1267b48
+        checksum/rules: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/certs: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+    spec:
+      serviceAccountName: aks-falco
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+        - key: CriticalAddonsOnly
+          effect: NoSchedule
+          operator: Equal
+          value: "true"
+      containers:
+        - name: falco
+          image: docker.io/falcosecurity/falco:0.27.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 200m
+              memory: 1024Mi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          securityContext:
+            privileged: true
+          args:
+            - /usr/bin/falco
+            - --cri
+            - /run/containerd/containerd.sock
+            - -K
+            - /var/run/secrets/kubernetes.io/serviceaccount/token
+            - -k
+            - "https://$(KUBERNETES_SERVICE_HOST)"
+            - -pk
+          volumeMounts:
+            - mountPath: /host/run/containerd/containerd.sock
+              name: containerd-socket
+            - mountPath: /host/dev
+              name: dev-fs
+              readOnly: true
+            - mountPath: /host/proc
+              name: proc-fs
+              readOnly: true
+            - mountPath: /host/boot
+              name: boot-fs
+              readOnly: true
+            - mountPath: /host/lib/modules
+              name: lib-modules
+            - mountPath: /host/usr
+              name: usr-fs
+              readOnly: true
+            - mountPath: /host/etc
+              name: etc-fs
+              readOnly: true
+            - mountPath: /etc/falco
+              name: config-volume
+      volumes:
+        - name: containerd-socket
+          hostPath:
+            path: /run/containerd/containerd.sock
+        - name: dev-fs
+          hostPath:
+            path: /dev
+        - name: proc-fs
+          hostPath:
+            path: /proc
+        - name: boot-fs
+          hostPath:
+            path: /boot
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: usr-fs
+          hostPath:
+            path: /usr
+        - name: etc-fs
+          hostPath:
+            path: /etc
+        - name: config-volume
+          configMap:
+            name: aks-falco
+            items:
+              - key: falco.yaml
+                path: falco.yaml
+              - key: falco_rules.yaml
+                path: falco_rules.yaml
+              - key: falco_rules.local.yaml
+                path: falco_rules.local.yaml
+              - key: application_rules.yaml
+                path: rules.available/application_rules.yaml
+  updateStrategy:
+    type: RollingUpdate
