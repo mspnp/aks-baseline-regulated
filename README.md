@@ -4,7 +4,12 @@ This reference implementation demonstrates the _recommended starting (baseline) 
 
 | 🎓 Foundational Understanding |
 |:------------------------------|
-| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should strongly consider starting there before continuing here.** The architecture rationalized and constructed there is the foundation of this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
+| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should start there before continuing here.** The architecture rationalized and constructed that implementation is the direct foundation of this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
+
+## Compliance
+
+| :warning: | **These artifacts have not been certified in any official capacity; regulatory compliance is a shared responsibility between you and your hosting provider.** This implementation is designed to aide you on your journey to achieving your compliance, but by itself does not ensure any level of compliance. |
+|-----------|---------------------------|
 
 > :warning: **These artifacts have not been certified in any official capacity; regulatory compliance is a shared responsibility between you and your hosting provider.** This implementation is designed to aide you on your journey to achieving your compliance, but by itself does not ensure any level of compliance.
 
