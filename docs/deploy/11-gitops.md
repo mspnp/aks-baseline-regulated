@@ -153,8 +153,8 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 1. _From your Azure Bastion connection_, bootstrap Flux. 🛑
 
    ```bash
-   git clone https://github.com/YOUR-GITHUB-ACCOUNT-NAME-GOES-HERE/aks-regulated-cluster
-   cd aks-regulated-cluster/cluster-manifests
+   git clone https://github.com/YOUR-GITHUB-ACCOUNT-NAME-GOES-HERE/aks-baseline-regulated
+   cd aks-baseline-regulated/cluster-manifests
 
    # Deploys Secret Store CSI Drivers and other foundational items
    kubectl apply -k cluster-baseline-settings

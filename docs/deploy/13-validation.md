@@ -1,6 +1,6 @@
 # End-to-End Validation
 
-Now that you have a [simulated regulated workload deployed](./12-workload.md), you can start validating and exploring this reference implementation of the [AKS Baseline Cluster for Regulated Workloads](./). In addition to the workload, there are some observability validation you can perform as well.
+Now that you have a [simulated regulated workload deployed](./12-workload.md), you can start validating and exploring this reference implementation of the [AKS Baseline Cluster for Regulated Workloads](/). In addition to the workload, there are some observability validation you can perform as well.
 
 ## Validate the Web App
 
@@ -113,10 +113,21 @@ ContainerLog
 
 And audit results will be sent to Azure Policy about once every 30 minutes. To see when they sync you can execute the following query.
 
+```
 ContainerLog
 | where Image contains "policy-kubernetes-addon"
 | where LogEntry contains "Sending audit result"
 | order by TimeGenerated desc
+```
+
+## Azure Security Center - Regulatory Compliance
+
+If your subscription has the **Azure Security Benchmark** Azure Policy initiative applied, and **Industry & regulatory standards** enabled (e.g. **PCI DSS 3.2.1**), the **Regulatory compliance** dashboard will allow you to see compliance status for controls that have been mapped by Azure to the specific standard. The view is updated about once every 24 hours, this includes its initial scan. So if you enabled this as part of the walkthrough (steps found on the [Subscription page](./04-subscription.md)), you may not yet see any content in here.
+
+### Steps
+
+1. Open the [Regulatory compliance dashboard](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22) in Security Center.
+1. Review the Industry summary and any recommendations.
 
 ### Next step
 

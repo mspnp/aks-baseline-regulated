@@ -1,4 +1,4 @@
-# Additional System Capabilities
+# Additional Considerations
 
 This reference implementation did not enable "every security option possible." This was mostly due to practicality around permissions, already existing security policies in the subscription, existing policies that might block deployment, simplicity in demonstration, etc. Because they were not trivial to deploy in this walkthrough, we wanted to ensure you at least have a list of things we'd have liked to include out of the box -- ideally as a consideration for you to introduce into your final architecture.
 
@@ -105,3 +105,7 @@ Azure Sentinel was enabled in this reference implementation. No alerts were crea
 Pipeline agents should be run external to your regulated cluster. While it is possible to do that work on the cluster itself, providing a clear separation of concerns is vital. The build process itself is a potential threat vector and executing that processes as a cluster workload is inappropriate. If you wish to use Kubernetes as your build agent infrastructure, that's fine; just _do not co-mingle that process with your regulated workload runtime_.
 
 Your build agents should be as air-gapped as practical from your cluster, reserving your agents exclusively for last mile interaction with the Kubernetes API Server (if that's how you do your deployments). If instead your build agents can be completely disconnected from your cluster and instead needing just network line of sight to Azure Container Registry to push container images, helm charts, etc and then GitOps does the deployment, even better. Strive for a build and publish workflow that minimizes or eliminates any direct need for network line of sight to your Kubernetes Cluster API (or its nodes).
+
+## Next step
+
+:arrow_forward: [Back to main README](/README.md#is-that-all-what-about--)

@@ -1,8 +1,6 @@
 # Prerequisites
 
-This is the starting point for the end-to-end instructions on deploying the [AKS Baseline for Regulated Workloads reference implementation](./README.md). There is required access and tooling you'll need in order to accomplish this. Follow the instructions below and on the subsequent pages so that you can get your environment and subscription ready to proceed with the AKS cluster creation.
-
-## Symbols
+This is the starting point for the end-to-end instructions on deploying the [AKS Baseline for Regulated Workloads reference implementation](/README.md). There is required access and tooling you'll need in order to accomplish this. Follow the instructions below and on the subsequent pages so that you can get your environment and subscription ready to proceed with the AKS cluster creation.
 
 Throughout this walkthrough, take note of the following symbol.
 
@@ -41,8 +39,8 @@ Throughout this walkthrough, take note of the following symbol.
    ```bash
    GITHUB_ACCOUNT_NAME=YOUR-GITHUB-ACCOUNT-NAME-GOES-HERE
 
-   git clone https://github.com/${GITHUB_ACCOUNT_NAME}/aks-regulated-baseline.git
-   cd aks-regulated-baseline
+   git clone https://github.com/${GITHUB_ACCOUNT_NAME}/aks-baseline-regulated.git
+   cd aks-baseline-regulated
    ```
 
    > 💡 The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash.
