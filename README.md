@@ -8,18 +8,19 @@ This reference implementation demonstrates the _recommended starting (baseline) 
 
 ## Compliance
 
-| :warning: | **These artifacts have not been certified in any official capacity; regulatory compliance is a shared responsibility between you and your hosting provider.** This implementation is designed to aide you on your journey to achieving your compliance, but by itself does not ensure any level of compliance. |
-|-----------|---------------------------|
+| :warning: | These artifacts have not been certified in any official capacity; regulatory compliance is a _shared responsibility_ between you and your hosting provider. This implementation is designed to aide you on your journey to achieving your compliance, but by itself _does not ensure any level of compliance_. |
+|-----------|:--------------------------|
 
-> :warning: **These artifacts have not been certified in any official capacity; regulatory compliance is a shared responsibility between you and your hosting provider.** This implementation is designed to aide you on your journey to achieving your compliance, but by itself does not ensure any level of compliance.
+Azure and AKS are well positioned to give you the tools and processes necessary to help you achieve a compliant hosting infrastructure. The implementation details can be complex, as is the overall process of compliance. We walk through the deployment here in a rather _verbose_ method to help you understand each component of this architecture, ideally teaching you about each layer and providing you with the knowledge necessary to apply it to your unique compliance scoped workload.
 
-AKS is well positioned to give you the tools and processes necessary to help you achieve a compliant hosting infrastructure. The implementation details can be complex, as is the overall process of compliance. We walk through the deployment here in a rather _verbose_ method to help you understand each component of this cluster, ideally teaching you about each layer and providing you with the knowledge necessary to apply it to your unique compliance scoped workload.
-
-Even if you are not in a regulated environment, this infrastructure will show a more heightened security posture cluster than the general-purpose cluster presented in the baseline, and you might find it useful to take select concepts from here and apply it to your non-regulated workloads as added security (at the tradeoff of added complexity and hosting costs).
+Even if you are not in a regulated environment, this infrastructure will show a more heightened security posture cluster than the general-purpose cluster presented in the AKS Baseline. You might find it useful to take select concepts from here and apply it to your non-regulated workloads (at the tradeoff of added complexity and hosting costs).
 
 ## Azure Architecture Center guidance
 
-This project has a companion set of articles that describe challenges, design patterns, and best practices for a AKS cluster designed to host workloads that fall in regulatory scope. You can find this article on the Azure Architecture Center at [Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Industries](https://aka.ms/architecture/aks-baseline-regulated). If you haven't reviewed it, we suggest you read it as it will give added context to the considerations applied in this implementation. Ultimately, this is the direct implementation of that specific architectural guidance.
+This project has a companion set of articles that describe challenges, design patterns, and best practices for a AKS cluster designed to host workloads that fall in **PCI-DSS 3.2.1** scope. You can find this article on the Azure Architecture Center at [Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Industries](https://aka.ms/architecture/aks-baseline-regulated). If you haven't reviewed it, we suggest you read it as it will give added context to the considerations applied in this implementation.
+
+| :construction: | The articles mentioned above have _not yet been published_. |
+|----------------|:--------------------------|
 
 ## Architecture
 
