@@ -2,9 +2,9 @@
 
 This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds directly upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-secure-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns.
 
-| :exclamation: Foundational Understanding   |
-|:-------------------------------------------|
-| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should strongly consider starting there before continuing here.** The architecture rationalized and constructed there is the foundation of this body of work. This reference implementation avoids rearticulating decisions made that are already addressed in the AKS baseline cluster. |
+| 🎓 Foundational Understanding |
+|:------------------------------|
+| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should strongly consider starting there before continuing here.** The architecture rationalized and constructed there is the foundation of this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
 
 > :warning: **These artifacts have not been certified in any official capacity; regulatory compliance is a shared responsibility between you and your hosting provider.** This implementation is designed to aide you on your journey to achieving your compliance, but by itself does not ensure any level of compliance.
 
