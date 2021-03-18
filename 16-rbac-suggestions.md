@@ -61,3 +61,7 @@ If you have multiple clusters as part of your portfolio, create separate groups 
 ### Azure AD mapping to cluster
 
 The above, where they materialize in-cluster, would be mapped to distinct, custom Kubernetes `ClusterRole` definitions (e.g. `name: infraAdmin`) and then a singular `ClusterRoleBinding` to the related group above. And for those that are namespaced, to `Role` definitions (e.g. `name: appAdmin`) and then a singular `RoleBinding` to the related group above -- for each related namespace. "Shared Services" in a cluster will live in their own namespace (e.g. a security agent), and while a `ClusterRoleBinding` might work for management of those, consider instead managing those as a independent workload, and managing those through `Role` and `RoleBinding` constructs, that you apply to Infrastructure Operators.
+
+## Next step
+
+:arrow_forward: [Back to main README](./README.md)
