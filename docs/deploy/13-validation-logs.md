@@ -1,10 +1,10 @@
 # Access Resource Logs & Security Center Data
 
-Your infrastructure is emitting logs, here are a few key points you may wish to consider being familiar with and/or building log-based queries around. Below are some a few queries to get you started exploring the captured data.
+Your infrastructure and [workload is emitting logs](./13-validation.md), here are a few key logs you may wish to consider being familiar with and/or building [log-based queries](https://docs.microsoft.com/azure/azure-monitor/logs/get-started-queries) around. Below are some a few queries to get you started exploring the captured data.
 
-You can access these logs all directly from the attached Log Analytics workspace(s), but when you do you'll need to filter down to specific resources. For simplicity the steps below direct you to the pre-filtered view offered by the Azure Portal when viewing within the context of each service.
+You can access these logs all directly from the attached Log Analytics workspace(s), but when you do you'll need to filter to specific resources. For simplicity the steps below direct you to the pre-filtered view offered by the Azure Portal when viewing within the context of each service.
 
-> Everything on this page is _optional_ to perform. If you do not wish to review captured logs, you can skip to [Next step](#next-step).
+Remember, since this implementation builds on the AKS Baseline, [validations performed there](https://github.com/mspnp/aks-secure-baseline/blob/main/10-validation.md#validate-azure-monitor-for-containers-prometheus-metrics) such as viewing Prometheus metrics and Kured logs are also applicable to this cluster.
 
 ## Azure Firewall
 
@@ -160,7 +160,7 @@ Blocked requests (along with other gateway data) will be visible in the attached
 ```kusto
 AzureDiagnostics 
 | where Category == "ApplicationGatewayFirewallLog"
-| order by TimeGenerated desc 
+| order by TimeGenerated desc
 ```
 
 ## Azure Key Vault
