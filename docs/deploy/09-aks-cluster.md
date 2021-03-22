@@ -41,7 +41,7 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 
 1. Deploy the cluster ARM template.
 
-   > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
+   > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](../../azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
 
    ```bash
    # [This takes about 20 minutes.]

@@ -129,6 +129,15 @@ If your subscription has the **Azure Security Benchmark** Azure Policy initiativ
 1. Open the [Regulatory compliance dashboard](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22) in Security Center.
 1. Review the Industry summary and any recommendations.
 
+## Image quarantine violation alert
+
+If you executed the optional extra import command on the [image quarantine step page](./10-pre-bootstrap.md), you'll be able to see that alert.
+
+### Steps
+
+1. Open the [Azure Monitor Alerts Summary page]((https://portal.azure.com/#blade/Microsoft_Azure_Monitoring/AlertsManagementSummaryBlade)) in the Azure Portal.
+1. Find the alert and click on **View query results** which will show you the offending images' details.
+
 ### Next step
 
 :arrow_forward: [Clean Up Azure Resources](./14-cleanup.md)
