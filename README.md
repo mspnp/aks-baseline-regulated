@@ -136,7 +136,7 @@ Most of the Azure resources deployed in the prior steps will have ongoing billin
 
 All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in that it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Azure AD role guide](./docs/rbac-suggestions.md)** shipped as part of this reference implementation.
 
-## Is that all, what about .... !?
+## Is that all, what about … !?
 
 Yes, there are concerns that do extend beyond what this implementation could reasonably demonstrate for a general audience. This reference implementation strived to be accessible for most people without putting undo burdens on the subscription brought to this walkthrough. This means SKU choices with relatively large default quotas, not using features that have very limited regional availability, not asking for learners to be overwhelmed with "Bring your own encryption key" options for services, and similar. All in hopes that more people can complete this walkthrough without disruption or excessive coordination with subscription or management group owners.
 

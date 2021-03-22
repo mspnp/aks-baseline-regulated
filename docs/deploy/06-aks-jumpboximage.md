@@ -99,7 +99,7 @@ Now that we have our image building network created, egressing through our hub, 
 
 1. Delete image building resources. _Optional._
 
-   Image building can be seen as a transient process, and as such, you may wish to remove all temporary resources used as part of the process. At this point, if you are happy with your generated image, you can delete the **Image Template** (_not Image!_) in `rg-bu0001a0005`, AIB user managed identity (`mi-aks-jumpbox-imagebuilder-...`) and its role assignments. See instructions to do so in the [AKS Jump Box Image Builder guidance](https://github.com/mspnp/aks-jumpbox-imagebuilder#broom-clean-up-resources) for more details.
+   Image building can be seen as a transient process, and as such, you may wish to remove all temporary resources used as part of the process. At this point, if you are happy with your generated image, you can delete the **Image Template** (_not Image!_) in `rg-bu0001a0005`, AIB user managed identity (`mi-aks-jumpbox-imagebuilder-…`) and its role assignments. See instructions to do so in the [AKS Jump Box Image Builder guidance](https://github.com/mspnp/aks-jumpbox-imagebuilder#broom-clean-up-resources) for more details.
 
    Deleting these build-time resources will not delete the golden VM image you just created for your jump box. For the purposes of this walkthrough, there is no harm in leaving these transient resources behind.
 
