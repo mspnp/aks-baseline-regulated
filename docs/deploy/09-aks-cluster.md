@@ -1,6 +1,6 @@
 # Deploy the Regulated Industries AKS Cluster
 
-Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster and its adjacent Azure resources.
+Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://docs.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
 
 ## Expected results
 
@@ -44,7 +44,7 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
    > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](../../azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
 
    ```bash
-   # [This takes about 20 minutes.]
+   # [This takes about 20 minutes to run.]
    az deployment group create -g rg-bu0001a0005 -f cluster-stamp.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE_BASE64} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
 
    # Or if you updated and wish to use the parameters file …
@@ -58,7 +58,7 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
    > :eyes: If you're curious to see what changed in the cluster stamp, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.json&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.v2.json).
 
    ```bash
-   # [This takes about five minutes.]
+   # [This takes about five minutes to run.]
    az deployment group create -g rg-bu0001a0005 -f cluster-stamp.v2.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE} aksIngressControllerCertificate=${AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
 
    # Or if you used the parameters file …
