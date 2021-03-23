@@ -1,14 +1,14 @@
 # Prepare to bootstrap the cluster
 
-Now that [the AKS cluster](./09-aks-cluster.md) has been deployed, the next step to talk a bit about container image security, starting with the images you'll be using to bootstrap this cluster.
+Now that [the AKS cluster](./09-aks-cluster.md) has been deployed, the next step is to talk a bit about container image security, starting with the images you'll be using to bootstrap this cluster.
 
 ## Expected results
 
-Your cluster is about to be bootstrapped with some base operating container images. These components will place your cluster under GitOps control and will be foundational security elements and any other cluster-wide resources you want deployed before workloads start landing on the cluster. This means this is the first time we'll be bringing images directly into this cluster.
+Your cluster is about to be bootstrapped with some base operating container images. These components will place your cluster under GitOps control and will install foundational security elements and any other cluster-wide resources you want deployed before workloads start landing on the cluster. This means this is the first time we'll be bringing images directly into this cluster.
 
 You'll end up with the following images imported into your ACR instance, after having passed through a _simulated_ quarantine process.
 
-* Flux (kustomize-controller, source-controller)
+* Flux
 * Falco
 * Busybox
 * Kured
@@ -23,11 +23,11 @@ Quarantining first- and third-party images is a recommended security practice. T
 
 Your deployment pipelines are one of the first lines of defense in container image security. Shifting left by introducing build steps like [GitHub Image Scanning](https://github.com/Azure/container-scan) (which leverages common tools like [dockle](https://github.com/goodwithtech/dockle) and [Aquasec trivy](https://github.com/aquasecurity/trivy)) will help ensure that, at build time, your images are linted, CIS benchmarked, and free from known vulnerabilities. You can use any tooling at this step that you trust, including paid, ISV solutions that help provide your desired level of confidence and compliance.
 
-Once your images are built (or identified from a public container registry such as Docker Hub or GitHub Container Registry), the next step is pushing/importing those images to your own container registry. This is the next place a security audit should take place and is in fact the quarantine process identified above. Your newly pushed images undergo any scanning desired. Your pipeline should be gated on the outcome of that scan. If the scan is complete and returned healthy results, then pipeline should move the image into your final container registry repository. If the scan does not complete or is not found healthy, you stop that deployment immediately.
+Once your images are built (or identified from a public container registry such as Docker Hub or GitHub Container Registry), the next step is pushing/importing those images to your own container registry. This is the next place a security audit should take place and is in fact the quarantine process identified above. Your newly pushed images undergo any scanning desired. Your pipeline should be gated on the outcome of that scan. If the scan is complete and returned sufficiently healthy results, then your pipeline should move the image into your final container registry repository. If the scan does not complete or is not found sufficiently healthy, you stop that deployment immediately.
 
 ## Continuous scanning
 
-The quarantine pattern is ideal for detecting issues with newly pushed images, but _continuous scanning_ is also desirable as CVEs can be found at any time for your images that are in use. **Azure Defender for container registries** will perform daily scanning of active images (based on images that have been recently pulled). Third party ISV solutions can perform similar tasks. It is recommended that you implement continuous scanning at the registry level. Azure Defender for container registries currently has limitations with private Azure Container Registry instances (such as yours, exposed exclusively via Private Link). Ensure your continuous scan solution can work within your network restrictions. You may need to bring a third-party ISV solution into network adjacency to your container registry to be able to perform your desired scanning. How you react to a CVE (or other issue) detected in your images should be documented in your security operations playbooks. For example, you could remove the image from being available to pull, but that could cause a downstream outage while you're remediating.
+The quarantine pattern is ideal for detecting issues with newly pushed images, but _continuous scanning_ is also desirable as CVEs can be found at any time for your images that are in use. **Azure Defender for container registries** will perform daily scanning of active images. Third party ISV solutions can perform similar tasks. It is recommended that you implement continuous scanning at the registry level. Azure Defender for container registries currently has limitations with private Azure Container Registry instances (such as yours, exposed exclusively via Private Link). Ensure your continuous scan solution can work within your network restrictions. You may need to bring a third party ISV solution into network adjacency to your container registry to be able to perform your desired scanning. How you react to a CVE (or other issue) detected in your images should be documented in your security operations playbooks. For example, you could remove the image from being available to pull, but that could cause a downstream outage while you're remediating.
 
 ## In-cluster scanning
 
@@ -56,7 +56,7 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source docker.io/jettech/kube-webhook-certgen:v1.5.1 -t quarantine/jettech/kube-webhook-certgen:v1.5.1 -n $ACR_NAME_QUARANTINE
    ```
 
-   > For simplicity we are NOT importing images that are coming from Microsoft Container Registry's (MCR) `oss` repository. This is not an endorsement of the suitability of those images to be pulled without going through quarantine or depending public container registries for production runtime needs. All container images that you bring to the cluster should pass through your quarantine process. For transparency, images that we skipped importing are for [Open Service Mesh](./cluster-manifests/cluster-baseline-settings/osm/) and [CSI Secret Store](./cluster-manifests/cluster-baseline-settings/secrets-store-csi/). Both of these are [progressing to eventually be AKS add-ons in the cluster](https://aka.ms/aks/roadmap), and as such would have been pre-deployed to your cluster like other add-ons (E.g. Azure Policy, Azure Monitor, Azure AD Pod Identity) so you wouldn't need to bootstrap the cluster with them yourself. We recommend you do bring these into this import process, and once you've done that you can update the Azure Policy `allowedContainerImagesRegex` in [`cluster-stamp.json`](./cluster-stamp.json) to remove `mcr.microsoft.com/oss/.+` as a valid source of images, leaving just `<your acr instance>/live/.+` as the only valid source.
+   > For simplicity we are NOT importing images that are coming from Microsoft Container Registry's (MCR) `oss` repository. This is not an endorsement of the suitability of those images to be pulled without going through quarantine or depending public container registries for production runtime needs. All container images that you bring to the cluster should pass through your quarantine process. For transparency, images that we skipped importing are for [Open Service Mesh](./cluster-manifests/cluster-baseline-settings/osm/) and [CSI Secret Store](./cluster-manifests/cluster-baseline-settings/secrets-store-csi/). Both of these are [progressing to eventually be AKS add-ons in the cluster](https://aka.ms/aks/roadmap), and as such would have been pre-deployed to your cluster like other add-ons (E.g. Azure Policy, Azure Monitor, Azure AD Pod Identity) so you wouldn't need to bootstrap the cluster with them yourself. We recommend you do bring these into this import process, and once you've done that you can update the Azure Policy `allowedContainerImagesRegex` in [`cluster-stamp.json`](../../cluster-stamp.json) to remove `mcr.microsoft.com/oss/.+` as a valid source of images, leaving just `<your acr instance>/live/.+` as the only valid source.
 
 1. Run security audits on images.
 
@@ -70,9 +70,9 @@ Using a security agent that is container-aware and can operate from within the c
    1. Expand **Affected resources**.
    1. Click on your ACR instance name under one of the **registries** tabs.
 
-   In here, you can see which container images are **Unhealthy** (had a scan detection), **Healthy** (was scanned, but didn't result in any alerts), and **Unverified** (was unable to be scanned). Unfortunately, Azure Defender for container registries is [unable to scan all container types](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction#availability). Also, because your container registry is exposed exclusively through Private Link, you won't get a list of those Unverified images listed here. Azure Defender for container registries is only full-featured with non-network restricted container registries.
+   In here, you can see which container images are **Unhealthy** (had a scan detection), **Healthy** (was scanned, but didn't result in any alerts), and **Unverified** (was unable to be scanned). Unfortunately, Azure Defender for container registries is [unable to scan all artifacts types](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction#availability). Also, because your container registry is exposed exclusively through Private Link, you won't get a list of those Unverified images listed here. Azure Defender for container registries is only full-featured with non-network restricted container registries.
 
-   As with any Azure Security Center product, you can set up alerts or via your connected SIEM to be identified when an issue is detected. Periodically checking and discovering security alerts via the Azure Portal is not the expected method to consume these security status notifications. No alerts are Security Center alerts currently configured for this walkthrough.
+   As with any Azure Security Center product, you can set up alerts or via your connected SIEM to be identified when an issue is detected. Periodically checking and discovering security alerts via the Azure Portal is not the expected method to consume these security status notifications. No Security Center alerts are currently configured for this walkthrough.
 
    **There is no action for you to take, in this step.** This was just a demonstration of Azure Security Center's scanning features. Ultimately, you'll want to build a quarantine pipeline that solves for your needs and aligns with your image deployment strategy and supply chain requirements.
 
@@ -93,7 +93,13 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source quarantine/jettech/kube-webhook-certgen:v1.5.1 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v1.5.1 -n $ACR_NAME
    ```
 
-   > You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import some other image directly to `live/` (e.g. `az acr import --source docker.io/library/busybox:1.33.0 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME`). Within ten minutes, you should see [this alert trigger in the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring/AlertsManagementSummaryBlade) and if you click **View query result** within the alert you'll see the offending images' details.
+1. Trigger quarantine violation. _Optional._
+
+   You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import some other image directly to `live/`. On the validation page later in this walkthrough, you'll see that alert.
+
+   ```bash
+   az acr import --source docker.io/library/busybox:1.33.0 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME
+   ```
 
 ### Next step
 

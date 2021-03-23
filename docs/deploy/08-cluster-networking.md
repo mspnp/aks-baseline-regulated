@@ -30,7 +30,7 @@ Your `rg-enterprise-networking-spokes` will be populated with the dedicated regi
 
    This is an evolution of same hub template you used before, but now updated with Azure Firewall rules specific to this AKS cluster infrastructure.
 
-   > :eyes: If you're curious to see what changed in the regional hub, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-secure-baseline/regulated/networking/hub-region.v1.json&r=https://raw.githubusercontent.com/mspnp/aks-secure-baseline/regulated/networking/hub-region.v2.json).
+   > :eyes: If you're curious to see what changed in the regional hub, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v1.json&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v2.json).
 
    ```bash
    RESOURCEID_SUBNET_AIB=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-00 --query properties.outputs.imageBuilderSubnetResourceId.value -o tsv)

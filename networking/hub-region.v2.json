@@ -955,7 +955,8 @@
                                     "targetFqdns": [
                                         "*.ods.opinsights.azure.com",
                                         "*.oms.opinsights.azure.com",
-                                        "[concat(parameters('location'), '.monitoring.azure.com')]"
+                                        "[concat(parameters('location'), '.monitoring.azure.com')]",
+                                        "*.agentsvc.azure-automation.net"
                                     ]
                                 }
                             ]

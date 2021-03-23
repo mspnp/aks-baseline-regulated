@@ -1,6 +1,6 @@
 # Configuring Jump Box Users
 
-You've [built the jump box image](./06-aks-jumpboximage.md), now we need to build out a user access plan.
+You've [built the jump box image](./06-aks-jumpboximage.md), now you need to build out a user access plan.
 
 ## Jump box user management
 
@@ -24,7 +24,7 @@ Following the steps below, you'll end up with a SSH public-key-based solution th
       cat opsuser01.key.pub
       ```
 
-      **Enter a passphrase when requested** (do not leave empty) and note where the public and private key file was saved. The _public_ key file _contents_ (`opsuser01.key.pub` in the example above) is what is added to the `ssh-authorized-keys` array in `jumpBoxCloudInit.yml`. You'll need the username, the private key file (`opsuser01.key`), and passphrase later in this walkthrough.
+      **Enter a passphrase when requested** (_do not leave empty_) and note where the public and private key file was saved. The _public_ key file _contents_ (`opsuser01.key.pub` in the example above) is what is added to the `ssh-authorized-keys` array in `jumpBoxCloudInit.yml`. You'll need the username, the private key file (`opsuser01.key`), and passphrase later in this walkthrough.
 
       > On Windows, as an alternative to bash in WSL, you can use a solution like PuTTYGen found in the [PuTTY installer](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
       >

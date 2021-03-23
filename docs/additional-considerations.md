@@ -84,6 +84,14 @@ While this reference implementation uses Tresor as its TLS certificate provider 
 
 The ingress controller implemented in this reference implementation is relatively simplistic in implementation. It's currently using a wild-card certificate to handle default traffic when an `Ingress` resource doesn't contain a specific certificate. This might be fine for most customers, but if you have an organizational policy against using wildcard certs (even on your internal, private network), you may need to adjust your ingress controller to not support a "default certificate" and instead require ever workload to surface their own named certificate. This will impact how Azure Application Gateway is performing backend health checks.
 
+## Pin image versions
+
+When practical to do so, do not reference images by their tags in your deployment manifests, this includes version tags like `1.0` and certinally never mutable tags like `latest`. While it may be verbose to do, prefer referring images with their actual image id; for example `my-image:@sha256:10f9714876074e25bdae42bc9ed6fde9a7758706-09fa-474c-86bd-eb7a95ae21ec`. This will ensures you can reliably map container scan results with the actual content running in your cluster.
+
+You can extend the Azure Policy for image name to include this pattern in the allowed regular expression to help enforce this.
+
+This guidance should also be followed when using the Dockerfile `FROM` command.
+
 ## More Strict NSGs
 
 The NSGs that exist around the cluster node pool subnets specifically block any SSH access attempts only allow traffic from the vnet into them. As your workloads, system security agents, etc are deployed, consider adding even more NSG rules that help define the type of traffic that should and should not be traversing those subnet boundaries. Because each nodepool lives in its own subnet, you can apply more specific rules based on known/expected traffic patterns of your workload.
@@ -99,6 +107,10 @@ The in-cluster `oms-agent` pods running in `kube-system` are the Log Analytics c
 ## Tuning Azure Sentinel
 
 Azure Sentinel was enabled in this reference implementation. No alerts were created or any sort of "usage" of it, other than enabling it. You may already be using another SIEM, likewise you may find that a SIEM is not cost effective for your solution. Evaluate if you will derive benefit from Azure Sentinel in your solution, and tune as needed.
+
+## Use "distroless" images
+
+Where your workload supports it, always prefer the usage of "distroless" base images for your workloads. These are specially crafted base images that minimize the potential security surface area of your images by removing ancillary features (shells, package managers, etc.) that are not relevant to your workload. Doing so should, generally speaking, reduce CVE hit rates. Every detected CVE in your images should kick off your defined triage process, which is an expensive, human-driven task that benefits from having an improved signal-to-noise ratio.
 
 ## Build Agents
 

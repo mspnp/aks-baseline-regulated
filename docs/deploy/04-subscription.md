@@ -1,6 +1,6 @@
 # Prepare Cluster Subscription
 
-In the prior step, you've set up an Azure AD tenant to fullfil your [cluster's control plane (Cluster API) authorization](./03-aad.md) needs for this reference implementation deployment; now we'll prepare the subscription in which will be hosting this workload. This includes creating the resource groups and applying some high-level Azure Policies to govern our deployments.
+In the prior step, you've set up an Azure AD tenant to fullfil your [cluster's control plane (Kubernetes Cluster API) authorization](./03-aad.md) needs for this reference implementation deployment. Now you'll prepare the subscription which host this infrastructure. This includes creating the resource groups and applying some high-level Azure Policies to govern our deployments.
 
 ## Subscription and resource group topology
 
@@ -30,17 +30,17 @@ To help govern our resources, there are policies we apply over the scope of thes
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
 | Allowed resource types         | rg-bu0001a0005                  | Restricts the workload resource group to just resources necessary for this specific architecture. |
-| No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.             |
-| No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                          |
-| No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled. |
-| No AKS clusters without Azure Policy | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have Azure Policy enabled. |
-| No AKS clusters without BYOK OS & Data Disk Encryption | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have customer-managed disk encryption enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
-| No AKS clusters without encryption-at-host | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that have the Encryption-At-Host feature enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
+| No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.   |
+| No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                            |
+| No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled.       |
+| No AKS clusters without Azure Policy | rg-bu0001a0005            | Restricts the creation of AKS clusters to only those that have Azure Policy enabled.       |
+| No AKS clusters without BYOK OS & Data Disk Encryption | rg-bu0001a0005  | Restricts the creation of AKS clusters to only those that have customer-managed disk encryption enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
+| No AKS clusters without encryption-at-host | rg-bu0001a0005      | Restricts the creation of AKS clusters to only those that have the Encryption-At-Host feature enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
 | No App Gateways without WAF    | rg-bu0001a0005                  | Restricts the creation of Azure Application Gateway to only the WAF SKU. |
 
 For this reference implementation, our Azure Policies applied to these resource groups are maximally restrictive on what resource types are allowed to be deployed and what features they must have enabled/disable. If you alter the deployment by adding additional Azure resources, you may need to update the _Allowed resource types_ policy for that resource group to accommodate your modification.
 
-This is not an exhaustive list of Azure Policies that you can create or assign, and instead an example of the types of polices you should consider having in place. Policies like these help prevent a misconfiguration of a service that would expose you to unplanned compliance concerns. Let the Azure control plane guard against configurations that are untenable for your compliance requirements as an added safeguard. While we deploy policies at the subscription and resource group scope, your organization may also utilize management groups. We've found it's best to also ensure your local subscription and resource groups have "scope-local" policies specific to its needs, so it doesn't take a dependency on a higher order policy existing or not -- even if that leads to a duplication of policy.
+This is not an exhaustive list of Azure Policies that you can create or assign, and instead an example of the types of polices you should consider having in place. Policies like these help prevent a misconfiguration of a service that would expose you to unexpected compliance concerns. Let the Azure control plane guard against configurations that are untenable for your compliance requirements as an added safeguard. While we deploy policies at the subscription and resource group scope, your organization may also utilize management groups. We've found it's best to also ensure your local subscription and resource groups have "scope-local" policies specific to its needs, so it doesn't take a dependency on a higher order policy existing or not -- even if that leads to a duplication of policy.
 
 Also, depending on your workload subscription scope, some of the policies applied above may be better suited at the subscription level (like no public AKS clusters). Since we don't assume you're coming to this walkthrough with a dedicated subscription, we've scoped the restrictions to only those resource groups we ask you to create. Apply your policies where it makes the most sense to do so in your final implementation.
 
@@ -51,8 +51,8 @@ As mentioned in the Azure Policy section above, we enable the following Azure Se
 * [Azure Defender for Kubernetes](https://docs.microsoft.com/azure/security-center/defender-for-kubernetes-introduction)
 * [Azure Defender for Container Registries](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction)
 * [Azure Defender for Key Vault](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
-* [Azure Defender for Azure DNS](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
-* [Azure Defender for Azure Resource Manager](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
+* [Azure Defender for Azure DNS](https://docs.microsoft.com/azure/security-center/defender-for-dns-introduction)
+* [Azure Defender for Azure Resource Manager](https://docs.microsoft.com/azure/security-center/defender-for-resource-manager-introduction)
 
 Not only do we enable them in the steps below by default, but also set up an Azure Policy that ensures they stay enabled.
 
@@ -96,7 +96,7 @@ Your Azure _subscription_ should have the **Azure Security Benchmark** Azure Pol
 ### Steps
 
 1. Open the [**Regulatory Compliance** screen in Security Center](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
-1. Click on **Manage Compliance Policies**
+1. Click on **Manage compliance policies**
 1. Click on your subscription
 1. Ensure the **Azure Security Benchmark** is applied as the **Security Center default policy**.
 1. You'll want to ensure all relevant standards (e.g. **PCI DSS 3.2.1**) are **Enabled** under **Industry & regulatory standards**
@@ -118,16 +118,16 @@ Consider evaluating additional Azure Policies to help guard your subscription fr
 
 Like the Azure Security Benchmark, we'd like to apply these, and similar, in this walkthrough; but we acknowledge that they might be disruptive if you are deploying this walkthrough to a subscription with other existing resources. Please take the time to review the [built-in Azure Policies](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) and the [ability to create your own](https://docs.microsoft.com/azure/governance/policy/tutorials/create-and-manage), and craft policies that will help keep you within regulatory compliance from an Azure Resource location & features perspective.
 
-## Compliance documentation
+## Accessing compliance documentation
 
 A summary of all of [Microsoft and Azure's compliance offerings are available](https://docs.microsoft.com/compliance/regulatory/offering-home). If you're looking for compliance reports (AOC, Shared Responsibility Matrix), you can access them via the Azure Portal. Your regulatory requirements may require you to have a copy of these documents available.
 
 ### Steps
 
 1. Open the [**Regulatory Compliance** screen in Security Center](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
-1. Click on **Audit Reports**
+1. Click on **Audit reports**
 1. Select your interest (e.g. **PCI**)
-1. Access whatever documents are available (e.g. **PCI DSS 3.2.1 - Azure Shared Responsibility Matrix** or **Azure PCI DSS 3.2.1 AOC Package**)
+1. Download and read relevant documents (e.g. **PCI DSS 3.2.1 - Azure Shared Responsibility Matrix** or **Azure PCI DSS 3.2.1 AOC Package**)
 
 ### Next step
 

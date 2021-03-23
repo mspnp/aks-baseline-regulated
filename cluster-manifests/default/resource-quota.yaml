@@ -15,5 +15,7 @@ spec:
     count/services.nodeports: "0"
     count/deployments.apps: "0"
     count/daemonset.apps: "0"
+
+    # Default "kubernetes" ClusterIP service
     count/services: "1"
     count/pods: "0"

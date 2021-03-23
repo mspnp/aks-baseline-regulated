@@ -1,6 +1,6 @@
 # Deploy the Regulated Industries AKS Cluster
 
-Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster and its adjacent Azure resources.
+Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://docs.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
 
 ## Expected results
 
@@ -41,13 +41,13 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 
 1. Deploy the cluster ARM template.
 
-   > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
+   > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](../../azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
 
    ```bash
-   # [This takes about 20 minutes.]
+   # [This takes about 20 minutes to run.]
    az deployment group create -g rg-bu0001a0005 -f cluster-stamp.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE_BASE64} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
 
-   # Or if you updated and used the parameters file...
+   # Or if you updated and wish to use the parameters file …
    #az deployment group create -g rg-bu0001a0005 -f cluster-stamp.json -p "@azuredeploy.parameters.prod.json"
    ```
 
@@ -55,19 +55,19 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 
    **cluster-stamp.v2.json** is a _tiny_ evolution of the **cluster-stamp.json** ARM template you literally just deployed in the step above. Because we are using Azure AD Pod Identity as a Microsoft-managed add-on, the mechanism to associate identities with the cluster is via ARM template instead of via Kubernetes manifest deployments (as you would do with the vanilla open source solution). However, due to a current limitation of the add-on, managed identities for Pod Managed Identities CANNOT be associated to the cluster when the cluster is first being created, only as an update to an existing cluster. So this deployment will re-deploy with the Pod Managed Identity association as the _only change_. If Pod Managed Identity supports assignment at cluster-creation time in the future, we'll remove this step and add the assignment directly in `cluster-stamp.json`.
 
-   > :eyes: If you're curious to see what changed in the cluster stamp, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-secure-baseline/regulated/cluster-stamp.json&r=https://raw.githubusercontent.com/mspnp/aks-secure-baseline/regulated/cluster-stamp.v2.json).
+   > :eyes: If you're curious to see what changed in the cluster stamp, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.json&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.v2.json).
 
    ```bash
-   # [This takes about five minutes.]
+   # [This takes about five minutes to run.]
    az deployment group create -g rg-bu0001a0005 -f cluster-stamp.v2.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE} aksIngressControllerCertificate=${AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
 
-   # Or if you used the parameters file...
+   # Or if you used the parameters file …
    #az deployment group create -g rg-bu0001a0005 -f cluster-stamp.v2.json -p "@azuredeploy.parameters.prod.json"
    ```
 
 ## Import the wildcard certificate for the AKS ingress controller to Azure Key Vault
 
-Once web traffic hits Azure Application Gateway, public-facing TLS is terminated. This supports WAF inspection rules and other request manipulation features of Azure Application Gateway. The next hop for this traffic is to the internal layer 4 load balancer and then to the in-cluster ingress controller. Starting at Application Gateway, all subsequent network hops are done via your private virtual network and, no longer traversing any public networks. That said, we still desire to provide TLS as an added layer of protection when traversing between Azure Application Gateway and our ingress controller. That'll bring TLS encryption _into_ your cluster from Application Gateway.
+Once web traffic hits Azure Application Gateway, public-facing TLS is terminated. This supports WAF inspection rules and other request manipulation features of Azure Application Gateway. The next hop for this traffic is to the internal layer 4 load balancer and then to the in-cluster ingress controller. Starting at Application Gateway, all subsequent network hops are done via your private virtual network and is no longer traversing any public networks. That said, we still desire to provide TLS as an added layer of protection when traversing between Azure Application Gateway and our ingress controller. That'll bring TLS encryption _into_ your cluster from Application Gateway.
 
 ### Steps
 
@@ -80,7 +80,7 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
 
 1. Import the AKS ingress controller's certificate.
 
-   You currently cannot import certificates into Key Vault directly via ARM templates. As such, post deployment of our Azure resources (which includes Key Vault), you need to upload your ingress controller's wildcard certificate to Key Vault.  This is the `.pem` file you created in a prior step. Your ingress controller will authenticate to Key Vault (via the Pod Managed Identity created above) and use this certificate as its default TLS certificate, presenting exclusively to your Azure Application Gateway.
+   You currently cannot import certificates into Key Vault directly via ARM templates. As such, post deployment of our Azure resources (which includes Key Vault), you need to upload your ingress controller's wildcard certificate to Key Vault. This is the `.pem` file you created on a prior page. Your ingress controller will authenticate to Key Vault (via the Pod Managed Identity created above) and use this certificate as its default TLS certificate, presenting exclusively to your Azure Application Gateway.
 
    ```bash
    az keyvault certificate import -f ingress-internal-aks-ingress-contoso-com-tls.pem -n ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
