@@ -155,7 +155,7 @@ Inline, we talked about many ISV's security agents being able to detect relevant
 
 Azure Sentinel was enabled in this reference implementation. No alerts were created or any sort of "usage" of it, other than enabling it. You may already be using another SIEM, likewise you may find that a SIEM is not cost effective for your solution. Evaluate if you will derive benefit from Azure Sentinel in your solution, and tune as needed.
 
-</summary>
+</details>
 
 ## Disaster Recovery
 
