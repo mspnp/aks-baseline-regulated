@@ -191,6 +191,15 @@ If your subscription has the **Azure Security Benchmark** Azure Policy initiativ
 1. Open the [Regulatory compliance dashboard](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22) in Security Center.
 1. Review the Industry summary and any recommendations.
 
+## Azure Sentinel
+
+Data from Log Analytic on the networking and cluster infrastructure are being delivered to Azure Sentinel.
+
+1. Open the [Azure Sentinel hub](https://portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel) on the Azure Portal.
+1. Select a Log Analytics workspace (networking or cluster)
+
+From here you can view Alerts, Incidents, start a Hunting session, view/add related Workbooks (such as the **Azure Kubernetes Service (AKS) Security** workbook), etc.
+
 ### Next step
 
 :arrow_forward: [Clean Up Azure Resources](./14-cleanup.md)
