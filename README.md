@@ -68,6 +68,8 @@ Finally, this implementation uses a small, custom application as an example work
 
 ![Network diagram depicting a hub-spoke network with two peered VNets, each with three subnets and main Azure resources.](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks/images/secure-baseline-architecture.svg)
 
+![Network flow showing Internet traffic passing through Azure Application Gateway then into the Ingress Controller and then through the workload pods. All connections are TLS.](./docs/flow.png)
+
 ## Deploy the reference implementation
 
 A deployment of AKS-hosted workloads typically experiences a separation of duties and lifecycle management in the area of identity & security group management, the host network, the cluster infrastructure, and finally the workload itself. This reference implementation will have you be be working across these various roles. Regulated environments require strong, documented of separation of concerns; but ultimately you'll decide where each boundary should be.
