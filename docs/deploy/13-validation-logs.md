@@ -41,7 +41,7 @@ AzureDiagnostics
 1. In the Azure Portal, navigate to your Azure Container Registry resource.
 1. Click on **Logs**.
 
-### View Image Imports
+### View image imports
 
 To view all the image imports that have happened against your container registry, you can execute the following query.
 
@@ -49,7 +49,7 @@ ContainerRegistryRepositoryEvents
 | where OperationName == "importImage"
 | order by TimeGenerated desc
 
-### View Image Pulls
+### View image pulls
 
 To view all the pulls that have happened against your container registry, you can execute the following query.
 
@@ -86,7 +86,7 @@ Monitoring your cluster is critical, especially when you're running a production
 1. Select **Logs**.
 1. You can click **Queries** to see and execute some common log queries.
 
-### Kubernetes API Server Access logs
+### Kubernetes API Server access logs
 
 This reference implementation logs all AKS control plane interactions in the associated Log Analytics workspace. Specifically this is enabled through the use of `kube-audit-admin` Diagnostics setting that was enabled on the cluster.
 
@@ -184,7 +184,7 @@ You should see requests for `sslcert` & `appgw-ingress-internal-aks-ingress-cont
 
 Other common operations you might be interested in are `SecretResourcePut`, `Authentication`, and `CertificateImport`.
 
-## Azure Security Center - Regulatory Compliance
+## Azure Security Center - regulatory compliance
 
 If your subscription has the **Azure Security Benchmark** Azure Policy initiative applied, and **Industry & regulatory standards** enabled (e.g. **PCI DSS 3.2.1**), the **Regulatory compliance** dashboard will allow you to see compliance status for controls that have been mapped by Azure to the specific standard. The view is updated about once every 24 hours, this includes its initial scan. So if you enabled this as part of the walkthrough (steps found on the [Subscription page](./04-subscription.md)), you may not yet see any content in here.
 
