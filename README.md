@@ -125,7 +125,7 @@ A simple workload made up of four interconnected services is manually deployed a
 Now that the cluster and the sample workload is deployed; now it's time to look at how the cluster is functioning.
 
 * [ ] [Perform end-to-end deployment validation](./docs/deploy/13-validation.md).
-* [ ] [Review resource logs & Azure Security Center data](./13-validation-logs.md)
+* [ ] [Review resource logs & Azure Security Center data](./docs/deploy/13-validation-logs.md)
 
 ### 7. :broom: Clean up resources
 
