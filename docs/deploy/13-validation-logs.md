@@ -24,7 +24,7 @@ AzureDiagnostics
 | order by TimeGenerated desc
 ```
 
-## View Azure Firewall DNS proxy logs
+### View Azure Firewall DNS proxy logs
 
 Your Azure Firewall is acting as a DNS proxy for your spokes. To see DNS requests that the firewall has serviced, you can execute the following query.
 
@@ -170,7 +170,7 @@ Azure Key Vault will log all operations with every secret and certificate in the
 1. In the Azure Portal, navigate to your Azure Key Vault resource.
 1. Select **Logs**.
 
-## View all requests for secrets
+### View all requests for secrets
 
 Both your cluster and Application Gateway will be pulling secrets from your Key Vault. To see that traffic, you can execute the following query.
 
