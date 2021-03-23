@@ -63,9 +63,11 @@ Finally, this implementation uses a small, custom application as an example work
 * [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
 * [Open Service Mesh](https://openservicemesh.io/)
 
-## Diagrams
+#### Network topology
 
 ![Network diagram depicting a hub-spoke network with two peered VNets. The cluster spoke contains subnets for a jump box, the cluster, and other related services.](/networking/network-topology.svg)
+
+#### Workload HTTPS request flow
 
 ![Network flow showing Internet traffic passing through Azure Application Gateway then into the Ingress Controller and then through the workload pods. All connections are TLS.](/docs/flow.png)
 
