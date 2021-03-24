@@ -1,4 +1,4 @@
-# Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Industries
+# Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Workloads
 
 This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds directly upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-secure-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns.
 
@@ -63,12 +63,13 @@ Finally, this implementation uses a small, custom application as an example work
 * [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
 * [Open Service Mesh](https://openservicemesh.io/)
 
-| :construction: | Diagram below does _NOT accurately reflect this architecture_. **Update Pending.** |
-|----------------|:--------------------------|
+#### Network topology
 
-![Network diagram depicting a hub-spoke network with two peered VNets, each with three subnets and main Azure resources.](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks/images/secure-baseline-architecture.svg)
+![Network diagram depicting a hub-spoke network with two peered VNets. The cluster spoke contains subnets for a jump box, the cluster, and other related services.](/networking/network-topology.svg)
 
-![Network flow showing Internet traffic passing through Azure Application Gateway then into the Ingress Controller and then through the workload pods. All connections are TLS.](./docs/flow.png)
+#### Workload HTTPS request flow
+
+![Network flow showing Internet traffic passing through Azure Application Gateway then into the Ingress Controller and then through the workload pods. All connections are TLS.](/docs/flow.png)
 
 ## Deploy the reference implementation
 
