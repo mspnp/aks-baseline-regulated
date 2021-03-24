@@ -1,4 +1,4 @@
-# Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Industries
+# Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Workloads
 
 This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds directly upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-secure-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns.
 
