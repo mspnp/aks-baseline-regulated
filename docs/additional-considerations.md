@@ -101,6 +101,10 @@ The Security Center onboarding in this reference implementation is relatively si
 
 Azure Container Registry supports the [signing of images](https://docs.microsoft.com/azure/container-registry/container-registry-content-trust), built on [CNFC Notary (v1)](https://github.com/theupdateframework/notary). This, coupled with an admission controller that supports validating signatures, can ensure that you're only running images that you've signed with your private keys. This integration is not something that is provided, today, end-to-end by Azure Container Registry and AKS (Azure Policy), and can consider bringing open source solutions like [SSE Connaisseur](https://github.com/sse-secure-systems/connaisseur) or [IBM Portieris](https://github.com/IBM/portieris). A working group in the CNFC is currently working on [Notary v2](https://github.com/notaryproject/notaryproject) for signing OCI Artifacts (i.e. container images and helm charts), and both the ACR and AKS roadmap includes adding a more native end-to-end experience in this space built upon this foundation.
 
+### Customer-managed encryption
+
+While container images and other OCI artifacts typically do not contain sensitive data, they do typically contain your Intellectual Property. Use customer-managed keys to manage the encryption at rest of the contents of your registries. By default, the data is encrypted at rest with service-managed keys, but customer-managed keys are sometimes required to meet regulatory compliance standards. Customer-managed keys enable the data to be encrypted with an Azure Key Vault key created and owned by you. You have full control and _responsibility_ for the key lifecycle, including rotation and management. Learn more at, [Encrypt registry using a customer-managed key](https://aka.ms/acr/CMK).
+
 </details>
 
 ## Authentication & Authorization
