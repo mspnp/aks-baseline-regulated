@@ -88,7 +88,7 @@ This reference implementation is expected to be deployed in a standalone subscri
 
 ## Enterprise onboarding to Security Center
 
-The Security Center onboarding in this reference implementation is relatively simplistic. Organizations inboard in Security Center and Azure Policy typically in a more holistic and governed fashion. Review the [Azure Security Center Enterprise Onboarding Guide](https://github.com/Azure/Azure-Security-Center/tree/onboarding/Onboarding) for a complete end-to-end perspective on protecting your workloads (regulated and non) with Azure Security Center. This addresses enrollment, data exports to your SIEM or ITSM solution, Logic Apps for responding to alerts, building workflow automation, etc. All things that go beyond the base architecture of any one AKS solution, and should be addressed at the enterprise level.
+The Security Center onboarding in this reference implementation is relatively simplistic. Organizations inboard in Security Center and Azure Policy typically in a more holistic and governed fashion. Review the [Azure Security Center Enterprise Onboarding Guide](https://aka.ms/ASCOnboarding) for a complete end-to-end perspective on protecting your workloads (regulated and non) with Azure Security Center. This addresses enrollment, data exports to your SIEM or ITSM solution, Logic Apps for responding to alerts, building workflow automation, etc. All things that go beyond the base architecture of any one AKS solution, and should be addressed at the enterprise level.
 
 </details>
 
