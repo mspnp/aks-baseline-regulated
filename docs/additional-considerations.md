@@ -50,6 +50,10 @@ In this reference implementation, Azure Application Gateway (AAG) is sourcing it
 
 Not all user-provided namespaces in this reference implementation employ a zero-trust network. For example `cluster-baseline-settings` does not. We provide an example of zero-trust networks in `a0005-i` and `a0005-o` as your reference implementation of the concept. All namespaces (other than `kube-system`, `gatekeeper-system`, and other AKS-provided namespaces) should have a maximally restrictive NetworkPolicy applied. What those policies will be will be based on the pods running in those namespaces. Ensure your accounting for readiness, liveliness, and startup probes and also accounting for metrics gathering by `oms-agent`.  Consider standardizing on ports across your workloads so that you can provide a consistent NetworkPolicy and even Azure Policy for allowed container ports.
 
+### Enable DDoS Protection
+
+While not typically a feature of any specific regulated workloads, generally speaking [Azure DDoS Protection Standard](https://docs.microsoft.com/azure/ddos-protection/manage-ddos-protection) should be enabled for any virtual networks with a subnet that contains an Application Gateway with a public IP. This protects your workload from becoming overwhelmed with fraudulent requests which at best could cause a service disruption or at worst be a cover (distraction, log spam, etc) for another concurrent attack. Azure DDoS comes at a significant cost, and is typically amortized across many workloads that span many IP addresses -- work with your networking team to coordinate coverage for your workload.
+
 </details>
 
 ## Secure Pod definitions
