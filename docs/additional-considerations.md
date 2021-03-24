@@ -86,6 +86,10 @@ While it's common for Azure Policy to exclude `kube-system` and `gatekeeper-syst
 
 This reference implementation is expected to be deployed in a standalone subscription.  As such, Azure Policies are applied at a relatively local scope (subscription or resource group). If you have multiple subscriptions that will be under regulatory compliance, consider grouping them under a [management group hierarchy](https://docs.microsoft.com/azure/cloud-adoption-framework/ready/enterprise-scale/management-group-and-subscription-organization) that applies the relevant Azure Policies uniformly across your in-scope subscriptions.
 
+## Enterprise onboarding to Security Center
+
+The Security Center onboarding in this reference implementation is relatively simplistic. Organizations inboard in Security Center and Azure Policy typically in a more holistic and governed fashion. Review the [Azure Security Center Enterprise Onboarding Guide](https://github.com/Azure/Azure-Security-Center/tree/onboarding/Onboarding) for a complete end-to-end perspective on protecting your workloads (regulated and non) with Azure Security Center. This addresses enrollment, data exports to your SIEM or ITSM solution, Logic Apps for responding to alerts, building workflow automation, etc. All things that go beyond the base architecture of any one AKS solution, and should be addressed at the enterprise level.
+
 </details>
 
 ## Container registry
