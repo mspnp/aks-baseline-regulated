@@ -101,9 +101,9 @@ This reference implementation is expected to be deployed in a standalone subscri
 
 The Security Center onboarding in this reference implementation is relatively simplistic. Organizations inboard in Security Center and Azure Policy typically in a more holistic and governed fashion. Review the [Azure Security Center Enterprise Onboarding Guide](https://aka.ms/ASCOnboarding) for a complete end-to-end perspective on protecting your workloads (regulated and non) with Azure Security Center. This addresses enrollment, data exports to your SIEM or ITSM solution, Logic Apps for responding to alerts, building workflow automation, etc. All things that go beyond the base architecture of any one AKS solution, and should be addressed at the enterprise level.
 
-### Create starter alerts
+### Create triage process for alerts
 
-From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Azure Security Center, you can click the **Sample Alerts** button and create a set of starter alerts for the enabled Azure Defender for _topic_ features that have been enabled. Once you've created the set you feel is relevant to you, it is suggested that you then manage those alerts like any other Azure Resource via your IaC solution. As mentioned before, no Security Center alerts were created as part of this deployment for you, instead we recommend starting with these common alerts and customizing for your needs.  You should have a triage process in place to react and document any plans to address detected issues. Work with your security team to understand how these alerts will be made available to you as the workload owner.
+From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Azure Security Center (or via Azure Resource Graph), you have access to all alerts that Azure Security Center detects on your resources.  You should have a triage process in place address or defer detected issues. Work with your security team to understand how relevant alerts will be made available to the workload owner(s).
 
 </details>
 
