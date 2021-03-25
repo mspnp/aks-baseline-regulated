@@ -19,8 +19,7 @@ Throughout this walkthrough, take note of the following symbol.
 
    > 💡 The user or service principal initiating the deployment process _must_ have the following minimal set of Azure AD permissions assigned:
    >
-   > * Azure AD [User Administrator](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles#user-administrator-permissions) is _required_ to create a "break glass" AKS admin Active Directory Security Group and User. Alternatively, you could get your Azure AD admin to create this for you when instructed to do so.
-   >   * If you are not part of the User Administrator group in the tenant associated to your Azure subscription, consider [creating a new tenant](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-access-create-new-tenant#create-a-new-tenant-for-your-organization) to use while evaluating this implementation.
+   > * Azure AD [User Administrator](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles#user-administrator-permissions) is _required_ to create a "break glass" AKS admin Active Directory Security Group and User. Alternatively, you could get your Azure AD admin to create this for you when instructed to do so. If you are not assigned the User Administrator permission in the tenant associated to your Azure subscription, consider [creating a new tenant](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-access-create-new-tenant#create-a-new-tenant-for-your-organization) to use while evaluating this implementation.
 
    The Azure AD tenant backing your Cluster's API RBAC does NOT need to be the same tenant associated with your Azure subscription. Your organization may have dedicated Azure AD tenants used specifically as a separation between Azure resource management, and Kubernetes control plane access. Ensure you're following your organization's practices when it comes to separation of identity stores to ensure limited "blast radius" on any compromised accounts.
 
@@ -45,7 +44,7 @@ Throughout this walkthrough, take note of the following symbol.
 
    > 💡 The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash.
 
-1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate the example self-signed certs used in this implementation.
+1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate the example self-signed certs used in this implementation. _OpenSSL is already installed in Azure Cloud Shell._
 
 ### Next step
 
