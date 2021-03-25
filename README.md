@@ -4,7 +4,7 @@ This reference implementation demonstrates the _recommended starting (baseline) 
 
 | 🎓 Foundational Understanding |
 |:------------------------------|
-| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should start there before continuing here.** The architecture rationalized and constructed that implementation is the direct foundation of this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
+| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should start there before continuing here.** This architecture rationalizes and is constructed from the AKS baseline, which is the foundation for this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
 
 ## Compliance
 
@@ -13,7 +13,7 @@ This reference implementation demonstrates the _recommended starting (baseline) 
 
 Azure and AKS are well positioned to give you the tools and allow you to build processes necessary to help you achieve a compliant hosting infrastructure. The implementation details can be complex, as is the overall process of compliance. We walk through the deployment here in a rather _verbose_ method to help you understand each component of this architecture, teaching you about each layer and providing you with the knowledge necessary to apply it to your unique compliance scoped workload.
 
-Even if you are not in a regulated environment, this infrastructure will show a more heightened security posture cluster than the general-purpose cluster presented in the AKS Baseline. You might find it useful to take select concepts from here and apply it to your non-regulated workloads (at the tradeoff of added complexity and hosting costs).
+Even if you are not in a regulated environment, this infrastructure demonstrates an AKS cluster with a more heightened security posture over the general-purpose cluster presented in the AKS baseline. You might find it useful to take select concepts from here and apply it to your non-regulated workloads (at the tradeoff of added complexity and hosting costs).
 
 ## Azure Architecture Center guidance
 
@@ -73,7 +73,7 @@ Finally, this implementation uses a small, custom application as an example work
 
 ## Deploy the reference implementation
 
-A deployment of AKS-hosted workloads typically experiences a separation of duties and lifecycle management in the area of identity & security group management, the host network, the cluster infrastructure, and finally the workload itself. This reference implementation will have you be be working across these various roles. Regulated environments require strong, documented of separation of concerns; but ultimately you'll decide where each boundary should be.
+A deployment of AKS-hosted workloads typically experiences a separation of duties and lifecycle management in the area of identity & security group management, the host network, the cluster infrastructure, and finally the workload itself. This reference implementation will have you be working across these various roles. Regulated environments require strong, documented separation of concerns; but ultimately you'll decide where each boundary should be.
 
 Also, please remember the primary purpose of this body of work is to illustrate the topology and decisions made in this cluster. A guided, "step-by-step" flow will help you learn the pieces of the solution and give you insight into the relationship between them. A bedrock understanding of your infrastructure, its supply chain, and its "Day-2" workflows are critical for compliance concerns. If you cannot explain each decision point and rationalization, audit conversations can quickly turn uncomfortable.
 
