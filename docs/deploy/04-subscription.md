@@ -14,7 +14,7 @@ The following three resource groups will be created in the steps below.
 
 | Name                            | Purpose                                   |
 |---------------------------------|-------------------------------------------|
-| rg-enterprise-networking-hubs   | Contains all of your organization's regional hubs. A regional hubs include an egress firewall, Azure Bastion, and Log Analytics for network logging. |
+| rg-enterprise-networking-hubs   | Contains all of your organization's regional hubs. A regional hub resources in this implementation include an the hub Virtual Network, egress firewall, Azure Bastion, and Log Analytics for network logging. They may also contain your VPN Gateways, which are not addressed in this implementation. |
 | rg-enterprise-networking-spokes | Contains all of your organization's regional spokes and related networking resources. All spokes will peer with their regional hub and subnets will egress through the regional firewall in the hub. |
 | rg-bu0001a0005                  | Contains the regulated cluster resources. |
 
@@ -33,14 +33,14 @@ To help govern our resources, there are policies we apply over the scope of thes
 | No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.   |
 | No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                            |
 | No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled.       |
-| No AKS clusters without Azure Policy | rg-bu0001a0005            | Restricts the creation of AKS clusters to only those that have Azure Policy enabled.       |
+| No AKS clusters without Azure Policy | rg-bu0001a0005            | Restricts the creation of AKS clusters to only those that have the Azure Policy Add-on enabled.   |
 | No AKS clusters without BYOK OS & Data Disk Encryption | rg-bu0001a0005  | Restricts the creation of AKS clusters to only those that have customer-managed disk encryption enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
 | No AKS clusters without encryption-at-host | rg-bu0001a0005      | Restricts the creation of AKS clusters to only those that have the Encryption-At-Host feature enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
 | No App Gateways without WAF    | rg-bu0001a0005                  | Restricts the creation of Azure Application Gateway to only the WAF SKU. |
 
 For this reference implementation, our Azure Policies applied to these resource groups are maximally restrictive on what resource types are allowed to be deployed and what features they must have enabled/disable. If you alter the deployment by adding additional Azure resources, you may need to update the _Allowed resource types_ policy for that resource group to accommodate your modification.
 
-This is not an exhaustive list of Azure Policies that you can create or assign, and instead an example of the types of polices you should consider having in place. Policies like these help prevent a misconfiguration of a service that would expose you to unexpected compliance concerns. Let the Azure control plane guard against configurations that are untenable for your compliance requirements as an added safeguard. While we deploy policies at the subscription and resource group scope, your organization may also utilize management groups. We've found it's best to also ensure your local subscription and resource groups have "scope-local" policies specific to its needs, so it doesn't take a dependency on a higher order policy existing or not -- even if that leads to a duplication of policy.
+This is not an exhaustive list of Azure Policies that you can create or assign, and instead an example of the types of polices you should consider having in place. Policies like these help prevent a misconfiguration of a service that would expose you to unexpected compliance concerns. Let the Azure control plane guard against configurations that are untenable for your compliance requirements as an added safeguard. While we deploy policies at the subscription and resource group scope, your organization may also utilize management groups. We've found it's best to also ensure your target subscription and target resource groups have "scope-local" policies specific to their needs; so it doesn't take a dependency on a higher order policy existing or not -- even if that leads to a duplication of policy.
 
 Also, depending on your workload subscription scope, some of the policies applied above may be better suited at the subscription level (like no public AKS clusters). Since we don't assume you're coming to this walkthrough with a dedicated subscription, we've scoped the restrictions to only those resource groups we ask you to create. Apply your policies where it makes the most sense to do so in your final implementation.
 
@@ -67,7 +67,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 1. Verify you're on the correct subscription.
 
    ```bash
-   az account show
+   az account show -o table
 
    # If not, select the correct subscription
    # az account set -s <subscription name or id>
@@ -93,7 +93,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 ## Azure Security Benchmark
 
-Your Azure _subscription_ should have the **Azure Security Benchmark** Azure Policy initiative applied. While we could deploy it in ARM (as above), we don't want to step on anything already existing in your subscription, since you can only have it applied once for Security Center to detect it properly. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
+It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can be applied applied once for Security Center to detect it properly, and if we deployed a version above, you might inadvertently breaking existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
 
 ### Steps
 
