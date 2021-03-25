@@ -58,10 +58,10 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 ## Steps
 
-1. Login into the Azure subscription that you'll be deploying into.
+1. Login into the Azure subscription that you'll be deploying into. 🛑
 
    ```bash
-   az login -t $TENANTID_AZURERBAC
+   az login -t <Replace-With-Azure-Subscription-TenantId>
    ```
 
 1. Verify you're on the correct subscription.
@@ -71,6 +71,8 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
    # If not, select the correct subscription
    # az account set -s <subscription name or id>
+
+   TENANTID_AZURERBAC=$(az account show --query tenantId -o tsv)
    ```
 
 1. Perform subscription-level deployment.
