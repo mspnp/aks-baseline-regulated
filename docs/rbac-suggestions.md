@@ -2,7 +2,7 @@
 
 This reference implementation is mostly focused on infrastructure, and minimal attention to the concerns of the workload itself. Which, we acknowledge is incomplete from a regulatory compliance perspective. We hope to extend this reference implementation or build a companion on top of this one that will focus mainly on the workload side of things. However, here is some recommendations, even if they are not implemented directly here in this reference implementation.
 
-## Roles ideas
+## Role ideas
 
 If you're looking for a list of recommended roles to delineate responsibilities across, consider the following. Obviously you'll need to build roles that are reasonable for your organization and workload.
 
