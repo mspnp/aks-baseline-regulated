@@ -104,4 +104,4 @@ This deployment creates an SLA-backed Azure Container Registry for your cluster'
 
 ### Next step
 
-:arrow_forward: [Prepare to bootstrap the cluster](./10-registry-quarantine.md)
+:arrow_forward: [Prepare to bootstrap the cluster](./10-pre-bootstrap.md)
