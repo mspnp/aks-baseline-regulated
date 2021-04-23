@@ -93,7 +93,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 ## Azure Security Benchmark
 
-It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can be applied applied once for Security Center to detect it properly, and if we deployed a version above, you might inadvertently breaking existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
+It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can only be applied once for Security Center to detect it properly, and if we deployed a version above, you might inadvertently break existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
 
 ### Steps
 
