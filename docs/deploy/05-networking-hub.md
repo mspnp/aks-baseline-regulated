@@ -4,7 +4,7 @@ Now that your subscription has your [Azure Policies and target resource-groups i
 
 ## Networking in this architecture
 
-Egressing your spoke traffic through a hub network (following the hub-spoke model), is a critical component of this AKS architecture. Your organization's networking team will likely have a specific strategy already in place for this (such as a _Connectivity_ subscription with a vwan already configured for regional egress). In this walk through, we are going to implement this recommended strategy in an illustrative manner, however you will need to adjust based on your specific situation when you implement this cluster for production. Hubs are usually a centrally-managed and governed resource in an organization, and not typically workload specific. The steps that follow create the hub (and spokes) as a stand-in for the work that you'd coordinate with your networking team.
+Egressing your spoke traffic through a hub network (following the hub-spoke model), is a critical component of this AKS architecture. Your organization's networking team will likely have a specific strategy already in place for this; such as a _Connectivity_ subscription with a [Virtual WAN](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-about) already configured for regional egress. In this walk through, we are going to implement this recommended strategy in an illustrative manner, however you will need to adjust based on your specific situation when you implement this cluster for production. Hubs are usually a centrally-managed and governed resource in an organization, and not typically workload specific. The steps that follow create the hub (and spokes) as a stand-in for the work that you'd coordinate with your networking team.
 
 ## Expected results
 
