@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osm-config
+data:
+  permissive_traffic_policy_mode: "false"
+  egress: "true"
+  enable_privileged_init_container: "false"
+  envoy_log_level: warn
+  enable_debug_server: "false"
+  outbound_ip_range_exclusion_list: 169.254.169.254/32,168.63.129.16/32,10.240.12.4/32
+  prometheus_scraping: "true"
+  tracing_enable: "false"
+  use_https_ingress: "true"
+  service_cert_validity_duration: "24h"
