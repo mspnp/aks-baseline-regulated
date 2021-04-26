@@ -70,7 +70,7 @@ Now that we have our image building network created, egressing through our hub, 
 
 1. Create the AKS jump box image template. (🛑 _if not using the custom roles created above._)
 
-   Next you are going to deploy the image template and Azure Image Builders's managed identity. This is being done directly into our workload resource group for simplicity. You can choose to deploy this to a separate resource group if you wish. This "golden image" generation process would typically happen out-of-band to the workload management.
+   Next you are going to deploy the image template and Azure Image Builders's managed identity. This is being done directly into our workload resource group for simplicity. You can choose to deploy this to a separate resource group if you wish. This "golden image" generation process would typically happen out-of-band to the cluster management.
 
    ```bash
    #ROLEID_NETWORKING=4d97b98b-1d4f-4787-a291-c67834d212e7 # Network Contributor -- Only use this if you did not, or could not, create custom roles. This is more permission than necessary.)

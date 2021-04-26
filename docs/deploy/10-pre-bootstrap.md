@@ -95,7 +95,7 @@ Using a security agent that is container-aware and can operate from within the c
 
 1. Trigger quarantine violation. _Optional._
 
-   You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import some other image directly to `live/`. On the validation page later in this walkthrough, you'll see that alert.
+   You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import an image directly to `live/`. On the validation page later in this walkthrough, you'll see that alert.
 
    ```bash
    az acr import --source docker.io/library/busybox:1.33.0 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME
