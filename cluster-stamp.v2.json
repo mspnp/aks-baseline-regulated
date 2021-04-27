@@ -1241,7 +1241,7 @@
         },
         {
             "type": "Microsoft.ContainerService/managedClusters",
-            "apiVersion": "2020-12-01",
+            "apiVersion": "2021-03-01",
             "name": "[variables('clusterName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -1392,6 +1392,10 @@
                         "config": {
                             "version": "v2"
                         }
+                    },
+                    "openServiceMesh": {
+                        "enabled": true,
+                        "config": {}
                     }
                 },
                 "nodeResourceGroup": "[variables('nodeResourceGroupName')]",

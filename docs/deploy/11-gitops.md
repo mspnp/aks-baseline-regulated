@@ -111,13 +111,13 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 
    ```output
    NAME                                  STATUS   ROLES   AGE   VERSION
-   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.20.2
-   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.20.2
-   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.20.2
-   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.20.2
-   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.20.2
-   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.20.2
-   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.20.2
+   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.20.5
+   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.20.5
+   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.20.5
+   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.20.5
+   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.20.5
+   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.20.5
+   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.20.5
    ```
 
    > :watch: The access tokens obtained in the prior two steps are subject to a Microsoft Identity Platform TTL (e.g. six hours). If your `az` or `kubectl` commands start erroring out after hours of usage with a message related to permission/authorization, you'll need to re-execute the `az login` and `az aks get-credentials` (overwriting your context) to refresh those tokens.
@@ -165,7 +165,7 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
    kubectl apply -k flux-system
    ```
 
-   > The Flux CLI does have a built-in bootstrap feature. To ensure everyone using this walkthrough has a consistent experience (not one based on what version of Flux cli they may have installed), we've performed that bootstrap process more "manually" above via pre-generated manifest files. Also, you might consider doing the same with your production clusters; as all manifests you apply should be well-known, intentional, and auditable. Doing so will eliminate any guess work from what is or is not being deployed and leads to ultimate repeatability. It does mean that you'll manually be managing some manifests that could otherwise be managed in a more opaque way, and we suggest getting comfortable with that notion. You'll see this play out not just in Flux, but in Open Service Mesh, Falco, etc. Ensure you understand the risks associated with (and _benefits_ gained from) whatever _convenance_ solutions you bring to your cluster (Helm, cli "installer" commands, etc.) and you're comfortable with that layer of indirection bring introduced.
+   > The Flux CLI does have a built-in bootstrap feature. To ensure everyone using this walkthrough has a consistent experience (not one based on what version of Flux cli they may have installed), we've performed that bootstrap process more "manually" above via pre-generated manifest files. Also, you might consider doing the same with your production clusters; as all manifests you apply should be well-known, intentional, and auditable. Doing so will eliminate any guess work from what is or is not being deployed and leads to ultimate repeatability. It does mean that you'll manually be managing some manifests that could otherwise be managed in a more opaque way, and we suggest getting comfortable with that notion. You'll see this play out not just in Flux, but Falco, Kured, etc. Ensure you understand the risks associated with (and _benefits_ gained from) whatever _convenance_ solutions you bring to your cluster (Helm, cli "installer" commands, etc.) and you're comfortable with that layer of indirection bring introduced.
 
    Validate that Flux has been bootstrapped.
 
@@ -220,7 +220,7 @@ Your dependency on or choice of in-cluster tooling to achieve your compliance ne
 
 This reference implementation also installs a very basic deployment of [Falco](https://falco.org/). It is not configured for alerts, nor tuned to any specific needs. It uses the default rules as they were defined when its manifests were generated. This is also being installed for illustrative purposes, and you're encouraged to evaluate if a solution like Falco is relevant to you. If so, in your final implementation, review and tune its deployment to fit your needs (E.g. add custom rules like [CVE detection](https://artifacthub.io/packages/search?ts_query_web=cve&org=falco), [sudo usage](https://artifacthub.io/packages/falco/security-hub/admin-activities), [basic FIM](https://artifacthub.io/packages/falco/security-hub/file-integrity-monitoring), [SSH Connection monitoring](https://artifacthub.io/packages/falco/security-hub/ssh-connections), and [NGINX containment](https://artifacthub.io/packages/falco/security-hub/nginx)). This tooling, _as most security tooling will be_, is **highly-privileged within your cluster**. Usually running as DaemonSets with access to the underlying node in a manor that is well beyond any typical workload in your cluster. Remember to consider the runtime compute and networking requirements of your security tooling when sizing your cluster, as these can often be overlooked when initial cluster sizing conversations are happening.
 
-It's worth repeating again, **most customers with regulated workloads are bringing ISV or open source security solutions to their clusters**. Azure Kubernetes Service is a managed Kubernetes platform, it does not imply that you will exclusively be using Microsoft products/solutions to solve your requirements. For the most part, after the deployment of the infrastructure and some out-of-the-box addons (like Azure Policy, Azure Monitor, AAD Pod Identity), you're in charge of what you choose to run in your hosted Kubernetes platform. Bring the business and compliance solving solutions you need to the cluster from the [vast and ever-growing Kubernetes and CNCF ecosystem](https://l.cncf.io/?fullscreen=yes).
+It's worth repeating again, **most customers with regulated workloads are bringing ISV or open source security solutions to their clusters**. Azure Kubernetes Service is a managed Kubernetes platform, it does not imply that you will exclusively be using Microsoft products/solutions to solve your requirements. For the most part, after the deployment of the infrastructure and some out-of-the-box addons (like Azure Policy, Azure Monitor, AAD Pod Identity, Open Service Mesh), you're in charge of what you choose to run in your hosted Kubernetes platform. Bring the business and compliance solving solutions you need to the cluster from the [vast and ever-growing Kubernetes and CNCF ecosystem](https://l.cncf.io/?fullscreen=yes).
 
 **You should ensure all necessary tooling and related reporting/alerting is applied as part of your _initial bootstrapping process_ to ensure coverage _immediately_ after cluster creation.**
 
