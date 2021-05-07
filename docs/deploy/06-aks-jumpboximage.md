@@ -9,8 +9,9 @@ Your cluster's control plane (Kubernetes API Server) will not be accessible to t
 * You could establish a VPN connection to that subnet such that you source an IP from that subnet. This would allow you to manage the cluster from any place that you can establish the VPN connection from.
 * You could use Azure Shell's feature that [allows Azure Shell to be subnet-connected](https://docs.microsoft.com/azure/cloud-shell/private-vnet).
 * You could could deploy compute resources into that subnet and use that as your ops workstation.
+* You could use the [AKS Run Command](https://docs.microsoft.com/azure/aks/private-clusters#aks-run-command-preview).
 
-Never use the AKS nodes (or OpenSSH containers running on them) as your access points (i.e using Azure Bastion to SSH into nodes); as this would be using the management target system as the management tool, which is not reliable. Also it adds an unnecessary surface area to your cluster which would also need to be considered from a regulatory compliance perspective. Always use a dedicated solution external to your cluster.
+Never use the AKS nodes (or OpenSSH containers running on them) as your access points (i.e using Azure Bastion to SSH into nodes); as this would be using the management target system as the management tool, which is not reliable. Also it adds an unnecessary surface area to your cluster which would also need to be considered from a regulatory compliance perspective. Always use a dedicated solution external to your cluster. Consider this guidance when evaluating if AKS Run Command is appropriate to use in your specific deployment, as this creates a transient pod within your cluster for proxied access.
 
 This reference implementation will be using the "compute resource in subnet" option above, typically known as a jump box. Even within this option, you have additional choices.
 
