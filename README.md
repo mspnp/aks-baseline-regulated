@@ -69,7 +69,7 @@ Finally, this implementation uses a small, custom application as an example work
 
 #### Workload HTTPS request flow
 
-![Network flow showing Internet traffic passing through Azure Application Gateway then into the Ingress Controller and then through the workload pods. All connections are TLS.](/docs/flow.png)
+![Network flow showing Internet traffic passing through Azure Application Gateway then into the Ingress Controller and then through the workload pods. All connections are TLS.](/docs/flow.svg)
 
 ## Deploy the reference implementation
 
