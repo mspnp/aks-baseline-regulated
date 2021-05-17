@@ -1097,24 +1097,6 @@
         {
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
-            "name": "[concat('AzureAppGatewayAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
-            ],
-            "properties": {
-                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
-            },
-            "plan": {
-                "name": "[concat('AzureAppGatewayAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
-                "product": "OMSGallery/AzureAppGatewayAnalytics",
-                "promotionCode": "",
-                "publisher": "Microsoft"
-            }
-        },
-        {
-            "type": "Microsoft.OperationsManagement/solutions",
-            "apiVersion": "2015-11-01-preview",
             "name": "[concat('KeyVaultAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
             "location": "[parameters('location')]",
             "dependsOn": [
