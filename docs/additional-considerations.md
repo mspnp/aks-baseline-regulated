@@ -129,7 +129,9 @@ While container images and other OCI artifacts typically do not contain sensitiv
 
 ### JIT and Conditional Access Policies
 
-As mentioned in-line in the walkthrough, AKS' control plane supports both [Azure AD PAM JIT](https://docs.microsoft.com/azure/aks/managed-aad#configure-just-in-time-cluster-access-with-azure-ad-and-aks) and [Conditional Access Policies](https://docs.microsoft.com/azure/aks/managed-aad#use-conditional-access-with-azure-ad-and-aks). We recommend that you minimize standing permissions and leverage JIT access when performing SRE/Ops interactions with your cluster. Likewise, Conditional Access Policies will add additional layers of required authentication validation for privileged access, based on the rules you build.
+AKS' control plane supports both [Azure AD PAM JIT](https://docs.microsoft.com/azure/aks/managed-aad#configure-just-in-time-cluster-access-with-azure-ad-and-aks) and [Conditional Access Policies](https://docs.microsoft.com/azure/aks/managed-aad#use-conditional-access-with-azure-ad-and-aks). We recommend that you minimize standing permissions and leverage JIT access when performing SRE/Ops interactions with your cluster. Likewise, Conditional Access Policies will add additional layers of required authentication validation for privileged access, based on the rules you build.
+
+For more details on using PowerShell to configure conditional access, see [Azure AD Conditional Access](./conditional-access.md)
 
 ### Custom Cluster Roles
 
