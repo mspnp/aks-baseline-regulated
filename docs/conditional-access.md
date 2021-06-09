@@ -8,9 +8,9 @@ Work with your Conditional Access administrator [to apply a policy](https://docs
 
 Remember to test all conditional access policies using a safe and controlled rollout procedure before applying to all users. Paired with [Azure AD JIT access](https://docs.microsoft.com/azure/aks/managed-aad#configure-just-in-time-cluster-access-with-azure-ad-and-aks), this provides a very robust access control solution for your private cluster.
 
-## Applying via Windows Powershell
+## Applying via Windows PowerShell
 
-Here's an example that will block 
+For many administrators, PowerShell is already an understood scripting tool. The following example shows how to use the Azure AD PowerShell module to apply a Conditional Access policy.
 
 ```powershell
 Install-Module -Name AzureAD -Force -Scope CurrentUser
@@ -32,6 +32,15 @@ $controls = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessG
 
 New-AzureADMSConditionalAccessPolicy -DisplayName "AKS API Server <server name> Access Policy" -State "on" -Conditions $conditions -GrantControls $controls
 ```
+
+For more examples, see [Configure Conditional Access policies using Azure AD PowerShell](https://github.com/Azure-Samples/azure-ad-conditional-access-apis/tree/main/01-configure/powershell)
+
+### Alternatives to Windows PowerShell
+
+Azure AD conditional access policies can be managed in the following ways if Windows PowerShell is not aligned with your preferred toolset.
+
+* Within the Azure AD portal directly
+* [Microsoft Graph API](https://github.com/Azure-Samples/azure-ad-conditional-access-apis/tree/main/01-configure/graphapi), including advanced flows like [using Logic Apps to facilitate deployment](https://github.com/Azure-Samples/azure-ad-conditional-access-apis/tree/main/01-configure/templates)
 
 ## Next Steps
 
