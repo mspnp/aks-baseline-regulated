@@ -824,7 +824,7 @@
                                     "targetFqdns": [
                                         "raw.githubusercontent.com",
                                         "api.github.com",
-                                        "toolkit.fluxcd.io",
+                                        "fluxcd.io",
                                         "github-releases.githubusercontent.com"
                                     ]
                                 },
