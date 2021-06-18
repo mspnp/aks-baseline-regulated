@@ -187,13 +187,13 @@ In summary, there should be a stated objective in your team that routine process
 
 The GitOps implementation in this reference architecture is _intentionally simplistic_. Flux is configured to simply monitor manifests in ALL namespaces. It doesn't account for concepts like:
 
-* Built-in [bootstrapping support](https://toolkit.fluxcd.io/guides/installation/#bootstrap)
+* Built-in [bootstrapping support](https://fluxcd.io/docs/installation/#bootstrap)
 * [Multi-tenancy](https://github.com/fluxcd/flux2-multi-tenancy)
-* [Private GitHub repos](https://toolkit.fluxcd.io/components/source/gitrepositories/#ssh-authentication)
+* [Private GitHub repos](https://fluxcd.io/docs/components/source/gitrepositories/#ssh-authentication)
 * Kustomization [under/overlays](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#bases-and-overlays)
-* Flux's [Notifications controller](https://github.com/fluxcd/notification-controller) to [alert on changes](https://toolkit.fluxcd.io/guides/notifications/)
-* Flux's [Helm controller](https://github.com/fluxcd/helm-controller) to [manage helm releases](https://toolkit.fluxcd.io/guides/helmreleases/)
-* Flux's [monitoring](https://toolkit.fluxcd.io/guides/monitoring/) features
+* Flux's [Notifications controller](https://github.com/fluxcd/notification-controller) to [alert on changes](https://fluxcd.io/docs/guides/notifications/)
+* Flux's [Helm controller](https://github.com/fluxcd/helm-controller) to [manage helm releases](https://fluxcd.io/docs/guides/helmreleases/)
+* Flux's [monitoring](https://fluxcd.io/docs/guides/monitoring/) features
 
 This reference implementation isn't going to dive into the nuances of git manifest organization. A lot of that depends on your namespacing, multi-tenant needs, multi-stage (dev, pre-prod, prod) deployment needs, multi-cluster needs, etc. **The key takeaway here is to ensure that you're managing your Kubernetes resources in a declarative manner with a reconcile loop, to achieve desired state configuration within your cluster.** Ensuring your cluster internally is managed by a single, appropriately-privileged, observable pipeline will aide in compliance. You'll have a git trail that aligns with a log trail from your GitOps toolkit.
 
