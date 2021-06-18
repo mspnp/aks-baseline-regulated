@@ -1378,6 +1378,12 @@
                     "openServiceMesh": {
                         "enabled": true,
                         "config": {}
+                    },
+                    "azureKeyvaultSecretsProvider": {
+                        "enabled": true,
+                        "config": {
+                            "enableSecretRotation": "false"
+                        }
                     }
                 },
                 "nodeResourceGroup": "[variables('nodeResourceGroupName')]",

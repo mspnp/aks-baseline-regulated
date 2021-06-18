@@ -56,7 +56,7 @@ Finally, this implementation uses a small, custom application as an example work
 
 #### In-cluster Open-Source Software components
 
-* [Azure KeyVault Secret Store CSI Provider](https://github.com/Azure/secrets-store-csi-driver-provider-azure)
+* [Secrets Store CSI Driver for Kubernetes](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver)
 * [Falco](https://falco.org)
 * [Flux 2 GitOps Operator](https://fluxcd.io)
 * [Kured](https://docs.microsoft.com/azure/aks/node-updates-kured)

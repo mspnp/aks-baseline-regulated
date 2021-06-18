@@ -6,14 +6,12 @@ resources:
 - resource-quota.yaml
 - limit-range.yaml
 - rbac.yaml
-- secrets-store-csi/driver.yaml
-- secrets-store-csi/keyvault-provider.yaml
 - fim/fim-standin.yaml
 - av/av-standin.yaml
 - kured/kured.yaml
 images:
 - name: busybox
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/library/busybox
+  newName: acrakswlv7guwunhopu.azurecr.io/live/library/busybox
   newTag: 1.33.0
 - name: docker.io/weaveworks/kured
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/weaveworks/kured
+  newName: acrakswlv7guwunhopu.azurecr.io/live/weaveworks/kured
