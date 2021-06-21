@@ -459,7 +459,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
+            "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-Hubs'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Hubs')]",
             "dependsOn": [
@@ -473,7 +473,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2019-09-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Hubs'))]",
                             "comments": "Allowed Resources Policy applied to the hubs RG to only allow select networking and observation resources.",
                             "properties": {
@@ -508,7 +508,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
+            "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-Spokes'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Spokes')]",
             "dependsOn": [
@@ -522,7 +522,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2019-09-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Spokes'))]",
                             "comments": "Allowed Resources Policy applied to the spoke resource group to only allow select networking resources.",
                             "properties": {
@@ -552,7 +552,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
+            "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-bu0001A0005'), '-Policies')]",
             "resourceGroup": "[variables('rgName-bu0001A0005')]",
             "dependsOn": [
@@ -567,7 +567,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-bu0001A0005'))]",
                             "comments": "Allowed Resources Policy applied to the appliction resource group to only allow select resources per workload requirements.",
                             "properties": {
@@ -607,7 +607,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyPublicAks'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny public AKS clusters policy applied to the appliction resource group.",
                             "properties": {
@@ -630,7 +630,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyAksWithoutPolicy'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters that do not have Azure Policy enabled in the appliction resource group.",
                             "properties": {
@@ -642,7 +642,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyAagWithoutWaf'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny public AKS clusters policy applied to the appliction resource group.",
                             "properties": {
@@ -654,7 +654,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyAksWithoutRbac'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters without RBAC policy applied to the appliction resource group.",
                             "properties": {
@@ -666,7 +666,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyOldAks'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters on old version policy applied to the appliction resource group.",
                             "properties": {
@@ -678,7 +678,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-CustomerManagedEncryption'), variables('rgName-bu0001A0005'))]",
                             "comments": "Applying the 'Customer-Managed Disk Encryption' policy to the resource group.",
                             "properties": {
@@ -689,7 +689,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-EncryptionAtHost'), variables('rgName-bu0001A0005'))]",
                             "comments": "Applying the 'Encryption at Host' policy to the resource group.",
                             "properties": {
