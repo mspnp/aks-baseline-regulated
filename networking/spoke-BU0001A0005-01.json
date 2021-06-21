@@ -53,7 +53,7 @@
 
         "primaryClusterPipName": "[concat('pip-', variables('orgAppId'), '-00')]",
 
-        "policyResourceIdNoPublicIpsInVnet": "[concat('/providers/Microsoft.Authorization/policyDefinitions/', guid(subscription().id, 'NoPublicIPsForNICsInVnet'))]",
+        "policyResourceIdNoPublicIpsInVnet": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'NoPublicIPsForNICsInVnet'))]",
         "clusterVnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
     },
     "resources": [
@@ -689,7 +689,7 @@
                 "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-management-ops'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-privatelinkendpoints'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]",
-                "[resourceId('Microsoft.Resources/deployments', 'Apply-Subscription-Spoke-PipUsage-Policies-01')]"
+                "[subscriptionResourceId('Microsoft.Resources/deployments', 'Apply-Subscription-Spoke-PipUsage-Policies-01')]"
             ],
             "properties": {
                 "addressSpace": {

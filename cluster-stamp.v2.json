@@ -152,7 +152,7 @@
         "policyResourceIdMustUseSpecifiedLabels": "/providers/Microsoft.Authorization/policyDefinitions/46592696-4c7b-4bf3-9e45-6c2763bdc0a6",
         "policyResourceIdMustUseTheseExternalIps": "/providers/Microsoft.Authorization/policyDefinitions/d46c275d-1680-448d-b2ec-e495a3b6cc89",
         "policyResourceIdMustNotAutomountApiCreds": "/providers/Microsoft.Authorization/policyDefinitions/423dd1ba-798e-40e4-9c4d-b6902674b423",
-        "policyResourceIdNoPublicIPsForVMScaleSets": "[concat('/providers/Microsoft.Authorization/policyDefinitions/', guid(subscription().id, 'NoPublicIPsForVMScaleSets'))]",
+        "policyResourceIdNoPublicIPsForVMScaleSets": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'NoPublicIPsForVMScaleSets'))]",
         "policyAssignmentNameAKSLinuxRestrictive": "[guid(variables('policyResourceIdAKSLinuxRestrictive'), resourceGroup().name, variables('clusterName'))]",
         "policyAssignmentNameEnforceHttpsIngress": "[guid(variables('policyResourceIdEnforceHttpsIngress'), resourceGroup().name, variables('clusterName'))]",
         "policyAssignmentNameEnforceInternalLoadBalancers": "[guid(variables('policyResourceIdEnforceInternalLoadBalancers'), resourceGroup().name, variables('clusterName'))]",

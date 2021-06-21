@@ -624,7 +624,7 @@
                             "comments": "Applying the 'No Public IPs on VMSS' policy to the appliction resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-NoPublicIPsForVMScaleSets')), '2020-09-01').displayName), 125))]",
-                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)]",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-NoPublicIPsForVMScaleSets'))]"
                             }
                         },
