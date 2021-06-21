@@ -16,7 +16,7 @@ Never use the AKS nodes (or OpenSSH containers running on them) as your access p
 This reference implementation will be using the "compute resource in subnet" option above, typically known as a jump box. Even within this option, you have additional choices.
 
 * Use Azure Container Instances and a custom [OpenSSH host](https://docs.linuxserver.io/images/docker-openssh-server) container
-* Use Windows WVD/RDS solutions
+* Use [Azure Virtual Desktop (AVD)](https://docs.microsoft.com/azure/virtual-desktop/overview) or [Windows RDS](https://docs.microsoft.com/windows-server/remote/remote-desktop-services/welcome-to-rds)
 * Use stand-alone, persistent VMs in an availability set
 * Use small instance count, non-autoscaling Virtual Machine Scale Set
 
