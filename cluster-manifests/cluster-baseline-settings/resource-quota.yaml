@@ -15,7 +15,6 @@ spec:
     count/services.nodeports: "0"
     count/deployments.apps: "0"
             
-    # csi-secrets-store, csi-secrets-store-provider-azure
     # dummy-av, dummy-fim
     # kured
     count/daemonsets.apps: "3"
