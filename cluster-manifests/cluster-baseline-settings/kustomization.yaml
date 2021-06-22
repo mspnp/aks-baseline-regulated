@@ -11,7 +11,7 @@ resources:
 - kured/kured.yaml
 images:
 - name: busybox
-  newName: acrakswlv7guwunhopu.azurecr.io/live/library/busybox
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/library/busybox
   newTag: 1.33.0
 - name: docker.io/weaveworks/kured
-  newName: acrakswlv7guwunhopu.azurecr.io/live/weaveworks/kured
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/weaveworks/kured
