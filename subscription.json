@@ -385,10 +385,8 @@
                                         "equals": "Microsoft.Network/networkInterfaces"
                                     },
                                     {
-                                        "not": {
-                                            "field": "Microsoft.Network/networkInterfaces/ipConfigurations[*].publicIpAddress.id",
-                                            "notLike": "*"
-                                        }
+                                        "field": "Microsoft.Network/networkInterfaces/ipConfigurations[*].publicIpAddress.id",
+                                        "like": "*"
                                     },
                                     {
                                         "field": "Microsoft.Network/networkInterfaces/ipConfigurations[*].subnet.id",
@@ -403,10 +401,8 @@
                                         "equals": "Microsoft.Compute/virtualMachineScaleSets"
                                     },
                                     {
-                                        "not": {
-                                            "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].publicIPAddressConfiguration",
-                                            "exists": "True"
-                                        }
+                                        "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].publicIPAddressConfiguration.name",
+                                        "like": "*"
                                     },
                                     {
                                         "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].subnet.id",
@@ -444,10 +440,8 @@
                                 "equals": "Microsoft.Compute/virtualMachineScaleSets"
                             },
                             {
-                                "not": {
-                                    "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].publicIPAddressConfiguration",
-                                    "exists": "True"
-                                }
+                                "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].publicIPAddressConfiguration.name",
+                                "like": "*"
                             }
                         ]
                     },

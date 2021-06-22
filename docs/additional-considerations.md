@@ -9,7 +9,7 @@ This reference implementation is designed to be a starting point for your eventu
 
 ### Customer-managed OS and data disk encryption
 
-While OS and data disks (and their caches) are already encrypted at rest with Microsoft-managed keys, for additional control over encryption keys you can use customer-managed keys for encyption at rest for both the OS and the data disks in your AKS cluster. This reference implementation doesn't actually use any disks in the cluster, and the OS disk is ephemeral. But if you use non-ephemeral OS disks or add data disks, consider using this added security solution.
+While OS and data disks (and their caches) are already encrypted at rest with Microsoft-managed keys, for additional control over encryption keys you can use customer-managed keys for encryption at rest for both the OS and the data disks in your AKS cluster. This reference implementation doesn't actually use any disks in the cluster, and the OS disk is ephemeral. But if you use non-ephemeral OS disks or add data disks, consider using this added security solution.
 
 Read more about [Bing your own keys (BYOK) with Azure disks](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys).
 
@@ -80,11 +80,19 @@ This guidance should also be followed when using the Dockerfile `FROM` command.
 <details>
   <summary>View considerations…</summary>
 
-### Customized Azure Policies
+### Customized Azure Policies for Kubernetes
 
 Generally speaking, the Azure Policies applied do not have workload-tuned settings applied. Specifically we're applying the **Kubernetes cluster pod security restricted standards for Linux-based workloads** initiative which does not allow tuning of settings. Consider exporting this initiative and customizing its values for your specific workload. You may wish to include all Gatekeeper `deny` Azure Policies under one custom Initiative and all `audit` Azure Policies under another to know strong "blocks" from "awareness only" policies.
 
 While it's common for Azure Policy to exclude `kube-system` and `gatekeeper-system` to policies, consider _including_ them in your `audit` policies for _added visibility_. Including those namespaces in `deny` policies could cause cluster failure due to an unsupported configuration. You may find some that are relatively safe, such as enforcing internal load balancers and HTTPS ingresses, but be aware if you apply these you may run into support concerns.
+
+### Customized Azure Policies for Azure resources
+
+The reference implementation includes a few examples of Azure Policy that can act to help guard your environment against undesired configuration. One such example included in this reference implementation is the preventing of Network Interfaces or VM Scale Sales that have Public IPs from joining your cluster's Virtual Network. It's strongly recommended that you add prevents (deny-based policy) for resource configuration that would violate your regulatory requirements. If a built-in policy is not available, buy custom policies like the ones illustrated in this reference implementation.
+
+### Allow list for resource types
+
+The reference implementation puts in place an allow list for what resource types are allowed in the various resource groups. This helps control what gets deployed, which can prevent an unexpected resource type from being deployed. If your subscription is exclusively for your regulated workload, then also consider only having the necessary [resource providers registered](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers#registration) to cover that service list. Don't register [resource providers for Azure services](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers) that are not going to be part of your environment. This will guard against a misconfiguration in Azure Policy's enforcement.
 
 ### Management Groups
 
