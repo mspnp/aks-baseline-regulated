@@ -80,7 +80,8 @@ This guidance should also be followed when using the Dockerfile `FROM` command.
 <details>
   <summary>View considerations…</summary>
 
-### Customized Azure Policies for Kubernetes
+### Customized Azure Policies for AKS
+
 
 Generally speaking, the Azure Policies applied do not have workload-tuned settings applied. Specifically we're applying the **Kubernetes cluster pod security restricted standards for Linux-based workloads** initiative which does not allow tuning of settings. Consider exporting this initiative and customizing its values for your specific workload. You may wish to include all Gatekeeper `deny` Azure Policies under one custom Initiative and all `audit` Azure Policies under another to know strong "blocks" from "awareness only" policies.
 
@@ -88,7 +89,8 @@ While it's common for Azure Policy to exclude `kube-system` and `gatekeeper-syst
 
 ### Customized Azure Policies for Azure resources
 
-The reference implementation includes a few examples of Azure Policy that can act to help guard your environment against undesired configuration. One such example included in this reference implementation is the preventing of Network Interfaces or VM Scale Sales that have Public IPs from joining your cluster's Virtual Network. It's strongly recommended that you add prevents (deny-based policy) for resource configuration that would violate your regulatory requirements. If a built-in policy is not available, buy custom policies like the ones illustrated in this reference implementation.
+The reference implementation includes a few examples of Azure Policy that can act to help guard your environment against undesired configuration. One such example included in this reference implementation is the preventing of Network Interfaces or VM Scale Sales that have Public IPs from joining your cluster's Virtual Network. It's strongly recommended that you add prevents (deny-based policy) for resource configuration that would violate your regulatory requirements. If a built-in policy is not available, create custom policies like the ones illustrated in this reference implementation.
+
 
 ### Allow list for resource types
 
