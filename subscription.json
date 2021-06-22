@@ -49,6 +49,8 @@
         "policyDefinitionName-DenyOldAks": "[guid(subscription().id, 'DenyOldAksVersions')]",
         "policyDefinitionName-CustomerManagedEncryption": "[guid(subscription().id, 'CustomerManagedEncryption')]",
         "policyDefinitionName-EncryptionAtHost": "[guid(subscription().id, 'EncryptionAtHost')]",
+        "policyDefinitionName-NoPublicIPsForNICsInVnet": "[guid(subscription().id, 'NoPublicIPsForNICsInVnet')]",
+        "policyDefinitionName-NoPublicIPsForVMScaleSets": "[guid(subscription().id, 'NoPublicIPsForVMScaleSets')]",
         "policySetDefinitionName-EnableDefender": "[guid(subscription().id, 'EnableDefender')]",
         "roleId-SecurityAdmin": "/providers/Microsoft.Authorization/roleDefinitions/fb1c8493-542b-48eb-b624-b4c8fea62acd",
         "deploymentResourceRegion": "centralus" // This region is used as the default for all generic resource groups and for any additional deployment resources. No resources are actually deployed to this resource group.
@@ -351,8 +353,107 @@
             }
         },
         {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-NoPublicIPsForNICsInVnet')]",
+            "properties": {
+                "displayName": "Virtual Network should not have NICs attached with public IPs",
+                "description": "This policy denies network interfaces with public IPs to be attached to the identified Virtual Network. Applied at the subscription level, but expected to be limited to a specific vnet.",
+                "policyType": "Custom",
+                "mode": "All",
+                "metadata": {
+                    "version": "1.0.0",
+                    "category": "Network"
+                },
+                "parameters": {
+                    "vnetResourceId": {
+                        "type": "string",
+                        "metadata": {
+                            "displayName": "Virtual Network",
+                            "description": "The Vnet Resource ID that cannot have public IPs",
+                            "strongType": "Microsoft.Network/virtualNetworks"
+                        }
+                    }
+                },
+                "policyRule": {
+                    "if": {
+                        "anyOf": [
+                            {
+                                "allOf": [
+                                    {
+                                        "field": "type",
+                                        "equals": "Microsoft.Network/networkInterfaces"
+                                    },
+                                    {
+                                        "field": "Microsoft.Network/networkInterfaces/ipConfigurations[*].publicIpAddress.id",
+                                        "like": "*"
+                                    },
+                                    {
+                                        "field": "Microsoft.Network/networkInterfaces/ipConfigurations[*].subnet.id",
+                                        "contains": "[[parameters('vnetResourceId')]"
+                                    }
+                                ]
+                            },
+                            {
+                                "allOf": [
+                                    {
+                                        "field": "type",
+                                        "equals": "Microsoft.Compute/virtualMachineScaleSets"
+                                    },
+                                    {
+                                        "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].publicIPAddressConfiguration.name",
+                                        "like": "*"
+                                    },
+                                    {
+                                        "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].subnet.id",
+                                        "contains": "[[parameters('vnetResourceId')]"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "deny"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-NoPublicIPsForVMScaleSets')]",
+            "properties": {
+                "displayName": "VM Scale Sets should not have public IPs",
+                "description": "This policy denies the creation VM Scale Sets which are are configured with any public IPs.",
+                "policyType": "Custom",
+                "mode": "All",
+                "metadata": {
+                    "version": "1.0.0",
+                    "category": "Compute"
+                },
+                "parameters": {},
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.Compute/virtualMachineScaleSets"
+                            },
+                            {
+                                "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.networkProfile.networkInterfaceConfigurations[*].ipConfigurations[*].publicIPAddressConfiguration.name",
+                                "like": "*"
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "deny"
+                    }
+                }
+            }
+        },
+        {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
+            "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-Hubs'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Hubs')]",
             "dependsOn": [
@@ -366,7 +467,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2019-09-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Hubs'))]",
                             "comments": "Allowed Resources Policy applied to the hubs RG to only allow select networking and observation resources.",
                             "properties": {
@@ -401,7 +502,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
+            "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-Spokes'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Spokes')]",
             "dependsOn": [
@@ -415,7 +516,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2019-09-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-Spokes'))]",
                             "comments": "Allowed Resources Policy applied to the spoke resource group to only allow select networking resources.",
                             "properties": {
@@ -445,7 +546,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
+            "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-bu0001A0005'), '-Policies')]",
             "resourceGroup": "[variables('rgName-bu0001A0005')]",
             "dependsOn": [
@@ -460,7 +561,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-bu0001A0005'))]",
                             "comments": "Allowed Resources Policy applied to the appliction resource group to only allow select resources per workload requirements.",
                             "properties": {
@@ -500,7 +601,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyPublicAks'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny public AKS clusters policy applied to the appliction resource group.",
                             "properties": {
@@ -512,7 +613,18 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyDefinitionName-NoPublicIPsForVMScaleSets'), variables('rgName-bu0001A0005'))]",
+                            "comments": "Applying the 'No Public IPs on VMSS' policy to the appliction resource group.",
+                            "properties": {
+                                "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-NoPublicIPsForVMScaleSets')), '2020-09-01').displayName), 125))]",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-NoPublicIPsForVMScaleSets'))]"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyAksWithoutPolicy'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters that do not have Azure Policy enabled in the appliction resource group.",
                             "properties": {
@@ -524,7 +636,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyAagWithoutWaf'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny public AKS clusters policy applied to the appliction resource group.",
                             "properties": {
@@ -536,7 +648,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyAksWithoutRbac'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters without RBAC policy applied to the appliction resource group.",
                             "properties": {
@@ -548,7 +660,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-DenyOldAks'), variables('rgName-bu0001A0005'))]",
                             "comments": "Deny AKS clusters on old version policy applied to the appliction resource group.",
                             "properties": {
@@ -560,7 +672,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-CustomerManagedEncryption'), variables('rgName-bu0001A0005'))]",
                             "comments": "Applying the 'Customer-Managed Disk Encryption' policy to the resource group.",
                             "properties": {
@@ -571,7 +683,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2020-03-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionName-EncryptionAtHost'), variables('rgName-bu0001A0005'))]",
                             "comments": "Applying the 'Encryption at Host' policy to the resource group.",
                             "properties": {

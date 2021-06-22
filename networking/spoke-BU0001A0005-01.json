@@ -51,7 +51,10 @@
         "aksPrivateDnsZonesName": "[concat('privatelink.', parameters('location'), '.azmk8s.io')]",
         "akvPrivateDnsZonesName": "privatelink.vaultcore.azure.net",
 
-        "primaryClusterPipName": "[concat('pip-', variables('orgAppId'), '-00')]"
+        "primaryClusterPipName": "[concat('pip-', variables('orgAppId'), '-00')]",
+
+        "policyResourceIdNoPublicIpsInVnet": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'NoPublicIPsForNICsInVnet'))]",
+        "clusterVnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
     },
     "resources": [
         {
@@ -630,6 +633,47 @@
             ]
         },
         {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-10-01",
+            "name": "Apply-Subscription-Spoke-PipUsage-Policies-01",
+            "comments": "Deploys subscription-level policy related to spoke deployment.",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[subscription().subscriptionId]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                         {
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyResourceIdNoPublicIpsInVnet'), variables('clusterVnetResourceId'))]",
+                            "comments": "Cluster VNet should never have a NIC with a public IP.",
+                            "properties": {
+                                "displayName": "[concat('Network interfaces in [', variables('clusterVNetName'), '] should not have public IPs')]",
+                                "description": "Cluster VNet should never have a NIC with a public IP.",
+                                "scope": "[subscription().id]",
+                                "notScopes": [],
+                                "policyDefinitionId": "[variables('policyResourceIdNoPublicIpsInVnet')]",
+                                "parameters": {
+                                    "vnetResourceId": {
+                                        "value": "[variables('clusterVnetResourceId')]"
+                                    }
+                                },
+                                "nonComplianceMessages": [
+                                    {
+                                        "message": "No NICs with public IPs are allowed in the regulated environment spoke."
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
             "name": "[variables('clusterVNetName')]",
@@ -644,7 +688,8 @@
                 "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-management-ops'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-privatelinkendpoints'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]",
+                "[subscriptionResourceId('Microsoft.Resources/deployments', 'Apply-Subscription-Spoke-PipUsage-Policies-01')]"
             ],
             "properties": {
                 "addressSpace": {
