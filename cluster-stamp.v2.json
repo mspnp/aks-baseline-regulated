@@ -2387,7 +2387,7 @@
                 "policyDefinitionId": "[variables('policyResourceIdEnforceImageSource')]",
                 "parameters": {
                     "allowedContainerImagesRegex": {
-                        "value": "[concat(variables('defaultAcrName'),'.azurecr.io/live/.+$|mcr.microsoft.com/oss/.+$')]"
+                        "value": "[concat(variables('defaultAcrName'), '\.azurecr\.io\/live\/.+$|mcr\.microsoft\.com\/oss\/(openservicemesh\/init:|envoyproxy\/envoy:).+$')]"
                     },
                     "effect": {
                         "value": "deny"

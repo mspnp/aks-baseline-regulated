@@ -157,9 +157,6 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
    git clone https://github.com/$GITHUB_ACCOUNT_NAME/aks-baseline-regulated.git
    cd aks-baseline-regulated/cluster-manifests
 
-   # Deploys foundational items
-   kubectl apply -k cluster-baseline-settings
-
    # Apply the Flux CRDs before applying the rest of flux (to avoid a race condition in the sync settings)
    kubectl apply -f flux-system/gotk-crds.yaml
    kubectl apply -k flux-system
