@@ -37,7 +37,7 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 
 1. Update Key Vault placeholders in your CSI Secret Store provider.
 
-   You'll be using the [Azure Key Vault Provider for Secrets Store CSI driver](https://github.com/Azure/secrets-store-csi-driver-provider-azure) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.
+   You'll be using the [Secrets Store CSI Driver for Kubernetes](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.
 
    ```bash
    KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
@@ -156,9 +156,6 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 
    git clone https://github.com/$GITHUB_ACCOUNT_NAME/aks-baseline-regulated.git
    cd aks-baseline-regulated/cluster-manifests
-
-   # Deploys Secret Store CSI Drivers and other foundational items
-   kubectl apply -k cluster-baseline-settings
 
    # Apply the Flux CRDs before applying the rest of flux (to avoid a race condition in the sync settings)
    kubectl apply -f flux-system/gotk-crds.yaml

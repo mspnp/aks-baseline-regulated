@@ -29,10 +29,11 @@ Throughout this walkthrough, take note of the following symbol.
 
    Ensure you're logged into the subscription in which you plan on deploying this reference to.
 
-1. Enable two preview features.
+1. Enable three preview features.
 
    * Follow the instructions to [enable Azure AD Pod Identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity#before-you-begin) on your target subscription. You do not need to install the preview CLI extension or follow other instructions on this page.
    * Follow the instructions to [enable Open Service Mesh](https://docs.microsoft.com/azure/aks/servicemesh-osm-about?pivots=client-operating-system-linux#register-the-aks-openservicemesh-preview-feature) on your target subscription. You do not need to install the open service mesh CLI or follow other instructions on this page.
+   * Register the [Azure Key Vault Secrets Provider for AKS preview feature - `AKS-AzureKeyVaultSecretsProvider`](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver#register-the-aks-azurekeyvaultsecretsprovider-preview-feature).
 
 1. Fork this repository and clone it locally. 🛑
 

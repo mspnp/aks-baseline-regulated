@@ -6,8 +6,6 @@ resources:
 - resource-quota.yaml
 - limit-range.yaml
 - rbac.yaml
-- secrets-store-csi/driver.yaml
-- secrets-store-csi/keyvault-provider.yaml
 - fim/fim-standin.yaml
 - av/av-standin.yaml
 - kured/kured.yaml

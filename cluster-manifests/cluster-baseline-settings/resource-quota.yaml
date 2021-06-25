@@ -15,16 +15,13 @@ spec:
     count/services.nodeports: "0"
     count/deployments.apps: "0"
             
-    # csi-secrets-store, csi-secrets-store-provider-azure
     # dummy-av, dummy-fim
     # kured
-    count/daemonsets.apps: "5"
+    count/daemonsets.apps: "3"
     count/services: "0"
 
-    # csi-secrets-store (3*[oos nodepood nodes] + 3*[ins nodepool nodes] = 12)
-    # csi-secrets-store-provider-azure (1*[oos nodepood nodes] + 1*[ins nodepool nodes] = 4)
     # dummy-av (1*[all nodes] = 7)
     # dummy-fim (1*[all nodes] = 7)
     # kured (1*[all nodes] = 7)
     # x~1.5 for scale out / rolling upgrades
-    count/pods: "60"
+    count/pods: "44"
