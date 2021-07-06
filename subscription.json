@@ -483,6 +483,8 @@
                                             "Microsoft.Network/azureFirewalls",
                                             "Microsoft.Network/bastionHosts",
                                             "Microsoft.Network/ipGroups",
+                                            "Microsoft.Network/firewallPolicies",
+                                            "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
                                             "Microsoft.Network/networkSecurityGroups",
                                             "Microsoft.Network/networkSecurityGroups/securityRules",
                                             "Microsoft.Network/publicIpAddresses",
