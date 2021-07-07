@@ -79,6 +79,7 @@
         ],
         "hubFwName": "[concat('fw-', parameters('location'))]",
         "fwPoliciesName": "[concat('fw-policies-', parameters('location'))]",
+        "fwPoliciesBaseName": "fw-policies-base",
         "hubVNetName": "[concat('vnet-', parameters('location'), '-hub')]",
         "bastionNetworkNsgName": "[concat('nsg-', parameters('location'), '-bastion')]",
         "bastionPipName": "[concat('pip-ab-', parameters('location'))]",
@@ -459,11 +460,34 @@
         {
             "type": "Microsoft.Network/firewallPolicies",
             "apiVersion": "2020-11-01",
+            "name": "[variables('fwPoliciesBaseName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "tier": "Standard"
+                },
+                "threatIntelMode": "Deny",
+                "threatIntelWhitelist": {
+                    "ipAddresses": []
+                },
+                "dnsSettings": {
+                    "servers": [],
+                    "enableProxy": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies",
+            "apiVersion": "2020-11-01",
             "name": "[variables('fwPoliciesName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPoliciesBaseName'))]"
             ],
             "properties": {
+                "basePolicy": {
+                    "id":  "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPoliciesBaseName'))]"
+                },
                 "sku": {
                     "tier": "Standard"
                 },
