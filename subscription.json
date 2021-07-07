@@ -16,7 +16,7 @@
         "enableNetworkWatchers": {
             "type": "bool",
             "metadata": {
-                "description": "Set up Azure Policy to ensure Azure Network Watchers are deployed when vnets are created. They will be deployed to rg-enterprise-networking-watchers."
+                "description": "Set up Azure Policy to ensure Azure Network Watchers are deployed when vnets are created. They will be deployed to networkWatcherRG."
             }
         },
         "enforceAzureDefenderAutoDeployPolicies": {
