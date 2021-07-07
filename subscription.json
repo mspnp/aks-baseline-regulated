@@ -13,6 +13,12 @@
           Notes: If unable to obtain permissions, you must pass false to the enableAzureDefender parameter or have someone else enable these for you.
      */
     "parameters": {
+        "enableNetworkWatchers": {
+            "type": "bool",
+            "metadata": {
+                "description": "Set up Azure Policy to ensure Azure Network Watchers are deployed when vnets are created. They will be deployed to networkWatcherRG."
+            }
+        },
         "enforceAzureDefenderAutoDeployPolicies": {
             "type": "bool",
             "defaultValue": true,
@@ -31,6 +37,7 @@
     "variables": {
         "rgName-Hubs": "rg-enterprise-networking-hubs",
         "rgName-Spokes": "rg-enterprise-networking-spokes",
+        "rgName-NetworkWatchers": "networkWatcherRG", // Name defined as part of the built-in Azure Policy a9b99dd8-06c5-4317-8629-9d86a3c6e7d9
         "rgName-bu0001A0005": "rg-bu0001a0005",
         "policyDefinitionId-AllowedResources": "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c",
         "policyDefinitionId-DenyAksWithoutPolicy": "/providers/Microsoft.Authorization/policyDefinitions/0a15ec92-a229-4763-bb14-0ea34a568f8d",
@@ -38,6 +45,8 @@
         "policyDefinitionId-DenyOldAks": "/providers/Microsoft.Authorization/policyDefinitions/fb893a29-21bb-418c-a157-e99480ec364c",
         "policyDefinitionId-CustomerManagedEncryption": "/providers/Microsoft.Authorization/policyDefinitions/7d7be79c-23ba-4033-84dd-45e2a5ccdd67",
         "policyDefinitionId-EncryptionAtHost": "/providers/Microsoft.Authorization/policyDefinitions/41425d9f-d1a5-499a-9932-f8ed8453932c",
+        "policyDefinitionId-DeployNetworkWatchers": "/providers/Microsoft.Authorization/policyDefinitions/a9b99dd8-06c5-4317-8629-9d86a3c6e7d9",
+        "policyDefinitionId-NetworkWatcherShouldBeEnabled": "/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6",
 
         "policyDefinitionName-EnableAksDefender": "[guid(subscription().id, 'EnableDefenderForAks')]",
         "policyDefinitionName-EnableAcrDefender": "[guid(subscription().id, 'EnableDefenderForAcr')]",
@@ -51,8 +60,10 @@
         "policyDefinitionName-EncryptionAtHost": "[guid(subscription().id, 'EncryptionAtHost')]",
         "policyDefinitionName-NoPublicIPsForNICsInVnet": "[guid(subscription().id, 'NoPublicIPsForNICsInVnet')]",
         "policyDefinitionName-NoPublicIPsForVMScaleSets": "[guid(subscription().id, 'NoPublicIPsForVMScaleSets')]",
+        "policyAssignmentName-DeployNetworkWatchers": "[guid(subscription().id, variables('policyDefinitionId-DeployNetworkWatchers'))]",
         "policySetDefinitionName-EnableDefender": "[guid(subscription().id, 'EnableDefender')]",
         "roleId-SecurityAdmin": "/providers/Microsoft.Authorization/roleDefinitions/fb1c8493-542b-48eb-b624-b4c8fea62acd",
+        "roleId-NetworkContributor": "/providers/microsoft.authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7",
         "deploymentResourceRegion": "centralus" // This region is used as the default for all generic resource groups and for any additional deployment resources. No resources are actually deployed to this resource group.
     },
     "resources": [
@@ -76,6 +87,14 @@
             "name": "[variables('rgName-bu0001A0005')]",
             "location": "[variables('deploymentResourceRegion')]",
             "comments": "This is the resource group for BU001A0005. Typically this would be found in your workload's subscription."
+        },
+        {
+            "condition": "[parameters('enableNetworkWatchers')]",
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2020-10-01",
+            "name": "[variables('rgName-NetworkWatchers')]",
+            "location": "[variables('deploymentResourceRegion')]",
+            "comments": "This is the resource group for Azure Network Watchers. These are singletons per region and this RG will only be deployed if no existing Network Watchers are found in your subscription."
         },
         {
             "type": "Microsoft.Authorization/policyDefinitions",
@@ -495,6 +514,18 @@
                                     }
                                 }
                             }
+                        },
+                        {
+                            "condition": "[parameters('enableNetworkWatchers')]",
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), variables('rgName-Hubs'))]",
+                            "comments": "Applying the 'Network Watcher Should be Enabled' policy to the Spoke resource group.",
+                            "properties": {
+                                "displayName": "[trim(take(concat('[', variables('rgName-Hubs'), '] ', reference(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), '2020-09-01').displayName), 125))]",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Hubs'))]",
+                                "policyDefinitionId": "[variables('policyDefinitionId-NetworkWatcherShouldBeEnabled')]"
+                            }
                         }
                     ]
                 }
@@ -538,6 +569,68 @@
                                         ]
                                     }
                                 }
+                            }
+                        },
+                        {
+                            "condition": "[parameters('enableNetworkWatchers')]",
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), variables('rgName-Spokes'))]",
+                            "comments": "Applying the 'Network Watcher Should be Enabled' policy to the Spoke resource group.",
+                            "properties": {
+                                "displayName": "[trim(take(concat('[', variables('rgName-Spokes'), '] ', reference(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), '2020-09-01').displayName), 125))]",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Spokes'))]",
+                                "policyDefinitionId": "[variables('policyDefinitionId-NetworkWatcherShouldBeEnabled')]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "condition": "[parameters('enableNetworkWatchers')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-10-01",
+            "name": "[concat('Apply-', variables('rgName-NetworkWatchers'), '-Policies')]",
+            "resourceGroup": "[variables('rgName-NetworkWatchers')]",
+            "dependsOn": [
+                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]",
+                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatchers'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyDefinitionId-AllowedResources'), variables('rgName-NetworkWatchers'))]",
+                            "comments": "Allowed Resources Policy applied to the network watchers resource group to only allow select networking resources.",
+                            "properties": {
+                                "displayName": "[trim(take(concat('[', variables('rgName-NetworkWatchers'), '] ', reference(variables('policyDefinitionId-AllowedResources'), '2020-09-01').displayName), 125))]",
+                                "description": "List of supported resources for our Network Watcher resource group",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]",
+                                "policyDefinitionId": "[variables('policyDefinitionId-AllowedResources')]",
+                                "parameters": {
+                                    "listOfResourceTypesAllowed": {
+                                        "value": [
+                                            "Microsoft.Network/networkWatchers"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2021-04-01-preview",
+                            "name": "[guid(subscriptionResourceId('Microsoft.Authorization/policyAssignments', guid(variables('policyAssignmentName-DeployNetworkWatchers'))), variables('roleId-NetworkContributor'))]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('roleId-NetworkContributor')]",
+                                "description": "[concat('[Policy Managed Identity] ', 'Allows DINE for Network Watcher to deploy missing Network Watchers after VNets are deployed.')]",                
+                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatchers')), '2020-09-01', 'Full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
                             }
                         }
                     ]
@@ -697,8 +790,29 @@
             }
         },
         {
+            "condition": "[parameters('enableNetworkWatchers')]",
             "type": "Microsoft.Authorization/policyAssignments",
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2020-09-01",
+            "name": "[variables('policyAssignmentName-DeployNetworkWatchers')]",
+            "location": "[variables('deploymentResourceRegion')]",
+            "dependsOn": [
+                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]"
+            ],
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "displayName": "[reference(variables('policyDefinitionId-DeployNetworkWatchers'), '2020-09-01').displayName]",
+                "description": "[concat('Ensures that when a virtual network is created anywhere in the subscription, a Network Watcher for that region also exists. The policy requires that the Network Watchers be deployed to a resource group with the name ', variables('rgName-NetworkWatchers'), '.')]",
+                "enforcementMode": "Default",
+                "notScopes": [],
+                "scope": "[subscription().id]",
+                "policyDefinitionId": "[variables('policyDefinitionId-DeployNetworkWatchers')]"
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2020-09-01",
             "name": "[guid(variables('policySetDefinitionName-EnableDefender'), subscription().id)]",
             "location": "[variables('deploymentResourceRegion')]",
             "dependsOn": [
