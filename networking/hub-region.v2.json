@@ -543,490 +543,467 @@
                             {
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "AKS-Global-Requirements",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 200,
+                                "rules": [
+                                    {
+                                        "name": "runtime",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": [
+                                            "AzureKubernetesService"
+                                        ]
                                     },
-                                    "priority": 200,
-                                    "rules": [
-                                        {
-                                            "name": "runtime",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This covers all runtime requirements for AKS (sans addons). If you wish to use a more restricted set of values than what this provides, see: https://docs.microsoft.com/azure/firewall/protect-azure-kubernetes-service and https://docs.microsoft.com/azure/aks/limit-egress-traffic#required-outbound-network-rules-and-fqdns-for-aks-clusters and remove this entry",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "targetFqdns": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "fqdnTags": [
-                                                "AzureKubernetesService"
-                                            ]
-                                        },
-                                        {
-                                            "name": "azure-monitor-addon",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "All required for Azure Monitor for containers per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your clusters' log analytics instances.",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "*.ods.opinsights.azure.com",
-                                                "*.oms.opinsights.azure.com",
-                                                "[concat(parameters('location'), '.monitoring.azure.com')]"
-                                            ]
-                                        },
-                                        {
-                                            "name": "azure-policy-addon",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "data.policy.core.windows.net",
-                                                "store.policy.core.windows.net"
-                                            ]
-                                        }
-                                    ]
-                                }
+                                    {
+                                        "name": "azure-monitor-addon",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "*.ods.opinsights.azure.com",
+                                            "*.oms.opinsights.azure.com",
+                                            "[concat(parameters('location'), '.monitoring.azure.com')]"
+                                        ]
+                                    },
+                                    {
+                                        "name": "azure-policy-addon",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "data.policy.core.windows.net",
+                                            "store.policy.core.windows.net"
+                                        ]
+                                    }
+                                ]
                             },
                             {
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "Flux-Requirements",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
-                                    },
-                                    "priority": 300,
-                                    "rules": [
-                                        {
-                                            "name": "flux-to-github",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This address is required for Flux <-> Github repository with the desired cluster baseline configuration.",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "github.com",
-                                                "api.github.com"
-                                            ]
-                                        }
-                                    ]
-                                }
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 300,
+                                "rules": [
+                                    {
+                                        "name": "flux-to-github",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "github.com",
+                                            "api.github.com"
+                                        ]
+                                    }
+                                ]
                             },
                             {
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "AKSImageBuilder-Requirements",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 400,
+                                "rules": [
+                                    {
+                                        "name": "to-azuremanagement",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "management.azure.com"
+                                        ]
                                     },
-                                    "priority": 400,
-                                    "rules": [
-                                        {
-                                            "name": "to-azuremanagement",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This for AIB VMs to communicate with Azure management API.",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "management.azure.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "to-blobstorage",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "*.blob.core.windows.net"
-                                            ]
-                                        },
-                                        {
-                                            "name": "apt-get",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Http",
-                                                    "port": 80
-                                                },
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "azure.archive.ubuntu.com",
-                                                "packages.microsoft.com",
-                                                "archive.ubuntu.com",
-                                                "security.ubuntu.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "install-azcli",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "aka.ms",
-                                                "azurecliextensionsync.blob.core.windows.net",
-                                                "azurecliprod.blob.core.windows.net"
-                                            ]
-                                        },
-                                        {
-                                            "name": "install-k8scli",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "storage.googleapis.com",
-                                                "api.github.com",
-                                                "github-releases.githubusercontent.com",
-                                                "github.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "install-helm",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "raw.githubusercontent.com",
-                                                "get.helm.sh",
-                                                "github-releases.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "install-flux",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "raw.githubusercontent.com",
-                                                "api.github.com",
-                                                "fluxcd.io",
-                                                "github-releases.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "install-open-service-mesh",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "github.com",
-                                                "github-releases.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "install-terraform",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "releases.hashicorp.com"
-                                            ]
-                                        }
-                                    ]
-                                }
+                                    {
+                                        "name": "to-blobstorage",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "*.blob.core.windows.net"
+                                        ]
+                                    },
+                                    {
+                                        "name": "apt-get",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            },
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "azure.archive.ubuntu.com",
+                                            "packages.microsoft.com",
+                                            "archive.ubuntu.com",
+                                            "security.ubuntu.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "install-azcli",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "aka.ms",
+                                            "azurecliextensionsync.blob.core.windows.net",
+                                            "azurecliprod.blob.core.windows.net"
+                                        ]
+                                    },
+                                    {
+                                        "name": "install-k8scli",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "storage.googleapis.com",
+                                            "api.github.com",
+                                            "github-releases.githubusercontent.com",
+                                            "github.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "install-helm",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "raw.githubusercontent.com",
+                                            "get.helm.sh",
+                                            "github-releases.githubusercontent.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "install-flux",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "raw.githubusercontent.com",
+                                            "api.github.com",
+                                            "fluxcd.io",
+                                            "github-releases.githubusercontent.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "install-open-service-mesh",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "github.com",
+                                            "github-releases.githubusercontent.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "install-terraform",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "releases.hashicorp.com"
+                                        ]
+                                    }
+                                ]
                             },
                             {
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "aks-jumpbox",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 450,
+                                "rules": [
+                                    {
+                                        "name": "az-login",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "login.microsoftonline.com"
+                                        ]
                                     },
-                                    "priority": 450,
-                                    "rules": [
-                                        {
-                                            "name": "az-login",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "Allow jumpboxes to perform az login.",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "login.microsoftonline.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "az-management-api",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "Allow jumpboxes to communicate with Azure management APIs.",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "management.azure.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "az-cli-extensions",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "Allow jumpboxes query az cli status and download extensions",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "aka.ms",
-                                                "azurecliprod.blob.core.windows.net",
-                                                "azcliextensionsync.blob.core.windows.net"
-                                            ]
-                                        },
-                                        {
-                                            "name": "github",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "Allow pulling things down from GitHub. [Only a requirement of this walkthrough because we deploy some manifests that you clone from your repo.]",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "github.com",
-                                                "*.github.io",
-                                                "raw.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "name": "azure-monitor-addon",
-                                            "ruleType": "ApplicationRule",
-                                            "description": "Required for Azure Monitor Extension on Jumpbox.",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "*.ods.opinsights.azure.com",
-                                                "*.oms.opinsights.azure.com",
-                                                "[concat(parameters('location'), '.monitoring.azure.com')]",
-                                                "*.agentsvc.azure-automation.net"
-                                            ]
-                                        }
-                                    ]
-                                }
+                                    {
+                                        "name": "az-management-api",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "management.azure.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "az-cli-extensions",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "aka.ms",
+                                            "azurecliprod.blob.core.windows.net",
+                                            "azcliextensionsync.blob.core.windows.net"
+                                        ]
+                                    },
+                                    {
+                                        "name": "github",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "github.com",
+                                            "*.github.io",
+                                            "raw.githubusercontent.com"
+                                        ]
+                                    },
+                                    {
+                                        "name": "azure-monitor-addon",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "fqdnTags": [],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "targetFqdns": [
+                                            "*.ods.opinsights.azure.com",
+                                            "*.oms.opinsights.azure.com",
+                                            "[concat(parameters('location'), '.monitoring.azure.com')]",
+                                            "*.agentsvc.azure-automation.net"
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -1044,37 +1021,33 @@
                         "priority": 200,
                         "ruleCollections": [
                             {
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "allow-ntp",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
-                                    },
-                                    "priority": 100,
-                                    "rules": [
-                                        {
-                                            "ruleType": "NetworkRule",
-                                            "name": "ntp",
-                                            "description": "Network Time Protocol (NTP) time synchronization for image builder VMs, nodepool nodes, and jumpboxes.",
-                                            "sourceAddresses": [],
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
-                                            ],
-                                            "destinationIpGroups": [],
-                                            "ipProtocols": [
-                                                "UDP"
-                                            ],
-                                            "destinationPorts": [
-                                                "123"
-                                            ],
-                                            "destinationFqdns": [],
-                                            "destinationAddresses": [
-                                                "*"
-                                            ]
-                                        }
-                                    ]
-                                }
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 100,
+                                "rules": [
+                                    {
+                                        "ruleType": "NetworkRule",
+                                        "name": "ntp",
+                                        "ipProtocols": [
+                                            "UDP"
+                                        ],
+                                        "sourceAddresses": [],
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                                        ],
+                                        "destinationAddresses": [
+                                            "*"
+                                        ],
+                                        "destinationPorts": [
+                                            "123"
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }

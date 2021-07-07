@@ -529,16 +529,14 @@
                             {
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "AKSImageBuilder-Requirements",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
-                                    },
-                                    "priority": 400,
-                                    "rules": [
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 400,
+                                "rules": [
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "to-azuremanagement",
-                                            "description": "This for AIB VMs to communicate with Azure management API.",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -561,7 +559,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "to-blobstorage",
-                                            "description": "This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -581,7 +578,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "apt-get",
-                                            "description": "This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -611,7 +607,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "install-azcli",
-                                            "description": "This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -636,7 +631,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "install-k8scli",
-                                            "description": "This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -662,7 +656,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "install-helm",
-                                            "description": "This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -687,7 +680,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "install-flux",
-                                            "description": "This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -713,7 +705,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "install-open-service-mesh",
-                                            "description": "This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -737,7 +728,6 @@
                                         {
                                             "ruleType": "ApplicationRule",
                                             "name": "install-terraform",
-                                            "description": "This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]",
                                             "sourceIpGroups": [
                                                 "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                             ],
@@ -754,8 +744,7 @@
                                                 "releases.hashicorp.com"
                                             ]
                                         }
-                                    ]
-                                }
+                                ]
                             }
                         ]
                     }
@@ -775,36 +764,29 @@
                             {
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "allow-ntp",
-                                "properties": {
-                                    "action": {
-                                        "type": "Allow"
-                                    },
-                                    "priority": 100,
-                                    "rules": [
-                                        {
-                                            "ruleType": "NetworkRule",
-                                            "name": "ntp",
-                                            "description": "Network Time Protocol (NTP) time synchronization for image builder VMs.",
-                                            "sourceAddresses": [],
-                                            "destinationAddresses": [
-                                                "*"
-                                            ],
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "destinationIpGroups": [],
-                                            "ipProtocols": [
-                                                "UDP"
-                                            ],
-                                            "destinationPorts": [
-                                                "123"
-                                            ],
-                                            "destinationFqdns": [
-                                                "ntp.ubuntu.com"
-                                            ]
-                                        }
-                                    ]
-                                }
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "priority": 100,
+                                "rules": [
+                                    {
+                                        "ruleType": "NetworkRule",
+                                        "name": "ntp",
+                                        "ipProtocols": [
+                                            "UDP"
+                                        ],
+                                        "sourceAddresses": [],
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "destinationAddresses": [
+                                            "*"
+                                        ],
+                                        "destinationPorts": [
+                                            "123"
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
