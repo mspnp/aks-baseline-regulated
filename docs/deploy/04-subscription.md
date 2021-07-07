@@ -17,8 +17,9 @@ The following three resource groups will be created in the steps below.
 | rg-enterprise-networking-hubs   | Contains all of your organization's regional hubs. A regional hub resources in this implementation include an the hub Virtual Network, egress firewall, Azure Bastion, and Log Analytics for network logging. They may also contain your VPN Gateways, which are not addressed in this implementation. |
 | rg-enterprise-networking-spokes | Contains all of your organization's regional spokes and related networking resources. All spokes will peer with their regional hub and subnets will egress through the regional firewall in the hub. |
 | rg-bu0001a0005                  | Contains the regulated cluster resources. |
+| networkWatcherRG                | Contains regional Network Watchers. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 
-Both Azure Kubernetes Service and Azure Image Builder Service use a concept of a dynamically-created _infrastructure_ resource group. So in addition to the three resource groups mentioned above, as you follow these instructions, you'll end up with five resource groups; two of which are automatically created and their lifecycle tied to their owning service. You will not see these two infrastructure resource groups get created until later in the walkthrough when their owning service is created.
+Both Azure Kubernetes Service and Azure Image Builder Service use a concept of a dynamically-created _infrastructure_ resource group. So in addition to the four resource groups mentioned above, as you follow these instructions, you'll end up with six resource groups; two of which are automatically created and their lifecycle tied to their owning service. You will not see these two infrastructure resource groups get created until later in the walkthrough when their owning service is created.
 
 ### Azure Policy applied
 
@@ -27,9 +28,13 @@ To help govern our resources, there are policies we apply over the scope of thes
 | Policy Name                    | Scope                           | Purpose                                                                                           |
 |--------------------------------|---------------------------------|---------------------------------------------------------------------------------------------------|
 | Enable Azure Defender Standard | Subscription                    | Ensures that Azure Defender for Kubernetes, Container Service, and Key Vault are always enabled.  |
+| Deploy Network Watcher         | Subscription                    | A _Deploy if not exists_ policy to ensure there is a regional network watcher for your virtual networks. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
+| VNet must have Network Watcher | rg-enterprise-networking-hubs   | Audit policy that will trigger if a network is deployed to a region that doesn't have a Network Watcher. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
+| VNet must have Network Watcher | rg-enterprise-networking-spokes | Audit policy that will trigger if a network is deployed to a region that doesn't have a Network Watcher. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | Allowed resource types         | rg-bu0001a0005                  | Restricts the workload resource group to just resources necessary for this specific architecture. |
+| Allowed resource types         | networkWatcherRG                | Restricts the Network Watcher resource group to just Network Watcher resources. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.   |
 | No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                            |
 | No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled.       |
@@ -76,20 +81,28 @@ Not only do we enable them in the steps below by default, but also set up an Azu
    TENANTID_AZURERBAC=$(az account show --query tenantId -o tsv)
    ```
 
+1. Check for existing Network Watchers.
+
+   ```bash
+   [ $(az network watcher list --query 'length([])' -o tsv) -eq 0 ] && ENABLE_NETWORK_WATCHERS=true || ENABLE_NETWORK_WATCHERS=false
+   ```
+
+   > Azure Network Watchers are regional singletons in your subscription and should always be handled external to any specific workload; at the subscription level. Because your subscription may already have configuration (existing instances and/or a corresponding _deploy if not exists_ policy applied) around Network Watcher, it's hard to deliver a "one size fits all" solution in this isolated walkthrough. If the subscription you're deploying into doesn't have _any_ Network Watchers deployed, you'll have them set up as part of this deployment. If however, you already have Network Watcher resources, we'll leave those alone and won't deploy any additional resources related to them. If you have any conflicts in this walkthrough related to Network Watchers (existing management group policies, etc.), simply set `ENABLE_NETWORK_WATCHERS=false` and all related attempts to set up Network Watchers will be skipped.
+
 1. Perform subscription-level deployment.
 
    This will deploy the resource groups, Azure Policies, and Azure Security Center configuration all as identified above.
 
    ```bash
    # [This may take up to six minutes to run.]
-   az deployment sub create -f subscription.json -l centralus
+   az deployment sub create -f subscription.json -l centralus -p enableNetworkWatchers=${ENABLE_NETWORK_WATCHERS}
    ```
 
    If you do not have permissions on your subscription to enable Azure Defender (which requires the Azure RBAC role of _Subscription Owner_ or _Security Admin_), then instead execute the following variation of the same command. This will not enable Azure Defender services nor will Azure Policy attempt to enable the same (the policy will still be created, but in audit-only mode). Your final implementation should be to a subscription with these security services activated.
 
    ```bash
    # [This may take up to five minutes to run.]
-   az deployment sub create -f subscription.json -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false
+   az deployment sub create -f subscription.json -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false enableNetworkWatchers=${ENABLE_NETWORK_WATCHERS}
    ```
 
 ## Azure Security Benchmark
