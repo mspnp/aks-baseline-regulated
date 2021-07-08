@@ -16,6 +16,8 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
    az group delete -n rg-enterprise-networking-hubs
    ```
 
+   Depending on your subscription's starting point, this walkthrough might have also deployed a resource group by the name of `networkWatcherRG`. If you know this to be the case, and wish to remove it as well, you can execute `az group delete -n networkWatcherRG`. If you are not sure, you can leave that resource group in place, the resources deployed as part of this walkthrough to that resource group are not cost or security impacting.
+
 1. Purge Azure Key Vault
 
    > Because this reference implementation enables soft delete on Key Vault, execute a purge so your next deployment of this implementation doesn't run into a naming conflict.
@@ -26,7 +28,7 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 1. If any temporary changes were made to Azure AD or Azure RBAC permissions consider removing those as well.
 
-1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Azure Defender Standard** as part of this as well, you can remove that.
+1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] ` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Azure Defender Standard** as part of this as well, you may choose to remove them as well.
 
    Execute the following commands will handle all Resource Group-scoped policies:
 
