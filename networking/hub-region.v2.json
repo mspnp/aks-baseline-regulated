@@ -541,8 +541,8 @@
                         "priority": 300,
                         "ruleCollections": [
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "AKS-Global-Requirements",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },
@@ -620,8 +620,8 @@
                                 ]
                             },
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "Flux-Requirements",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },
@@ -653,8 +653,8 @@
                                 ]
                             },
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "AKSImageBuilder-Requirements",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },
@@ -879,8 +879,8 @@
                                 ]
                             },
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "aks-jumpbox",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },
@@ -1021,8 +1021,8 @@
                         "priority": 200,
                         "ruleCollections": [
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "allow-ntp",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },

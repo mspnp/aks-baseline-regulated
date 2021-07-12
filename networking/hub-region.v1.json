@@ -527,223 +527,229 @@
                         "priority": 300,
                         "ruleCollections": [
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "AKSImageBuilder-Requirements",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },
                                 "priority": 400,
                                 "rules": [
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "to-azuremanagement",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "management.azure.com"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "to-blobstorage",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "targetFqdns": [
-                                                "*.blob.core.windows.net"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "apt-get",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Http",
-                                                    "port": 80
-                                                },
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "azure.archive.ubuntu.com",
-                                                "packages.microsoft.com",
-                                                "archive.ubuntu.com",
-                                                "security.ubuntu.com"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "install-azcli",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "aka.ms",
-                                                "azurecliextensionsync.blob.core.windows.net",
-                                                "azurecliprod.blob.core.windows.net"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "install-k8scli",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "storage.googleapis.com",
-                                                "api.github.com",
-                                                "github-releases.githubusercontent.com",
-                                                "github.com"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "install-helm",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "raw.githubusercontent.com",
-                                                "get.helm.sh",
-                                                "github-releases.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "install-flux",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "raw.githubusercontent.com",
-                                                "api.github.com",
-                                                "fluxcd.io",
-                                                "github-releases.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "install-open-service-mesh",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "fqdnTags": [],
-                                            "webCategories": [],
-                                            "destinationAddresses": [],
-                                            "targetFqdns": [
-                                                "github.com",
-                                                "github-releases.githubusercontent.com"
-                                            ]
-                                        },
-                                        {
-                                            "ruleType": "ApplicationRule",
-                                            "name": "install-terraform",
-                                            "sourceIpGroups": [
-                                                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
-                                            ],
-                                            "targetUrls": [],
-                                            "terminateTLS": false,
-                                            "sourceAddresses": [],
-                                            "protocols": [
-                                                {
-                                                    "protocolType": "Https",
-                                                    "port": 443
-                                                }
-                                            ],
-                                            "targetFqdns": [
-                                                "releases.hashicorp.com"
-                                            ]
-                                        }
+                                    {
+                                        "name": "to-azuremanagement",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "management.azure.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "to-blobstorage",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "*.blob.core.windows.net"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "apt-get",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            },
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "azure.archive.ubuntu.com",
+                                            "packages.microsoft.com",
+                                            "archive.ubuntu.com",
+                                            "security.ubuntu.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "install-azcli",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "aka.ms",
+                                            "azurecliextensionsync.blob.core.windows.net",
+                                            "azurecliprod.blob.core.windows.net"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": [],
+                                    },
+                                    {
+                                        "name": "install-k8scli",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "storage.googleapis.com",
+                                            "api.github.com",
+                                            "github-releases.githubusercontent.com",
+                                            "github.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "install-helm",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "raw.githubusercontent.com",
+                                            "get.helm.sh",
+                                            "github-releases.githubusercontent.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "install-flux",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "raw.githubusercontent.com",
+                                            "api.github.com",
+                                            "fluxcd.io",
+                                            "github-releases.githubusercontent.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "install-open-service-mesh",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "targetFqdns": [
+                                            "github.com",
+                                            "github-releases.githubusercontent.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    },
+                                    {
+                                        "name": "install-terraform",
+                                        "ruleType": "ApplicationRule",
+                                        "sourceIpGroups": [
+                                            "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+                                        ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "targetFqdns": [
+                                            "releases.hashicorp.com"
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
+                                    }
                                 ]
                             }
                         ]
@@ -762,16 +768,16 @@
                         "priority": 200,
                         "ruleCollections": [
                             {
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "name": "allow-ntp",
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
                                 "action": {
                                     "type": "Allow"
                                 },
                                 "priority": 100,
                                 "rules": [
                                     {
-                                        "ruleType": "NetworkRule",
                                         "name": "ntp",
+                                        "ruleType": "NetworkRule",
                                         "ipProtocols": [
                                             "UDP"
                                         ],
