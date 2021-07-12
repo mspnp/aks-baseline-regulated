@@ -549,6 +549,7 @@
                                 "priority": 200,
                                 "rules": [
                                     {
+                                        //This covers all runtime requirements for AKS (sans addons). If you wish to use a more restricted set of values than what this provides, see: https://docs.microsoft.com/azure/firewall/protect-azure-kubernetes-service and https://docs.microsoft.com/azure/aks/limit-egress-traffic#required-outbound-network-rules-and-fqdns-for-aks-clusters and remove this entry
                                         "name": "runtime",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -571,6 +572,7 @@
                                         ]
                                     },
                                     {
+                                        //All required for Azure Monitor for containers per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your clusters' log analytics instances.
                                         "name": "azure-monitor-addon",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -595,6 +597,7 @@
                                         ]
                                     },
                                     {
+                                        //All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com
                                         "name": "azure-policy-addon",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -628,6 +631,7 @@
                                 "priority": 300,
                                 "rules": [
                                     {
+                                        //This address is required for Flux <-> Github repository with the desired cluster baseline configuration.
                                         "name": "flux-to-github",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -661,6 +665,7 @@
                                 "priority": 400,
                                 "rules": [
                                     {
+                                        //This for AIB VMs to communicate with Azure management API.
                                         "name": "to-azuremanagement",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -683,6 +688,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)
                                         "name": "to-blobstorage",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -705,6 +711,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "apt-get",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -734,6 +741,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-azcli",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -758,6 +766,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-k8scli",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -783,6 +792,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-helm",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -807,6 +817,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-flux",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -832,6 +843,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-open-service-mesh",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -855,6 +867,7 @@
                                         ]
                                     },
                                     {
+                                        //This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-terraform",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -887,6 +900,7 @@
                                 "priority": 450,
                                 "rules": [
                                     {
+                                        //Allow jumpboxes to perform az login.
                                         "name": "az-login",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -909,6 +923,7 @@
                                         ]
                                     },
                                     {
+                                        //Allow jumpboxes to communicate with Azure management APIs.
                                         "name": "az-management-api",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -931,6 +946,7 @@
                                         ]
                                     },
                                     {
+                                        //Allow jumpboxes query az cli status and download extensions.
                                         "name": "az-cli-extensions",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -955,6 +971,7 @@
                                         ]
                                     },
                                     {
+                                        //Allow pulling things down from GitHub. [Only a requirement of this walkthrough because we deploy some manifests that you clone from your repo.]
                                         "name": "github",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -979,6 +996,7 @@
                                         ]
                                     },
                                     {
+                                        //Required for Azure Monitor Extension on Jumpbox.
                                         "name": "azure-monitor-addon",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [

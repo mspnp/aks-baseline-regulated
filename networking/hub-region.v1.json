@@ -535,6 +535,7 @@
                                 "priority": 400,
                                 "rules": [
                                     {
+                                        //This for AIB VMs to communicate with Azure management API.
                                         "name": "to-azuremanagement",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -557,6 +558,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)
                                         "name": "to-blobstorage",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -579,6 +581,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "apt-get",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -608,6 +611,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-azcli",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -629,9 +633,10 @@
                                         ],
                                         "webCategories": [],
                                         "destinationAddresses": [],
-                                        "fqdnTags": [],
+                                        "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-k8scli",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -657,6 +662,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-helm",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -681,6 +687,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-flux",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -706,6 +713,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-open-service-mesh",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
@@ -729,6 +737,7 @@
                                         "fqdnTags": []
                                     },
                                     {
+                                        //This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
                                         "name": "install-terraform",
                                         "ruleType": "ApplicationRule",
                                         "sourceIpGroups": [
