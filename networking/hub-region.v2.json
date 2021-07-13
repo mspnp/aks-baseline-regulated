@@ -1071,7 +1071,7 @@
                         ]
                     }
                 }
-          ]
+            ]
         },
         {
             "type": "Microsoft.Network/ipGroups",

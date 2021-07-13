@@ -743,15 +743,15 @@
                                         "sourceIpGroups": [
                                             "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
                                         ],
-                                        "targetUrls": [],
-                                        "terminateTLS": false,
-                                        "sourceAddresses": [],
                                         "protocols": [
                                             {
                                                 "protocolType": "Https",
                                                 "port": 443
                                             }
                                         ],
+                                        "targetUrls": [],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [],
                                         "targetFqdns": [
                                             "releases.hashicorp.com"
                                         ],
