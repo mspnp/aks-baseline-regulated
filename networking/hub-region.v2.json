@@ -92,8 +92,8 @@
         ],
         "aksJumpBoxIpGroupName": "[concat('ipg-', parameters('location'), '-AksJumpboxes')]",
         "hubFwName": "[concat('fw-', parameters('location'))]",
-        "fwPoliciesName": "[concat('fw-policies-', parameters('location'))]",
         "fwPoliciesBaseName": "fw-policies-base",
+        "fwPoliciesName": "[concat('fw-policies-', parameters('location'))]",
         "hubVNetName": "[concat('vnet-', parameters('location'), '-hub')]",
         "bastionNetworkNsgName": "[concat('nsg-', parameters('location'), '-bastion')]",
         "bastionPipName": "[concat('pip-ab-', parameters('location'))]",
@@ -587,14 +587,14 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "*.ods.opinsights.azure.com",
                                             "*.oms.opinsights.azure.com",
                                             "[concat(parameters('location'), '.monitoring.azure.com')]"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com
@@ -612,13 +612,13 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "data.policy.core.windows.net",
                                             "store.policy.core.windows.net"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     }
                                 ]
                             },
@@ -646,13 +646,13 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "github.com",
                                             "api.github.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     }
                                 ]
                             },
@@ -680,12 +680,12 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "management.azure.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)
@@ -703,12 +703,12 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "*.blob.core.windows.net"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -730,15 +730,15 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "azure.archive.ubuntu.com",
                                             "packages.microsoft.com",
                                             "archive.ubuntu.com",
                                             "security.ubuntu.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -756,14 +756,14 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "aka.ms",
                                             "azurecliextensionsync.blob.core.windows.net",
                                             "azurecliprod.blob.core.windows.net"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -781,15 +781,15 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "storage.googleapis.com",
                                             "api.github.com",
                                             "github-releases.githubusercontent.com",
                                             "github.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -807,14 +807,14 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "raw.githubusercontent.com",
                                             "get.helm.sh",
                                             "github-releases.githubusercontent.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -832,15 +832,15 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "raw.githubusercontent.com",
                                             "api.github.com",
                                             "fluxcd.io",
                                             "github-releases.githubusercontent.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -858,13 +858,13 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "github.com",
                                             "github-releases.githubusercontent.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn't do this.]
@@ -882,12 +882,12 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "releases.hashicorp.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     }
                                 ]
                             },
@@ -915,12 +915,12 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "login.microsoftonline.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //Allow jumpboxes to communicate with Azure management APIs.
@@ -938,12 +938,12 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "management.azure.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //Allow jumpboxes query az cli status and download extensions.
@@ -961,14 +961,14 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "aka.ms",
                                             "azurecliprod.blob.core.windows.net",
                                             "azcliextensionsync.blob.core.windows.net"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //Allow pulling things down from GitHub. [Only a requirement of this walkthrough because we deploy some manifests that you clone from your repo.]
@@ -986,14 +986,14 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "github.com",
                                             "*.github.io",
                                             "raw.githubusercontent.com"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     },
                                     {
                                         //Required for Azure Monitor Extension on Jumpbox.
@@ -1011,15 +1011,15 @@
                                         "targetUrls": [],
                                         "terminateTLS": false,
                                         "sourceAddresses": [],
-                                        "fqdnTags": [],
-                                        "webCategories": [],
-                                        "destinationAddresses": [],
                                         "targetFqdns": [
                                             "*.ods.opinsights.azure.com",
                                             "*.oms.opinsights.azure.com",
                                             "[concat(parameters('location'), '.monitoring.azure.com')]",
                                             "*.agentsvc.azure-automation.net"
-                                        ]
+                                        ],
+                                        "webCategories": [],
+                                        "destinationAddresses": [],
+                                        "fqdnTags": []
                                     }
                                 ]
                             }
@@ -1047,8 +1047,9 @@
                                 "priority": 100,
                                 "rules": [
                                     {
-                                        "ruleType": "NetworkRule",
+                                        //Network Time Protocol (NTP) time synchronization for image builder VMs, nodepool nodes, and jumpboxes.
                                         "name": "ntp",
+                                        "ruleType": "NetworkRule",
                                         "ipProtocols": [
                                             "UDP"
                                         ],
@@ -1132,8 +1133,6 @@
                 "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('fwPoliciesName'), 'DefaultNetworkRuleCollectionGroup')]"
             ],
             "properties": {
-                "additionalProperties": {
-                },
                 "sku": {
                     "name": "AZFW_VNet",
                     "tier": "Standard"

@@ -78,8 +78,8 @@
             "[concat(variables('baseFwPipName'), '-02')]"
         ],
         "hubFwName": "[concat('fw-', parameters('location'))]",
-        "fwPoliciesName": "[concat('fw-policies-', parameters('location'))]",
         "fwPoliciesBaseName": "fw-policies-base",
+        "fwPoliciesName": "[concat('fw-policies-', parameters('location'))]",
         "hubVNetName": "[concat('vnet-', parameters('location'), '-hub')]",
         "bastionNetworkNsgName": "[concat('nsg-', parameters('location'), '-bastion')]",
         "bastionPipName": "[concat('pip-ab-', parameters('location'))]",
@@ -785,6 +785,7 @@
                                 "priority": 100,
                                 "rules": [
                                     {
+                                        //Network Time Protocol (NTP) time synchronization for image builder VMs.
                                         "name": "ntp",
                                         "ruleType": "NetworkRule",
                                         "ipProtocols": [
@@ -838,8 +839,6 @@
                 "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('fwPoliciesName'), 'DefaultNetworkRuleCollectionGroup')]"
             ],
             "properties": {
-                "additionalProperties": {
-                },
                 "sku": {
                     "name": "AZFW_VNet",
                     "tier": "Standard"
