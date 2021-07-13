@@ -516,7 +516,7 @@
                         },
                         {
                             "type": "Microsoft.Authorization/policyAssignments",
-                            "apiVersion": "2019-09-01",
+                            "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), variables('rgName-Hubs'))]",
                             "comments": "Applying the 'Network Watcher Should be Enabled' policy to the Hub resource group.",
                             "properties": {
