@@ -806,7 +806,7 @@
                         ]
                     }
                 }
-          ]
+            ]
         },
         {
             "type": "Microsoft.Network/ipGroups",
