@@ -81,28 +81,20 @@ Not only do we enable them in the steps below by default, but also set up an Azu
    TENANTID_AZURERBAC=$(az account show --query tenantId -o tsv)
    ```
 
-1. Check for existing Network Watchers.
-
-   ```bash
-   [ $(az network watcher list --query 'length([])' -o tsv) -eq 0 ] && ENABLE_NETWORK_WATCHERS=true || ENABLE_NETWORK_WATCHERS=false
-   ```
-
-   > Azure Network Watchers are regional singletons in your subscription and should always be handled external to any specific workload; at the subscription level. Because your subscription may already have configuration (existing instances and/or a corresponding _deploy if not exists_ policy applied) around Network Watcher, it's hard to deliver a "one size fits all" solution in this isolated walkthrough. If the subscription you're deploying into doesn't have _any_ Network Watchers deployed, you'll have them set up as part of this deployment. If however, you already have Network Watcher resources, we'll leave those alone and won't deploy any additional resources related to them. If you have any conflicts in this walkthrough related to Network Watchers (existing management group policies, etc.), simply set `ENABLE_NETWORK_WATCHERS=false` and all related attempts to set up Network Watchers will be skipped.
-
 1. Perform subscription-level deployment.
 
    This will deploy the resource groups, Azure Policies, and Azure Security Center configuration all as identified above.
 
    ```bash
    # [This may take up to six minutes to run.]
-   az deployment sub create -f subscription.json -l centralus -p enableNetworkWatchers=${ENABLE_NETWORK_WATCHERS}
+   az deployment sub create -f subscription.json -l centralus
    ```
 
    If you do not have permissions on your subscription to enable Azure Defender (which requires the Azure RBAC role of _Subscription Owner_ or _Security Admin_), then instead execute the following variation of the same command. This will not enable Azure Defender services nor will Azure Policy attempt to enable the same (the policy will still be created, but in audit-only mode). Your final implementation should be to a subscription with these security services activated.
 
    ```bash
    # [This may take up to five minutes to run.]
-   az deployment sub create -f subscription.json -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false enableNetworkWatchers=${ENABLE_NETWORK_WATCHERS}
+   az deployment sub create -f subscription.json -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false
    ```
 
 ## Azure Security Benchmark

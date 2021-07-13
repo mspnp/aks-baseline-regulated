@@ -30,6 +30,13 @@
             "metadata": {
                 "description": "The spokes's regional affinity, must be the same as the hub's location. All resources tied to this spoke will also be homed in this region. The network team maintains this approved regional list which is a subset of zones with Availability Zone support."
             }
+        },
+        "deployFlowLogResources": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Flow Logs are enabled by default, if for some reason they cause conflicts with flow log policies already in place in your subscription, you can disable them by passing 'false' to this parameter."
+            }
         }
     },
     "variables": {
@@ -54,7 +61,8 @@
         "primaryClusterPipName": "[concat('pip-', variables('orgAppId'), '-00')]",
 
         "policyResourceIdNoPublicIpsInVnet": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'NoPublicIPsForNICsInVnet'))]",
-        "clusterVnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
+        "clusterVnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]",
+        "regionFlowLowStorageAccountName": "[take(concat('stnfl', parameters('location'), uniqueString(subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('hubRgName')))), 24)]"
     },
     "resources": [
         {
@@ -1021,6 +1029,210 @@
                 "publicIPAllocationMethod": "Static",
                 "idleTimeoutInMinutes": 4,
                 "publicIPAddressVersion": "IPv4"
+            }
+        },
+        {
+            "condition": "[parameters('deployFlowLogResources')]",
+            "name": "connect-spoke-bu0001A0005-01-flowlogs",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "networkWatcherRG",
+            "apiVersion": "2020-10-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-is-nodepools'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-management-ops'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-oos-nodepools'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-privatelinkendpoints'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-system-nodepools'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-is-nodepools'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-is-nodepools'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-management-ops'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-management-ops'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-oos-nodepools'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-oos-nodepools'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-privatelinkendpoints'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-privatelinkendpoints'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-system-nodepools'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-system-nodepools'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 400,
+                                    "enabled": true
+                                }
+                            }
+                        }
+                    ]
+                }
             }
         }
     ],

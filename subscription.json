@@ -13,12 +13,6 @@
           Notes: If unable to obtain permissions, you must pass false to the enableAzureDefender parameter or have someone else enable these for you.
      */
     "parameters": {
-        "enableNetworkWatchers": {
-            "type": "bool",
-            "metadata": {
-                "description": "Set up Azure Policy to ensure Azure Network Watchers are deployed when vnets are created. They will be deployed to networkWatcherRG."
-            }
-        },
         "enforceAzureDefenderAutoDeployPolicies": {
             "type": "bool",
             "defaultValue": true,
@@ -59,13 +53,9 @@
         "policyDefinitionName-EncryptionAtHost": "[guid(subscription().id, 'EncryptionAtHost')]",
         "policyDefinitionName-NoPublicIPsForNICsInVnet": "[guid(subscription().id, 'NoPublicIPsForNICsInVnet')]",
         "policyDefinitionName-NoPublicIPsForVMScaleSets": "[guid(subscription().id, 'NoPublicIPsForVMScaleSets')]",
-        "policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs": "[guid(subscription().id, 'DeployNetworkWatcherAndStorageForFlowLogs')]",
-        "policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs": "[guid(subscription().id, variables('policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs'))]",
 
         "policySetDefinitionName-EnableDefender": "[guid(subscription().id, 'EnableDefender')]",
         "roleId-SecurityAdmin": "/providers/Microsoft.Authorization/roleDefinitions/fb1c8493-542b-48eb-b624-b4c8fea62acd",
-        "roleId-StorageContributor": "/providers/Microsoft.Authorization/roleDefinitions/17d1049b-9a84-46fb-8f53-869881c3d3ab",
-        "roleId-NetworkContributor": "/providers/microsoft.authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7",
         "deploymentResourceRegion": "centralus" // This region is used as the default for all generic resource groups and for any additional deployment resources. No resources are actually deployed to this resource group.
     },
     "resources": [
@@ -91,12 +81,11 @@
             "comments": "This is the resource group for BU001A0005. Typically this would be found in your workload's subscription."
         },
         {
-            "condition": "[parameters('enableNetworkWatchers')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-10-01",
             "name": "[variables('rgName-NetworkWatchers')]",
             "location": "[variables('deploymentResourceRegion')]",
-            "comments": "This is the resource group for Azure Network Watchers. These are singletons per region and this RG will only be deployed if no existing Network Watchers are found in your subscription."
+            "comments": "This is the resource group for Azure Network Watchers. Most subscriptions already have this."
         },
         {
             "type": "Microsoft.Authorization/policyDefinitions",
@@ -273,99 +262,6 @@
                                                 }
                                             }
                                         ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Authorization/policyDefinitions",
-            "apiVersion": "2019-09-01",
-            "name": "[variables('policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs')]",
-            "properties": {
-                "displayName": "Deploy network watcher and flow log storage when virtual networks are created",
-                "policyType": "Custom",
-                "mode": "Indexed",
-                "description": "[concat('This policy creates a network watcher resource and a default flow log storage account in regions with virtual networks.  You need to ensure existence of a resource group named ', variables('rgName-NetworkWatchers'), ', which will be used to deploy network watcher and storage instances.')]",
-                "metadata": {
-                    "version": "1.0.0",
-                    "category": "Network"
-                },
-                "policyRule": {
-                    "if": {
-                        "field": "type",
-                        "equals": "Microsoft.Network/virtualNetworks"
-                    },
-                    "then": {
-                        "effect": "DeployIfNotExists",
-                        "details": {
-                            "type": "Microsoft.Network/networkWatchers",
-                            "resourceGroupName": "[variables('rgName-NetworkWatchers')]",
-                            "existenceCondition": {
-                                "field": "location",
-                                "equals": "[[field('location')]"
-                            },
-                            "roleDefinitionIds": [
-                                "[variables('roleId-NetworkContributor')]",
-                                "[variables('roleId-StorageContributor')]"
-                            ],
-                            "deployment": {
-                                "properties": {
-                                    "mode": "incremental",
-                                    "template": {
-                                        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
-                                        "contentVersion": "1.0.0.0",
-                                        "parameters": {
-                                            "location": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "variables": {
-                                            "networkWatcherName": "[[concat('nw_', parameters('location'))]",
-                                            "storageAccountName": "[[take(concat('nfl', parameters('location'), uniqueString(resourceId('Microsoft.Network/networkWatchers', variables('networkWatcherName')))), 24)]"
-                                        },
-                                        "resources": [
-                                            {
-                                                "type": "Microsoft.Network/networkWatchers",
-                                                "apiVersion": "2020-05-01",
-                                                "name": "[[variables('networkWatcherName')]",
-                                                "location": "[[parameters('location')]",
-                                                "dependsOn": [
-                                                    "[[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
-                                                ],
-                                                "properties": {}
-                                            },
-                                            {
-                                                "type": "Microsoft.Storage/storageAccounts",
-                                                "apiVersion": "2021-02-01",
-                                                "name": "[[variables('storageAccountName')]",
-                                                "location": "[[parameters('location')]",
-                                                "sku": {
-                                                    "name": "standard_LRS"
-                                                },
-                                                "kind": "StorageV2",
-                                                "properties": {
-                                                    "accessTier": "Hot",
-                                                    "minimumTlsVersion": "TLS1_2",
-                                                    "supportsHttpsTrafficOnly": true,
-                                                    "allowBlobPublicAccess": false,
-                                                    "allowSharedKeyAccess": false,
-                                                    "networkAcls": {
-                                                        "bypass": "AzureServices",
-                                                        "defaultAction": "Deny",
-                                                        "ipRules": []
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    "parameters": {
-                                        "location": {
-                                            "value": "[[field('location')]"
-                                        }
                                     }
                                 }
                             }
@@ -566,28 +462,6 @@
             }
         },
         {
-            "condition": "[parameters('enableNetworkWatchers')]",
-            "type": "Microsoft.Authorization/policyAssignments",
-            "apiVersion": "2020-09-01",
-            "name": "[variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs')]",
-            "location": "[variables('deploymentResourceRegion')]",
-            "dependsOn": [
-                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs'))]"
-            ],
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "displayName": "[reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs')), '2020-09-01').displayName]",
-                "description": "[reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs')), '2020-09-01').description]",
-                "enforcementMode": "Default",
-                "notScopes": [],
-                "scope": "[subscription().id]",
-                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DeployNetworkWatcherAndStorageForFlowLogs'))]"
-            }
-        },
-        {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-Hubs'), '-Policies')]",
@@ -626,18 +500,18 @@
                                             "Microsoft.Network/virtualNetworks/subnets",
                                             "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
                                             "Microsoft.OperationalInsights/workspaces",
-                                            "Microsoft.OperationsManagement/solutions"
+                                            "Microsoft.OperationsManagement/solutions",
+                                            "Microsoft.Storage/storageAccounts"
                                         ]
                                     }
                                 }
                             }
                         },
                         {
-                            "condition": "[parameters('enableNetworkWatchers')]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2019-09-01",
                             "name": "[guid(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), variables('rgName-Hubs'))]",
-                            "comments": "Applying the 'Network Watcher Should be Enabled' policy to the Spoke resource group.",
+                            "comments": "Applying the 'Network Watcher Should be Enabled' policy to the Hub resource group.",
                             "properties": {
                                 "displayName": "[trim(take(concat('[', variables('rgName-Hubs'), '] ', reference(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), '2020-09-01').displayName), 125))]",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Hubs'))]",
@@ -654,8 +528,7 @@
             "name": "[concat('Apply-', variables('rgName-Spokes'), '-Policies')]",
             "resourceGroup": "[variables('rgName-Spokes')]",
             "dependsOn": [
-                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Spokes'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs'))]"
+                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-Spokes'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -690,7 +563,6 @@
                             }
                         },
                         {
-                            "condition": "[parameters('enableNetworkWatchers')]",
                             "type": "Microsoft.Authorization/policyAssignments",
                             "apiVersion": "2020-09-01",
                             "name": "[guid(variables('policyDefinitionId-NetworkWatcherShouldBeEnabled'), variables('rgName-Spokes'))]",
@@ -706,14 +578,12 @@
             }
         },
         {
-            "condition": "[parameters('enableNetworkWatchers')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-10-01",
             "name": "[concat('Apply-', variables('rgName-NetworkWatchers'), '-Policies')]",
             "resourceGroup": "[variables('rgName-NetworkWatchers')]",
             "dependsOn": [
-                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs'))]"
+                "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -731,36 +601,15 @@
                                 "description": "List of supported resources for our Network Watcher resource group",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-NetworkWatchers'))]",
                                 "policyDefinitionId": "[variables('policyDefinitionId-AllowedResources')]",
+                                "enforcementMode": "DoNotEnforce", // Since this RG may be under existing policy control in your subscription, adding this policy as audit-only.
                                 "parameters": {
                                     "listOfResourceTypesAllowed": {
                                         "value": [
                                             "Microsoft.Network/networkWatchers",
-                                            "Microsoft.Storage/storageAccounts"
+                                            "Microsoft.Network/networkWatchers/flowLogs"
                                         ]
                                     }
                                 }
-                            }
-                        },
-                        {
-                            "type": "Microsoft.Authorization/roleAssignments",
-                            "apiVersion": "2021-04-01-preview",
-                            "name": "[guid(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs')), variables('roleId-NetworkContributor'))]",
-                            "properties": {
-                                "roleDefinitionId": "[variables('roleId-NetworkContributor')]",
-                                "description": "[concat('[Policy Managed Identity] ', 'Allows DINE for Network Watcher to deploy missing Network Watchers after VNets are deployed.')]",
-                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs')), '2020-09-01', 'Full').identity.principalId]",
-                                "principalType": "ServicePrincipal"
-                            }
-                        },
-                        {
-                            "type": "Microsoft.Authorization/roleAssignments",
-                            "apiVersion": "2021-04-01-preview",
-                            "name": "[guid(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs')), variables('roleId-StorageContributor'))]",
-                            "properties": {
-                                "roleDefinitionId": "[variables('roleId-StorageContributor')]",
-                                "description": "[concat('[Policy Managed Identity] ', 'Allows DINE for Network Watcher to deploy missing Flow Log storage after VNets are deployed.')]",
-                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentName-DeployNetworkWatcherAndStorageForFlowLogs')), '2020-09-01', 'Full').identity.principalId]",
-                                "principalType": "ServicePrincipal"
                             }
                         }
                     ]
