@@ -79,6 +79,13 @@
             "metadata": {
                 "description": "A /27 under the VNet Address Space for regional Azure Bastion"
             }
+        },
+        "deployFlowLogResources": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Flow Logs are enabled by default, if for some reason they cause conflicts with flow log policies already in place in your subscription, you can disable them by passing 'false' to this parameter."
+            }
         }
     },
     "variables": {
@@ -97,6 +104,7 @@
         "bastionPipName": "[concat('pip-ab-', parameters('location'))]",
         "bastionServiceName": "[concat('ab-', parameters('location'))]",
         "hubLaName": "[concat('la-hub-', parameters('location'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))))]",
+        "regionFlowLowStorageAccountName": "[take(concat('stnfl', parameters('location'), uniqueString(resourceGroup().id)), 24)]",
         "azureSentialLaSolutionName": "[concat('SecurityInsights(', variables('hubLaName'), ')')]"
     },
     "resources": [
@@ -468,6 +476,81 @@
                     }
                 }
             ]
+        },
+{
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('regionFlowLowStorageAccountName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "standard_LRS"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "accessTier": "Hot",
+                "minimumTlsVersion": "TLS1_2",
+                "supportsHttpsTrafficOnly": true,
+                "allowBlobPublicAccess": false,
+                "allowSharedKeyAccess": false,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny",
+                    "ipRules": []
+                }
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/default",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                        "logs": [],
+                        "metrics": [
+                            {
+                                "category": "Transaction",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/providers/diagnosticsettings",
+            "apiVersion": "2017-05-01-preview",
+            "name": "[concat(variables('regionFlowLowStorageAccountName'), '/default/Microsoft.Insights/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]"
+            ],
+            "properties": {
+                "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                "logs": [
+                    {
+                        "category": "StorageRead",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageWrite",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageDelete",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "Transaction",
+                        "enabled": true
+                    }
+                ]
+            }
         },
         {
             "type": "Microsoft.Network/ipGroups",
@@ -998,6 +1081,55 @@
                     }
                 }
             ]
+        },
+        {
+            "condition": "[parameters('deployFlowLogResources')]",
+            "name": "connect-hub-regional-flowlogs",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "networkWatcherRG",
+            "apiVersion": "2020-10-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                "[resourceId('Microsoft.Network/azureFirewalls', variables('hubFwName'))]" // This doesn't depend on the FW, but because network watchers are auto-deployed, this helps prevents a race condition between the vnet creation triggering a NetworkWatcher auto provisioning, and the referencing of it here.
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))]",
+                                "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 365,
+                                    "enabled": true
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
         }
     ],
     "outputs": {

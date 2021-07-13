@@ -4,6 +4,10 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 ## Steps
 
+1. Delete flow logs
+
+   The `networkWatcherRG` resource group is where flow log definitions were created for this reference implementation.  All of the flow logs that were created were prefixed with `fl` and were followed by a GUID, targeting a virtual network either in the hub or spokes resource group.
+
 1. Delete the resource groups as a way to delete all contained Azure resources.
 
    > To delete all Azure resources associated with this reference implementation, you'll need to delete the three resource groups created.

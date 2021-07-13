@@ -30,6 +30,13 @@
             "metadata": {
                 "description": "The spokes's regional affinity, must be the same as the hub's location. All resources tied to this spoke will also be homed in this region. The network team maintains this approved regional list which is a subset of zones with Availability Zone support."
             }
+        },
+        "deployFlowLogResources": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Flow Logs are enabled by default, if for some reason they cause conflicts with flow log policies already in place in your subscription, you can disable them by passing 'false' to this parameter."
+            }
         }
     },
     "variables": {
@@ -43,7 +50,8 @@
         "hubFwResourceId": "[resourceId(variables('hubRgName'), 'Microsoft.Network/azureFirewalls', concat('fw-', parameters('location')))]",
         "hubLaWorkspaceName": "[concat('la-hub-', parameters('location'), '-', uniqueString(parameters('hubVnetResourceId')))]",
         "hubLaWorkspaceResourceId": "[resourceId(variables('hubRgName'), 'Microsoft.OperationalInsights/workspaces', variables('hubLaWorkspaceName'))]",
-        "toHubPeeringName": "[concat('spoke-to-', variables('hubNetworkName'))]"
+        "toHubPeeringName": "[concat('spoke-to-', variables('hubNetworkName'))]",
+        "regionFlowLowStorageAccountName": "[take(concat('stnfl', parameters('location'), uniqueString(subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('hubRgName')))), 24)]"
     },
     "resources": [
         {
@@ -314,6 +322,52 @@
                                 "allowGatewayTransit": false,
                                 "allowVirtualNetworkAccess": true,
                                 "useRemoteGateways": false
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "condition": "[parameters('deployFlowLogResources')]",
+            "name": "connect-spoke-bu0001A0005-00-flowlogs",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "networkWatcherRG",
+            "apiVersion": "2020-10-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('imageBuilderSubnetNsgName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('imageBuilderVNetName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat('NetworkWatcher_', parameters('location'), '/fl', guid(resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('imageBuilderSubnetNsgName'))))]",
+                            "type": "Microsoft.Network/networkWatchers/flowLogs",
+                            "apiVersion": "2020-05-01",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('imageBuilderSubnetNsgName'))]",
+                                "storageId": "[resourceId(variables('hubRgName'), 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
+                                "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
+                                "flowAnalyticsConfiguration": {
+                                    "networkWatcherFlowAnalyticsConfiguration": {
+                                        "enabled": true,
+                                        "workspaceResourceId": "[variables('hubLaWorkspaceResourceId')]",
+                                        "trafficAnalyticsInterval": 10
+                                    }
+                                },
+                                "retentionPolicy": {
+                                    "days": 365,
+                                    "enabled": true
+                                }
                             }
                         }
                     ]
