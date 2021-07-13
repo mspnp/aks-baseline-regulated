@@ -1064,6 +1064,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-acragents'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1072,7 +1075,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1086,6 +1089,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1094,7 +1100,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1108,6 +1114,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1116,7 +1125,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1130,6 +1139,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-is-nodepools'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1138,7 +1150,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1152,6 +1164,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-management-ops'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1160,7 +1175,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1174,6 +1189,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-oos-nodepools'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1182,7 +1200,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1196,6 +1214,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-privatelinkendpoints'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1204,7 +1225,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }
@@ -1218,6 +1239,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-system-nodepools'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1226,7 +1250,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }

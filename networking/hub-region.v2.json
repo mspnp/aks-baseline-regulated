@@ -1111,6 +1111,9 @@
                                 "targetResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('bastionNetworkNsgName'))]",
                                 "storageId": "[resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
                                 "enabled": true,
+                                "format": {
+                                    "version": 2
+                                },
                                 "flowAnalyticsConfiguration": {
                                     "networkWatcherFlowAnalyticsConfiguration": {
                                         "enabled": true,
@@ -1119,7 +1122,7 @@
                                     }
                                 },
                                 "retentionPolicy": {
-                                    "days": 400,
+                                    "days": 365,
                                     "enabled": true
                                 }
                             }

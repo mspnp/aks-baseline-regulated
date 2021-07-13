@@ -26,6 +26,13 @@
             "metadata": {
                 "description": "By default Azure Defender for Kubernetes Service, Container Registry, and Key Vault are enabled; use this parameter to prevent them from being enabled. Deploying these requires subscription Owner or Security Admin roles."
             }
+        },
+        "networkWatcherRGRegion": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "networkWatcherRG often times already exists in a subscription. Empty string will result in using the default resource location."
+            }
         }
     },
     "variables": {
@@ -84,7 +91,7 @@
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-10-01",
             "name": "[variables('rgName-NetworkWatchers')]",
-            "location": "[variables('deploymentResourceRegion')]",
+            "location": "[if(empty(parameters('networkWatcherRGRegion')), variables('deploymentResourceRegion'), parameters('networkWatcherRGRegion'))]",
             "comments": "This is the resource group for Azure Network Watchers. Most subscriptions already have this."
         },
         {
