@@ -496,7 +496,10 @@
             "name": "[variables('fwPoliciesName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPoliciesBaseName'))]"
+                "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPoliciesBaseName'))]",
+                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
+                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
+                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
             ],
             "properties": {
                 "basePolicy": {
@@ -516,9 +519,9 @@
             },
             "resources": [
                 {
-                    "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+                    "type": "ruleCollectionGroups",
                     "apiVersion": "2020-11-01",
-                    "name": "[concat(variables('fwPoliciesName'), '/DefaultDnatRuleCollectionGroup')]",
+                    "name": "DefaultDnatRuleCollectionGroup",
                     "location": "[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]"
@@ -529,9 +532,9 @@
                     }
                 },
                 {
-                    "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+                    "type": "ruleCollectionGroups",
                     "apiVersion": "2020-11-01",
-                    "name": "[concat(variables('fwPoliciesName'), '/DefaultApplicationRuleCollectionGroup')]",
+                    "name": "DefaultApplicationRuleCollectionGroup",
                     "location":"[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]",
@@ -1027,9 +1030,9 @@
                     }
                 },
                 {
-                    "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+                    "type": "ruleCollectionGroups",
                     "apiVersion": "2020-11-01",
-                    "name": "[concat(variables('fwPoliciesName'), '/DefaultNetworkRuleCollectionGroup')]",
+                    "name": "DefaultNetworkRuleCollectionGroup",
                     "location": "[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]",
@@ -1127,9 +1130,6 @@
             "dependsOn": [
                 "create-fw-pips",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
-                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
-                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
-                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]",
                 "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('fwPoliciesName'), 'DefaultNetworkRuleCollectionGroup')]"
             ],
             "properties": {

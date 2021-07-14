@@ -494,9 +494,9 @@
             },
             "resources": [
                 {
-                    "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+                    "type": "ruleCollectionGroups",
                     "apiVersion": "2020-11-01",
-                    "name": "[concat(variables('fwPoliciesName'), '/DefaultDnatRuleCollectionGroup')]",
+                    "name": "DefaultDnatRuleCollectionGroup",
                     "location": "[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]"
@@ -507,9 +507,9 @@
                     }
                 },
                 {
-                    "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+                    "type": "ruleCollectionGroups",
                     "apiVersion": "2020-11-01",
-                    "name": "[concat(variables('fwPoliciesName'), '/DefaultApplicationRuleCollectionGroup')]",
+                    "name": "DefaultApplicationRuleCollectionGroup",
                     "location":"[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]",
@@ -521,9 +521,9 @@
                     }
                 },
                 {
-                    "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+                    "type": "ruleCollectionGroups",
                     "apiVersion": "2020-11-01",
-                    "name": "[concat(variables('fwPoliciesName'), '/DefaultNetworkRuleCollectionGroup')]",
+                    "name": "DefaultNetworkRuleCollectionGroup",
                     "location": "[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]",
