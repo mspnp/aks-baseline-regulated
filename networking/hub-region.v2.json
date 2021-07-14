@@ -496,10 +496,7 @@
             "name": "[variables('fwPoliciesName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPoliciesBaseName'))]",
-                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
-                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
-                "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
+                "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPoliciesBaseName'))]"
             ],
             "properties": {
                 "basePolicy": {
@@ -538,7 +535,10 @@
                     "location":"[parameters('location')]",
                     "dependsOn": [
                         "[variables('fwPoliciesName')]",
-                        "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('fwPoliciesName'), 'DefaultDnatRuleCollectionGroup')]"
+                        "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('fwPoliciesName'), 'DefaultDnatRuleCollectionGroup')]",
+                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
+                        "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
+                        "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
                     ],
                     "properties": {
                         "priority": 300,
@@ -1078,9 +1078,12 @@
         },
         {
             "type": "Microsoft.Network/ipGroups",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2020-07-01",
             "name": "[variables('aksIpGroupName')]",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]"
+            ],
             "comments": "This holds IP addresses of known nodepool subnets in attached spokes.",
             "properties": {
                 "copy": [
@@ -1094,7 +1097,7 @@
         },
         {
             "type": "Microsoft.Network/ipGroups",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2020-07-01",
             "name": "[variables('imageBuilderIpGroupName')]",
             "location": "[parameters('location')]",
             "comments": "This holds IP addresses of known AKS Jumpbox image building subnets in attached spokes.",
@@ -1106,9 +1109,12 @@
         },
         {
             "type": "Microsoft.Network/ipGroups",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2020-07-01",
             "name": "[variables('aksJumpBoxIpGroupName')]",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+            ],
             "comments": "This holds IP addresses of known AKS Jumpboxs in attached spokes.",
             "properties": {
                 "ipAddresses": [
