@@ -1447,7 +1447,8 @@
                             }
                         }
                     ]
-                }
+                },
+                "disableLocalAccounts": true
             },
             "identity": {
                 "type": "UserAssigned",

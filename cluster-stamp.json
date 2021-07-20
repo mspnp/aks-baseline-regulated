@@ -1436,7 +1436,8 @@
                 },
                 "podIdentityProfile": { 
                     "enabled": true
-                }
+                },
+                "disableLocalAccounts": true
             },
             "identity": {
                 "type": "UserAssigned",
