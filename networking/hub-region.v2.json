@@ -660,10 +660,9 @@
                             "rules": [
                                 {
                                     "name": "ntp",
-                                    "description": "Network Time Protocol (NTP) time synchronization for image builder VMs, nodepool nodes, and jumpboxes.",
+                                    "description": "Network Time Protocol (NTP) time synchronization for image builder VMs and jumpboxes.",
                                     "sourceIpGroups": [
                                         "[resourceId('Microsoft.Network/ipGroups', variables('imageBuilderIpGroupName'))]",
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]",
                                         "[resourceId('Microsoft.Network/ipGroups', variables('aksJumpBoxIpGroupName'))]"
                                     ],
                                     "protocols": [
@@ -672,12 +671,9 @@
                                     "destinationPorts": [
                                         "123"
                                     ],
-                                    "destinationAddresses": [
-                                        "*"
-                                    ]/*,
                                     "destinationFqdns": [
                                         "ntp.ubuntu.com"
-                                    ]*/
+                                    ]
                                 }
                             ]
                         }
