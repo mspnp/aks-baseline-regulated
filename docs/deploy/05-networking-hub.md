@@ -19,7 +19,7 @@ The examples that follow use `eastus2` as the primary region. You're welcome to 
 * Regional Hubs are allocated to `10.200.[0-9].0` in this reference implementation. The `eastus2` hub (created below) will be `10.200.0.0/24`.
 * Regional Spokes (created later) in this reference implementation are allocated to `10.240.0.0/16` and `10.241.0.0/28`.
 
-Since this reference implementation is expected to be deployed isolated from existing infrastructure and not joined to any of your existing networks; these IP addresses should not come in conflict with any existing networking you have, even if those IP addresses overlap with ones you already have. However, if you need to join existing networks, even for this walkthrough, you'll need to adjust the IP space as per your requirements as to not conflict in the reference ARM templates.
+Since this walkthrough is expected to be deployed isolated from existing infrastructure and not joined to any of your existing networks; these IP addresses should not come in conflict with any existing networking you have, even if those IP addresses overlap with ones you already have. However, if you need to join existing networks, even for the purposes this walkthrough, you'll need to adjust the IP space in the ARM templates as per your requirements as to not conflict.
 
 ## Steps
 

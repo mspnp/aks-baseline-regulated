@@ -1223,7 +1223,7 @@
         },
         {
             "type": "Microsoft.ContainerService/managedClusters",
-            "apiVersion": "2021-03-01",
+            "apiVersion": "2021-05-01",
             "name": "[variables('clusterName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -1432,7 +1432,8 @@
                 },*/
                 "apiServerAccessProfile": {
                     "enablePrivateCluster": true,
-                    "privateDNSZone": "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Network/privateDnsZones', concat('privatelink.', parameters('location') ,'.azmk8s.io'))]"
+                    "privateDNSZone": "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Network/privateDnsZones', concat('privatelink.', parameters('location') ,'.azmk8s.io'))]",
+                    "enablePrivateClusterPublicFQDN": false
                 },
                 "podIdentityProfile": { 
                     "enabled": true
