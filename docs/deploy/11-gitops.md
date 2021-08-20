@@ -111,13 +111,13 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 
    ```output
    NAME                                  STATUS   ROLES   AGE   VERSION
-   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.20.5
-   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.20.5
-   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.20.5
-   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.20.5
-   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.20.5
-   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.20.5
-   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.20.5
+   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.21.x
+   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.21.x
+   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.21.x
+   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.21.x
+   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.21.x
+   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.21.x
+   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.21.x
    ```
 
    > :watch: The access tokens obtained in the prior two steps are subject to a Microsoft Identity Platform TTL (e.g. six hours). If your `az` or `kubectl` commands start erroring out after hours of usage with a message related to permission/authorization, you'll need to re-execute the `az login` and `az aks get-credentials` (overwriting your context) to refresh those tokens.
