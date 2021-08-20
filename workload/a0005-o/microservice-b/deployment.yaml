@@ -65,7 +65,7 @@ spec:
         kubernetes.io/os: linux
         pci-scope: out-of-scope
 ---
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: microservice-b
