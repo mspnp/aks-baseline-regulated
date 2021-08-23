@@ -286,7 +286,7 @@ spec:
       dnsPolicy: ClusterFirst
       containers:
         - name: controller
-          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v0.44.0
+          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v0.49.0
           imagePullPolicy: IfNotPresent
           lifecycle:
             preStop:
