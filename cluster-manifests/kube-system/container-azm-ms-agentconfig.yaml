@@ -24,7 +24,7 @@ data:
     [prometheus_data_collection_settings.cluster]
         interval = "1m"
         monitor_kubernetes_pods = true
-        monitor_kubernetes_pods_namespaces = ["a0005-i", "a0005-o", "cluster-baseline-settings", "flux-system", "falco-system", "ingress-nginx", "osm-system"]
+        monitor_kubernetes_pods_namespaces = ["a0005-i", "a0005-o", "cluster-baseline-settings", "flux-system", "falco-system", "ingress-nginx"]
     [prometheus_data_collection_settings.node]
         interval = "1m"
         urls = ["http://$NODE_IP:9103/metrics"]
