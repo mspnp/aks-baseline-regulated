@@ -141,7 +141,7 @@ While container images and other OCI artifacts typically do not contain sensitiv
 
 ### JIT and Conditional Access Policies
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.2.1 in AKS](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-721) and this repo's [Azure AD Conditional Access](./conditional-access.md) page.
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.2.1 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-721) and this repo's [Azure AD Conditional Access](./conditional-access.md) page.
 
 ### Custom Cluster Roles
 

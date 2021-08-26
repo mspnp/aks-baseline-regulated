@@ -55,7 +55,7 @@ While typically workload deployment happens via deployment pipelines, to keep th
 
    In addition to namespaces, the cluster also has dedicated node pools for the "in-scope" components. This helps ensure that out-of-scope workload components (where possible), do not run on the same hardware as the in-scope components. Ideally your in-scope node pools will run just those workloads that deal with in-scope regulatory data and the security agents to support the your regulatory obligations. These two node pools benefit from being on separate subnets as well, which allows finer control as the Azure Network level (NSG rules and Azure Firewall rules).
 
-   > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.1 in AKS](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-221).
+   > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.1 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-221).
 
    ```bash
    cd ../workload
@@ -84,7 +84,7 @@ The foundation of in-cluster network security is Kubernetes Network Policies. Th
 
 For a namespace in which services will be talking to other services, **the recommended zero-trust network policy for AKS can be found in [networkpolicy-denyall.yaml](cluster-manifests/a0005-i/networkpolicy-denyall.yaml)**. This blocks ALL traffic (in and out) other than outbound to kube-dns (which is CoreDNS in AKS). If you don't need DNS resolution across all workloads in the namespace, then you can remove that from the deny all and apply it selectively to pods that do require it (if any).
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 1.1.4 in AKS](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-114).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 1.1.4 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-114).
 
 #### Alternatives
 
@@ -106,7 +106,7 @@ This reference implementation is using [Open Service Mesh](https://openserviceme
 
 **Using a service mesh is not a requirement.** The most obvious benefit is the transparent mTLS features that typically come with service mesh implementations. **Not all regulatory requirements demand TLS between components in your already private network.** Consider the management and complexity cost of any solution you bring into your cluster, and understand where your regulatory obligations fit into that.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 1.1.4 in AKS](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-114) and [TLS encryption architecture considerations](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#tls-encryption).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 1.1.4 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-114) and [TLS encryption architecture considerations](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#tls-encryption).
 
 ### Defense in depth
 
