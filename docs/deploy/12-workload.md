@@ -55,6 +55,8 @@ While typically workload deployment happens via deployment pipelines, to keep th
 
    In addition to namespaces, the cluster also has dedicated node pools for the "in-scope" components. This helps ensure that out-of-scope workload components (where possible), do not run on the same hardware as the in-scope components. Ideally your in-scope node pools will run just those workloads that deal with in-scope regulatory data and the security agents to support the your regulatory obligations. These two node pools benefit from being on separate subnets as well, which allows finer control as the Azure Network level (NSG rules and Azure Firewall rules).
 
+   > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.1 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-221).
+
    ```bash
    cd ../workload
 
@@ -82,6 +84,8 @@ The foundation of in-cluster network security is Kubernetes Network Policies. Th
 
 For a namespace in which services will be talking to other services, **the recommended zero-trust network policy for AKS can be found in [networkpolicy-denyall.yaml](cluster-manifests/a0005-i/networkpolicy-denyall.yaml)**. This blocks ALL traffic (in and out) other than outbound to kube-dns (which is CoreDNS in AKS). If you don't need DNS resolution across all workloads in the namespace, then you can remove that from the deny all and apply it selectively to pods that do require it (if any).
 
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 1.1.4 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-114).
+
 #### Alternatives
 
 If you want to have more advanced network policies than what Azure NPM supports, you'll need to bring in another solution, such as [Project Calico](https://docs.microsoft.com/azure/aks/use-network-policies#network-policy-options-in-aks). Solutions like Project Calico these extend Kubernetes Network Policies to be more advanced in their scope (such as introducing "cluster-wide" policies, advanced pod/namespace selectors, and may even support Layer 7 constructs (routes and FQDNs). See more choices in the [CNCF Networking landscape](https://landscape.cncf.io/card-mode?category=cloud-native-network&grouping=category).
@@ -101,6 +105,8 @@ The workload (split across four components - `web-frontend`, `microservice-a`, `
 This reference implementation is using [Open Service Mesh](https://openservicemesh.io/), to demonstrate these concepts. This service mesh is currently in development and is not suitable yet for production purposes, but is currently on the [AKS roadmap](https://aka.ms/AKS/roadmap) to be included as a [supported managed add-on](https://github.com/Azure/AKS/issues/1787). Your choice in service mesh, if any, should be measured like any other solution you bring into your cluster -- based on priorities like supportability, security, features, observability, etc. Other popular CNCF choices for meshes that perform the functions listed above are: Istio, Linkerd, Traefik Mesh. See more choices in the [CNCF Service Mesh landscape](https://landscape.cncf.io/card-mode?category=service-mesh&grouping=category).
 
 **Using a service mesh is not a requirement.** The most obvious benefit is the transparent mTLS features that typically come with service mesh implementations. **Not all regulatory requirements demand TLS between components in your already private network.** Consider the management and complexity cost of any solution you bring into your cluster, and understand where your regulatory obligations fit into that.
+
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 1.1.4 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-114) and [TLS encryption architecture considerations](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#tls-encryption).
 
 ### Defense in depth
 
@@ -134,6 +140,8 @@ This reference implementation doesn't dive into security best practices of your 
 ## Workload dependencies
 
 Likewise, this reference implementation does not get into workload architecture with regard to compliance concerns. This includes things like data regulations like encryption in transit and at rest, data access controls, selecting and configuring storage technology, data residency, etc. Your regulatory scope extends beyond the infrastructure and into your workloads. While you must have a compliant foundation to deploy those workloads into, your workloads need a similar level of compliance scrutiny applied to them. All of these topics are beyond the scope of the learning objective in this walkthrough, which is AKS cluster architecture for regulated workloads.
+
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 3 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-data#requirement-31).
 
 ### Next step
 

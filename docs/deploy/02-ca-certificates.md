@@ -13,6 +13,8 @@ To support end-to-end TLS encryption, the following TLS certificates are procure
 
 :warning: Do not use the certificates created by these instructions for actual deployments. The use of self-signed certificates are provided for ease of illustration purposes only. For your cluster, use your organization's requirements for procurement and lifetime management of TLS certificates, _even for development purposes_.
 
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 3.6 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-data#requirement-36) and [TLS encryption architecture considerations](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#tls-encryption).
+
 ## Steps
 
 1. Create the certificate for Azure Application Gateway with a common name of `bicycle.contoso.com`.

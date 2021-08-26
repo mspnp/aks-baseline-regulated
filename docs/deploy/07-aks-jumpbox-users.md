@@ -6,6 +6,8 @@ You've [built the jump box image](./06-aks-jumpboximage.md), now you need to bui
 
 You have multiple options on how you manage your jump box users. Because jump box user management isn't the focus of the walkthrough, we'll stick with a relatively straight-forward mechanism to keep you moving. However, generally you'll want to ensure you're using a solution like [Linux Active Directory sign-in](https://docs.microsoft.com/azure/virtual-machines/linux/login-using-aad) so that you can take advantage of Azure AD Conditional Access policies, JIT permissions, etc. Employ whatever user governance mechanism will help you achieve your desired compliance outcome and still being able to easily on- and off-board users as your ops teams' needs and personnel change.
 
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7 & 8 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity).
+
 ## Expected results
 
 Following the steps below, you'll end up with a SSH public-key-based solution that leverages [cloud-init](https://docs.microsoft.com/azure/virtual-machines/linux/using-cloud-init). The results will be captured in `jumpBoxCloudInit.yml` which you will later convert to Base64 for use in your cluster's ARM template.
