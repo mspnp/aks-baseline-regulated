@@ -17,7 +17,7 @@ Even if you are not in a regulated environment, this infrastructure demonstrates
 
 ## Azure Architecture Center guidance
 
-This project has a companion set of articles that describe challenges, design patterns, and best practices for a AKS cluster designed to host workloads that fall in **PCI-DSS 3.2.1** scope. You can find this article on the Azure Architecture Center at [Azure Kubernetes Service (AKS) regulated cluster for PCI-DSS 3.2.1](https://aka.ms/architecture/aks-baseline-regulated). If you haven't reviewed it, we suggest you read it; as it will give added context to the considerations applied in this implementation. This repo primarly focuses on _deployment concerns_, while _compliance concerns_ are mostly addressed in that linked article series.
+This project has a companion set of articles that describe challenges, design patterns, and best practices for a AKS cluster designed to host workloads that fall in **PCI-DSS 3.2.1** scope. You can find this article on the Azure Architecture Center at [Azure Kubernetes Service (AKS) regulated cluster for PCI-DSS 3.2.1](https://aka.ms/architecture/aks-baseline-regulated). If you haven't reviewed it, we suggest you read it; as it will give added context to the considerations applied in this implementation. This repo primarly focuses on _deployment concerns_, while _compliance concerns_ are mostly addressed in the linked article series above.
 
 ## Architecture
 
