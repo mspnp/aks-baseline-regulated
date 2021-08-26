@@ -151,7 +151,7 @@ For your implementation, take this _starting point_ and please add on additional
 
 This reference implementation runs idle around $95 (US Dollars) per day within the first 30 days; and you can expect it to increase over time as some Security Center tooling has free-trial period and logs will continue to accrue. The largest contributors to the starting cost are Azure Firewall, the AKS nodepools (VM Scale Sets), and Log Analytics. While some costs are usually cluster operator costs, such as nodepool VMSS, log analytics, incremental Azure Defender costs; others will likely be amortized across multiple business units and/or applications, such as Azure Firewall.
 
-Some customers will opt to amortize cluster costs across workloads by hosting a multi-tenant cluster within their organization, maximizing density with workload diversity Doing so with regulated workloads is not advised. Regulated environments will generally prioritize compliance and security (isolation) over cost (diverse density).
+Some customers will opt to amortize cluster costs across workloads by hosting a multi-tenant cluster within their organization, maximizing density with workload diversity. Doing so with regulated workloads is not advised. Regulated environments will generally prioritize compliance and security (isolation) over cost (diverse density).
 
 ## Final thoughts
 
