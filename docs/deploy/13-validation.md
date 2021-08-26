@@ -34,12 +34,14 @@ This section will help you to validate the workload is exposed correctly and res
 
 Your workload is placed behind a Web Application Firewall (WAF), which has rules designed to stop intentionally malicious activity. You can test this by triggering one of the built-in rules with a request that looks malicious.
 
-> :bulb: This reference implementation enables the built-in OWASP 3.1 ruleset, in **Prevention** mode.
+> :bulb: This reference implementation enables the built-in OWASP 3.2 ruleset, in **Prevention** mode.
 
 ### Steps
 
 1. Browse to the site with the following appended to the URL: `?sql=DELETE%20FROM` (e.g. <https://bicycle.contoso.com/?sql=DELETE%20FROM>).
 1. Observe that your request was blocked by Application Gateway's WAF rules and your workload never saw this potentially dangerous request.
+
+For a more exhaustive WAF test and validation experience, try the [Azure Web Applicationg Firewall Security Protection and Detection Lab](https://techcommunity.microsoft.com/t5/azure-network-security/tutorial-overview-azure-web-application-firewall-security/ba-p/2030423).
 
 ### Next step
 
