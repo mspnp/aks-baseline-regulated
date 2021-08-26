@@ -8,6 +8,8 @@ Work with your Conditional Access administrator [to apply a policy](https://docs
 
 Remember to test all conditional access policies using a safe and controlled rollout procedure before applying to all users. Paired with [Azure AD JIT access](https://docs.microsoft.com/azure/aks/managed-aad#configure-just-in-time-cluster-access-with-azure-ad-and-aks), this provides a very robust access control solution for your private cluster.
 
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 8.2 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-82).
+
 ## Applying via Windows PowerShell
 
 For many administrators, PowerShell is already an understood scripting tool. The following example shows how to use the Azure AD PowerShell module to apply a Conditional Access policy.

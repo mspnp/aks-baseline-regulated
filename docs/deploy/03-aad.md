@@ -69,7 +69,10 @@ Following the steps below will result in an Azure AD configuration that will be 
 
 1. Set up Azure AD conditional access policies. _Optional. Requires Azure AD Premium._
 
-   To support an even stronger authentication model, consider [setting up Conditional Access Policies in Azure AD for your cluster](https://docs.microsoft.com/azure/aks/managed-aad#use-conditional-access-with-azure-ad-and-aks). This allows you to further apply restrictions on access to the Kubernetes control plane (e.g. management commands executed through `kubectl`). With conditional access policies in place, you can for example, _require_ multi-factor authentication, restrict authentication to devices that are managed by your Azure AD tenant, or block non-typical sign-in attempts. You will want to apply this to Azure AD groups that are assigned to your cluster with permissions you deem warrant the extra policies (most notability the cluster admin group created above). You will not be setting that up as part of this walkthrough, but [strongly consider doing so](../conditional-access.md) for your final implementation as part of your defense-in-depth strategy and to support compliance requirements.
+   To support an even stronger authentication model, consider [setting up Conditional Access Policies in Azure AD for your cluster](https://docs.microsoft.com/azure/aks/managed-aad#use-conditional-access-with-azure-ad-and-aks). This allows you to further apply restrictions on access to the Kubernetes control plane (e.g. management commands executed through `kubectl`). With conditional access policies in place, you can for example, _require_ multi-factor authentication, restrict authentication to devices that are managed by your Azure AD tenant, or block non-typical sign-in attempts. You will want to apply this to Azure AD groups that are assigned to your cluster with permissions you deem warrant the extra policies (most notability the cluster admin group created above). You will not be setting that up as part of this walkthrough.
+
+   > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 8.2 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-82).
+   
 
 ### Next step
 
