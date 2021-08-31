@@ -503,6 +503,7 @@
                                             "Microsoft.Network/networkSecurityGroups",
                                             "Microsoft.Network/networkSecurityGroups/securityRules",
                                             "Microsoft.Network/publicIpAddresses",
+                                            "Microsoft.Network/virtualNetworkGateways",
                                             "Microsoft.Network/virtualNetworks",
                                             "Microsoft.Network/virtualNetworks/subnets",
                                             "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
