@@ -1226,6 +1226,11 @@
             "apiVersion": "2021-05-01",
             "name": "[variables('clusterName')]",
             "location": "[parameters('location')]",
+            "tags": {
+                "Data classification": "Confidential",
+                "Business unit": "BU0001",
+                "Business criticality": "Business unit-critical"
+            },
             "dependsOn": [
                 "[resourceId('Microsoft.OperationsManagement/solutions', variables('containerInsightsSolutionName'))]",
                 "[resourceId(variables('vNetResourceGroup'), 'Microsoft.Resources/deployments', 'EnsureClusterIdentityHasRbacToSelfManagedResources')]",
@@ -1280,7 +1285,10 @@
                             "maxSurge": "33%"
                         },
                         "tags": {
-                            "pci-scope": "out-of-scope"
+                            "pci-scope": "out-of-scope",
+                            "Data classification": "Confidential",
+                            "Business unit": "BU0001",
+                            "Business criticality": "Business unit-critical"
                         }/* Currently not supported by Azure Policy Add-On ,
                         "nodeTaints": [
                             "CriticalAddonsOnly=true:NoSchedule"
@@ -1316,7 +1324,10 @@
                             "pci-scope": "in-scope"
                         },
                         "tags": {
-                            "pci-scope": "in-scope"
+                            "pci-scope": "in-scope",
+                            "Data classification": "Confidential",
+                            "Business unit": "BU0001",
+                            "Business criticality": "Business unit-critical"
                         }
                     },
                     {
@@ -1349,7 +1360,10 @@
                             "pci-scope": "out-of-scope"
                         },
                         "tags": {
-                            "pci-scope": "out-of-scope"
+                            "pci-scope": "out-of-scope",
+                            "Data classification": "Confidential",
+                            "Business unit": "BU0001",
+                            "Business criticality": "Business unit-critical"
                         }
                     }
                 ],
