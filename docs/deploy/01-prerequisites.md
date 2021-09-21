@@ -29,11 +29,25 @@ Throughout this walkthrough, take note of the following symbol.
 
    Ensure you're logged into the subscription in which you plan on deploying this reference to.
 
-1. Enable three preview features.
+1. While the following feature(s) are still in _preview_, please enable them in your target subscription.
 
-   * Follow the instructions to [enable Azure AD Pod Identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity#before-you-begin) on your target subscription. You do not need to install the preview CLI extension or follow other instructions on this page.
-   * Follow the instructions to [enable Open Service Mesh](https://docs.microsoft.com/azure/aks/servicemesh-osm-about?pivots=client-operating-system-linux#register-the-aks-openservicemesh-preview-feature) on your target subscription. You do not need to install the open service mesh CLI or follow other instructions on this page.
+   * Follow the instructions to [enable Azure AD Pod Identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity#before-you-begin). You do not need to install the preview CLI extension or follow other instructions on this page.
+   * Follow the instructions to [enable Open Service Mesh](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature). You do not need to install the open service mesh CLI or follow other instructions on this page.
    * Register the [Azure Key Vault Secrets Provider for AKS preview feature - `AKS-AzureKeyVaultSecretsProvider`](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver#register-the-aks-azurekeyvaultsecretsprovider-preview-feature).
+   * Register the [Disable local accounts feature - `DisableLocalAccountsPreview`](https://docs.microsoft.com/azure/aks/managed-aad#disable-local-accounts-preview).
+
+   ```bash
+   az feature register --namespace "Microsoft.ContainerService" -n "EnablePodIdentityPreview"
+   az feature register --namespace "Microsoft.ContainerService" -n "AKS-OpenServiceMesh"
+   az feature register --namespace "Microsoft.ContainerService" -n "AKS-AzureKeyVaultSecretsProvider"
+   az feature register --namespace "Microsoft.ContainerService" -n "DisableLocalAccountsPreview"
+
+   # Keep running until all four say "Registered." (This may take up to 20 minutes.)
+   az feature list -o table --query "[?name=='Microsoft.ContainerService/EnablePodIdentityPreview' || name=='Microsoft.ContainerService/AKS-OpenServiceMesh' || name=='Microsoft.ContainerService/AKS-AzureKeyVaultSecretsProvider' || name=='Microsoft.ContainerService/DisableLocalAccountsPreview'].{Name:name,State:properties.state}"
+
+   # When all say "Registered" then re-register the AKS resource provider
+   az provider register --namespace Microsoft.ContainerService
+   ```
 
 1. Fork this repository and clone it locally. 🛑
 

@@ -20,7 +20,7 @@ To support end-to-end TLS encryption, the following TLS certificates are procure
 1. Create the certificate for Azure Application Gateway with a common name of `bicycle.contoso.com`.
 
    ```bash
-   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out appgw.crt -keyout appgw.key -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle"
+   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out appgw.crt -keyout appgw.key -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle" -addext "subjectAltName = DNS:bicycle.contoso.com" -addext "keyUsage = digitalSignature" -addext "extendedKeyUsage = serverAuth"
    openssl pkcs12 -export -out appgw.pfx -in appgw.crt -inkey appgw.key -passout pass:
    ```
 
