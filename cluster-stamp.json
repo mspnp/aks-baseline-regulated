@@ -1289,7 +1289,7 @@
                             "Data classification": "Confidential",
                             "Business unit": "BU0001",
                             "Business criticality": "Business unit-critical"
-                        }/* Currently not supported by Azure Policy Add-On ,
+                        }/* This can be used to prevent unexpected workloads from landing on system node pool. All add-ons support this taint.,
                         "nodeTaints": [
                             "CriticalAddonsOnly=true:NoSchedule"
                         ]*/
@@ -1459,6 +1459,10 @@
                 "userAssignedIdentities": {
                     "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]": {}
                 }
+            },
+            "sku": {
+                "name": "Basic",
+                "tier": "Paid"
             },
             "resources": [
                 {
