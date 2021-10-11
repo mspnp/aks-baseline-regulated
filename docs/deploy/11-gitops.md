@@ -1,6 +1,6 @@
 # Place the Cluster Under GitOps Management
 
-Now that [the AKS cluster](./09-aks-cluster.md) has been deployed, and your [bootstrapping images have passed through quarantine](./10-registry-quarantine.md), the next step to configure a GitOps management solution on your cluster, Flux in this case.
+Now that [the AKS cluster](./09-aks-cluster.md) has been deployed, and your [bootstrapping images have passed through quarantine](./10-pre-bootstrap.md), the next step is to configure a GitOps management solution on your cluster, Flux in this case.
 
 ## Expected results
 
