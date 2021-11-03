@@ -104,18 +104,18 @@ This reference implementation is expected to be deployed in a standalone subscri
 
 </details>
 
-## Security Center
+## Microsoft Defender for Cloud
 
 <details>
   <summary>View considerations…</summary>
 
-### Enterprise onboarding to Security Center
+### Enterprise onboarding to Microsoft Defender for Cloud
 
 > :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Security monitoring article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#security-monitoring).
 
 ### Create triage process for alerts
 
-From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Azure Security Center (or via Azure Resource Graph), you have access to all alerts that Azure Security Center detects on your resources.  You should have a triage process in place address or defer detected issues. Work with your security team to understand how relevant alerts will be made available to the workload owner(s).
+From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud (or via Azure Resource Graph), you have access to all alerts that Microsoft Defender for Cloud detects on your resources. You should have a triage process in place address or defer detected issues. Work with your security team to understand how relevant alerts will be made available to the workload owner(s).
 
 </details>
 

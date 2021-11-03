@@ -32,7 +32,7 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 1. If any temporary changes were made to Azure AD or Azure RBAC permissions consider removing those as well.
 
-1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] ` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Azure Defender Standard** as part of this as well, you may choose to remove them as well.
+1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] ` and `[your-resource-group-names] `.  If you added **Azure Security Benchmark** or **Enable Microsoft Defender Standard** as part of this as well, you may choose to remove them as well.
 
    Execute the following commands will handle all Resource Group-scoped policies:
 
@@ -44,15 +44,15 @@ After you are done exploring your deployed [AKS Baseline Cluster for Regulated W
 
 1. Remove _custom_ Azure Policy definitions.
 
-   From the [Azure Policy Definitions](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) page in the Azure Portal, remove any custom definitions that were included with this walkthrough. This is **Public network access on AKS API should be disabled**, **WAF SKU must be enabled on Azure Application Gateway**, **Azure Defender for Kubernetes is enabled**, **Azure Defender for container registries is enabled**, and **Azure Defender for Key Vault is enabled**. Ensure you do not delete any custom policies that are current assigned to your subscription or policies that were not created through this walkthrough.
+   From the [Azure Policy Definitions](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) page in the Azure Portal, remove any custom definitions that were included with this walkthrough. This is **Public network access on AKS API should be disabled**, **WAF SKU must be enabled on Azure Application Gateway**, **Microsoft Defender for Kubernetes is enabled**, **Microsoft Defender for container registries is enabled**, and **Microsoft Defender for Key Vault is enabled**. Ensure you do not delete any custom policies that are current assigned to your subscription or policies that were not created through this walkthrough.
 
-1. If Azure Security center was turned on temporarily for this, consider turning that off as well.
+1. If Microsoft Defender for Cloud was turned on temporarily for this, consider turning that off as well.
 
    **Do not disable any security controls that were already in place on your subscription before starting this walkthrough.**
 
-   1. Go to the [**Pricings & Settings** view in Security Center](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/24)
+   1. Go to the [**Pricings & Settings** view in Microsoft Defender for Cloud](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/24)
    1. Select your subscription.
-   1. Turn "Off" any **Azure Defender for _topic_** that you might have enabled exclusively due to this walkthrough only.
+   1. Turn "Off" any **Microsoft Defender for _topic_** that you might have enabled exclusively due to this walkthrough only.
 
 ### Next step
 

@@ -85,7 +85,7 @@ There are considerations that must be addressed before you start deploying your 
 * [ ] Begin by ensuring you [install and meet the prerequisites](./docs/deploy/01-prerequisites.md).
 * [ ] [Procure required TLS certificates](./docs/deploy/02-ca-certificates.md).
 * [ ] Plan your [Azure Active Directory integration](./docs/deploy/03-aad.md).
-* [ ] [Apply Azure Policy and Azure Defender configuration](./docs/deploy/04-subscription.md) to your target subscription.
+* [ ] [Apply Azure Policy and Microsoft Defender configuration](./docs/deploy/04-subscription.md) to your target subscription.
 
 ### 2. Build regional networking hub
 
@@ -125,7 +125,7 @@ A simple workload made up of four interconnected services is manually deployed a
 Now that the cluster and the sample workload is deployed; now it's time to look at how the cluster is functioning.
 
 * [ ] [Perform end-to-end deployment validation](./docs/deploy/13-validation.md).
-* [ ] [Review resource logs & Azure Security Center data](./docs/deploy/13-validation-logs.md)
+* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/13-validation-logs.md)
 
 ### 7. :broom: Clean up resources
 
@@ -149,7 +149,7 @@ For your implementation, take this _starting point_ and please add on additional
 
 ## Cost
 
-This reference implementation runs idle around $95 (US Dollars) per day within the first 30 days; and you can expect it to increase over time as some Security Center tooling has free-trial period and logs will continue to accrue. The largest contributors to the starting cost are Azure Firewall, the AKS nodepools (VM Scale Sets), and Log Analytics. While some costs are usually cluster operator costs, such as nodepool VMSS, log analytics, incremental Azure Defender costs; others will likely be amortized across multiple business units and/or applications, such as Azure Firewall.
+This reference implementation runs idle around $95 (US Dollars) per day within the first 30 days; and you can expect it to increase over time as some Microsoft Defender for Cloud tooling has free-trial period and logs will continue to accrue. The largest contributors to the starting cost are Azure Firewall, the AKS nodepools (VM Scale Sets), and Log Analytics. While some costs are usually cluster operator costs, such as nodepool VMSS, log analytics, incremental Microsoft Defender costs; others will likely be amortized across multiple business units and/or applications, such as Azure Firewall.
 
 Some customers will opt to amortize cluster costs across workloads by hosting a multi-tenant cluster within their organization, maximizing density with workload diversity. Doing so with regulated workloads is not advised. Regulated environments will generally prioritize compliance and security (isolation) over cost (diverse density).
 

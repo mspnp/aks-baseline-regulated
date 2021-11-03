@@ -27,7 +27,7 @@ To help govern our resources, there are policies we apply over the scope of thes
 
 | Policy Name                    | Scope                           | Purpose                                                                                           |
 |--------------------------------|---------------------------------|---------------------------------------------------------------------------------------------------|
-| Enable Azure Defender Standard | Subscription                    | Ensures that Azure Defender for Kubernetes, Container Service, and Key Vault are always enabled.  |
+| Enable Microsoft Defender Standard | Subscription                | Ensures that Microsoft Defender for Kubernetes, Container Service, and Key Vault are always enabled. |
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
 | VNet must have Network Watcher | rg-enterprise-networking-hubs   | Audit policy that will trigger if a network is deployed to a region that doesn't have a Network Watcher. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
@@ -51,15 +51,15 @@ This is not an exhaustive list of Azure Policies that you can create or assign, 
 
 Also, depending on your workload subscription scope, some of the policies applied above may be better suited at the subscription level (like no public AKS clusters). Since we don't assume you're coming to this walkthrough with a dedicated subscription, we've scoped the restrictions to only those resource groups we ask you to create. Apply your policies where it makes the most sense to do so in your final implementation.
 
-### Security Center activated
+### Microsoft Defender for Cloud activated
 
-As mentioned in the Azure Policy section above, we enable the following Azure Security Center's services.
+As mentioned in the Azure Policy section above, we enable the following Microsoft Defender for Cloud's services.
 
-* [Azure Defender for Kubernetes](https://docs.microsoft.com/azure/security-center/defender-for-kubernetes-introduction)
-* [Azure Defender for Container Registries](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction)
-* [Azure Defender for Key Vault](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
-* [Azure Defender for Azure DNS](https://docs.microsoft.com/azure/security-center/defender-for-dns-introduction)
-* [Azure Defender for Azure Resource Manager](https://docs.microsoft.com/azure/security-center/defender-for-resource-manager-introduction)
+* [Microsoft Defender for Kubernetes](https://docs.microsoft.com/azure/security-center/defender-for-kubernetes-introduction)
+* [Microsoft Defender for Container Registries](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction)
+* [Microsoft Defender for Key Vault](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
+* [Microsoft Defender for Azure DNS](https://docs.microsoft.com/azure/security-center/defender-for-dns-introduction)
+* [Microsoft Defender for Azure Resource Manager](https://docs.microsoft.com/azure/security-center/defender-for-resource-manager-introduction)
 
 Not only do we enable them in the steps below by default, but also set up an Azure Policy that ensures they stay enabled.
 
@@ -94,14 +94,14 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 1. Perform subscription-level deployment.
 
-   This will deploy the resource groups, Azure Policies, and Azure Security Center configuration all as identified above.
+   This will deploy the resource groups, Azure Policies, and Microsoft Defender for Cloud configuration all as identified above.
 
    ```bash
    # [This may take up to six minutes to run.]
    az deployment sub create -f subscription.json -l centralus -p networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
    ```
 
-   If you do not have permissions on your subscription to enable Azure Defender (which requires the Azure RBAC role of _Subscription Owner_ or _Security Admin_), then instead execute the following variation of the same command. This will not enable Azure Defender services nor will Azure Policy attempt to enable the same (the policy will still be created, but in audit-only mode). Your final implementation should be to a subscription with these security services activated.
+   If you do not have permissions on your subscription to enable Microsoft Defender (which requires the Azure RBAC role of _Subscription Owner_ or _Security Admin_), then instead execute the following variation of the same command. This will not enable Microsoft Defender services nor will Azure Policy attempt to enable the same (the policy will still be created, but in audit-only mode). Your final implementation should be to a subscription with these security services activated.
 
    ```bash
    # [This may take up to five minutes to run.]
@@ -110,18 +110,18 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 ## Azure Security Benchmark
 
-It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can only be applied once for Security Center to detect it properly, and if we deployed a version above, you might inadvertently break existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
+It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can only be applied once for Microsoft Defender for Cloud to detect it properly, and if we deployed a version above, you might inadvertently break existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
 
 > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-22).
 
 ### Steps
 
-1. Open the [**Regulatory Compliance** screen in Security Center](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
+1. Open the [**Regulatory Compliance** screen in Microsoft Defender for Cloud](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
 1. Click on **Manage compliance policies**
 1. Click on your subscription
-1. Ensure the **Azure Security Benchmark** is applied as the **Security Center default policy**.
+1. Ensure the **Azure Security Benchmark** is applied as the **Microsoft Defender for Cloud default policy**.
 1. You'll want to ensure all relevant standards (e.g. **PCI DSS 3.2.1**) are **Enabled** under **Industry & regulatory standards**
-1. The **Regulatory Compliance** dashboard in Security Center might take an hour or two to reflect any modifications you've made.
+1. The **Regulatory Compliance** dashboard in Microsoft Defender for Cloud might take an hour or two to reflect any modifications you've made.
 
 **None of the above is required for this walkthrough**, but we want to ensure you're aware of these subscription-level policies and how you can enable them for your final implementation. All subscriptions containing PCI workloads should have the **PCI DSS 3.2.1** Industry & regulatory standards reports enabled, which _requires_ that the **Azure Security Benchmark** is applied as the default policy.
 
@@ -145,7 +145,7 @@ A summary of all of [Microsoft and Azure's compliance offerings are available](h
 
 ### Steps
 
-1. Open the [**Regulatory Compliance** screen in Security Center](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
+1. Open the [**Regulatory Compliance** screen in Microsoft Defender for Cloud](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
 1. Click on **Audit reports**
 1. Select your interest (e.g. **PCI**)
 1. Download and read relevant documents (e.g. **PCI DSS 3.2.1 - Azure Shared Responsibility Matrix** or **Azure PCI DSS 3.2.1 AOC Package**)
