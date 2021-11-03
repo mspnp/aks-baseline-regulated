@@ -9,7 +9,7 @@
        Optional Permissions
         - Scope: Subscription
           Role: Security Admin (or Owner)
-          Reason: To enable Azure Defender for Kubernetes, Container Registry, and Key Vault.
+          Reason: To enable Microsoft Defender for Kubernetes, Container Registry, and Key Vault.
           Notes: If unable to obtain permissions, you must pass false to the enableAzureDefender parameter or have someone else enable these for you.
      */
     "parameters": {
@@ -17,14 +17,14 @@
             "type": "bool",
             "defaultValue": true,
             "metadata": {
-                "description": "By default Azure Defender for Kubernetes Service, Container Registry, and Key Vault are configured to deploy via Azure Policy, use this parameter to disable that."
+                "description": "By default Microsoft Defender for Kubernetes Service, Container Registry, and Key Vault are configured to deploy via Azure Policy, use this parameter to disable that."
             }
         },
         "enableAzureDefender": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
-                "description": "By default Azure Defender for Kubernetes Service, Container Registry, and Key Vault are enabled; use this parameter to prevent them from being enabled. Deploying these requires subscription Owner or Security Admin roles."
+                "description": "By default Microsoft Defender for Kubernetes Service, Container Registry, and Key Vault are enabled; use this parameter to prevent them from being enabled. Deploying these requires subscription Owner or Security Admin roles."
             }
         },
         "networkWatcherRGRegion": {
@@ -99,13 +99,13 @@
             "apiVersion": "2019-09-01",
             "name": "[variables('policyDefinitionName-EnableAksDefender')]",
             "properties": {
-                "displayName": "Azure Defender for Kubernetes is enabled",
+                "displayName": "Microsoft Defender for Kubernetes is enabled",
                 "policyType": "Custom",
                 "mode": "All",
-                "description": "Azure Defender for Kubernetes provides real-time threat protection for containerized environments and generates alerts for suspicious activities.",
+                "description": "Microsoft Defender for Kubernetes provides real-time threat protection for containerized environments and generates alerts for suspicious activities.",
                 "metadata": {
                     "version": "1.0.0",
-                    "category": "Security Center"
+                    "category": "Microsoft Defender for Cloud"
                 },
                 "policyRule": {
                     "if": {
@@ -160,13 +160,13 @@
             "apiVersion": "2019-09-01",
             "name": "[variables('policyDefinitionName-EnableAcrDefender')]",
             "properties": {
-                "displayName": "Azure Defender for container registries is enabled",
+                "displayName": "Microsoft Defender for container registries is enabled",
                 "policyType": "Custom",
                 "mode": "All",
-                "description": "Azure Defender for container registries provides vulnerability scanning of any images pulled within the last 30 days, pushed to your registry, or imported, and exposes detailed findings per image.",
+                "description": "Microsoft Defender for container registries provides vulnerability scanning of any images pulled within the last 30 days, pushed to your registry, or imported, and exposes detailed findings per image.",
                 "metadata": {
                     "version": "1.0.0",
-                    "category": "Security Center"
+                    "category": "Microsoft Defender for Cloud"
                 },
                 "policyRule": {
                     "if": {
@@ -221,13 +221,13 @@
             "apiVersion": "2019-09-01",
             "name": "[variables('policyDefinitionName-EnableAkvDefender')]",
             "properties": {
-                "displayName": "Azure Defender for Key Vault is enabled",
+                "displayName": "Microsoft Defender for Key Vault is enabled",
                 "policyType": "Custom",
                 "mode": "All",
-                "description": "Azure Defender for Key Vault provides an additional layer of protection and security intelligence by detecting unusual and potentially harmful attempts to access or exploit key vault accounts.",
+                "description": "Microsoft Defender for Key Vault provides an additional layer of protection and security intelligence by detecting unusual and potentially harmful attempts to access or exploit key vault accounts.",
                 "metadata": {
                     "version": "1.0.0",
-                    "category": "Security Center"
+                    "category": "Microsoft Defender for Cloud"
                 },
                 "policyRule": {
                     "if": {
@@ -287,12 +287,12 @@
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAkvDefender'))]"
             ],
             "properties": {
-                "displayName": "Enable Azure Defender Standard",
-                "description": "Ensures Azure Defender is enabled for select resources",
+                "displayName": "Enable Microsoft Defender Standard",
+                "description": "Ensures Microsoft Defender is enabled for select resources",
                 "policyType": "Custom",
                 "metadata": {
                     "version": "1.0.0",
-                    "category": "Security Center"
+                    "category": "Microsoft Defender for Cloud"
                 },
                 "policyDefinitions": [
                     {
@@ -787,14 +787,14 @@
             "identity": {
                 "type": "SystemAssigned"
             },
-            "comments": "Ensures various Azure Defender services are is enabled.",
+            "comments": "Ensures various Microsoft Defender services are is enabled.",
             "properties": {
                 "displayName": "[reference(subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', variables('policySetDefinitionName-EnableDefender')), '2020-09-01').displayName]",
-                "description": "Ensures that Azure Defender for Kuberentes Service, Container Service, and Key Vault are enabled.",
+                "description": "Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.",
                 "enforcementMode": "[if(parameters('enforceAzureDefenderAutoDeployPolicies'), 'Default', 'DoNotEnforce')]",
                 "metadata": {
                     "version": "1.0.0",
-                    "category": "Security Center"
+                    "category": "Microsoft Defender for Cloud"
                 },
                 "notScopes": [],
                 "scope": "[subscription().id]",
@@ -806,7 +806,7 @@
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
             "name": "KeyVaults",
-            "comments": "Enable Azure Defender Standard for Key Vault. Requires Owner or Security Admin role.",
+            "comments": "Enable Microsoft Defender Standard for Key Vault. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard"
             }
@@ -816,7 +816,7 @@
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
             "name": "ContainerRegistry",
-            "comments": "Enable Azure Defender Standard for Container Registry. Requires Owner or Security Admin role.",
+            "comments": "Enable Microsoft Defender Standard for Container Registry. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard"
             }
@@ -826,7 +826,7 @@
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
             "name": "KubernetesService",
-            "comments": "Enable Azure Defender Standard for Kubernetes Service. Requires Owner or Security Admin role.",
+            "comments": "Enable Microsoft Defender Standard for Kubernetes Service. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard"
             }
@@ -836,7 +836,7 @@
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
             "name": "Arm",
-            "comments": "Enable Azure Defender Standard for Azure Resource Manager. Requires Owner or Security Admin role.",
+            "comments": "Enable Microsoft Defender Standard for Azure Resource Manager. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard" // Isn't included in the Azure Policy applications above.
             }
@@ -846,7 +846,7 @@
             "type": "Microsoft.Security/pricings",
             "apiVersion": "2018-06-01",
             "name": "Dns",
-            "comments": "Enable Azure Defender Standard for Azure DNS. Requires Owner or Security Admin role.",
+            "comments": "Enable Microsoft Defender Standard for Azure DNS. Requires Owner or Security Admin role.",
             "properties": {
                 "pricingTier": "Standard" // Isn't included in the Azure Policy applications above.
             }

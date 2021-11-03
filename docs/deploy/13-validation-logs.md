@@ -1,4 +1,4 @@
-# Access Resource Logs & Security Center Data
+# Access resource logs & Microsoft Defender for Cloud data
 
 Your infrastructure and [workload is emitting logs](./13-validation.md), here are a few key logs you may wish to consider being familiar with and/or building [log-based queries](https://docs.microsoft.com/azure/azure-monitor/logs/get-started-queries) around. Below are some a few queries to get you started exploring the captured data.
 
@@ -61,9 +61,9 @@ ContainerRegistryRepositoryEvents
 
 Unless you performed some additional steps beyond this walkthrough's instructions, you'll notice that the value for all of the records share the same `Identity` -- that is the Object ID of the AKS cluster's managed identity, specifically kubelet (`<your-cluster-name>-agentpool`).
 
-### Azure Defender for container registries
+### Microsoft Defender for container registries
 
-If you execute the following query, you'll see all denied requests for access to your container registry. Your container registry is private, and most (if not all) of this traffic is originating from Azure Defender for container registries -- which does not support private container registries.
+If you execute the following query, you'll see all denied requests for access to your container registry. Your container registry is private, and most (if not all) of this traffic is originating from Microsoft Defender for container registries -- which does not support private container registries.
 
 ```kusto
 ContainerRegistryLoginEvents 
@@ -184,20 +184,20 @@ You should see requests for `sslcert` & `appgw-ingress-internal-aks-ingress-cont
 
 Other common operations you might be interested in are `SecretResourcePut`, `Authentication`, and `CertificateImport`.
 
-## Azure Security Center
+## Microsoft Defender for Cloud
 
 ### Regulatory compliance
 
 If your subscription has the **Azure Security Benchmark** Azure Policy initiative applied, and **Industry & regulatory standards** enabled (e.g. **PCI DSS 3.2.1**), the **Regulatory compliance** dashboard will allow you to see compliance status for controls that have been mapped by Azure to the specific standard. The view is updated about once every 24 hours, this includes its initial scan. So if you enabled this as part of the walkthrough (steps found on the [Subscription page](./04-subscription.md)), you may not yet see any content in here.
 
-1. Open the [Regulatory compliance dashboard](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22) in Security Center.
+1. Open the [Regulatory compliance dashboard](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22) in Microsoft Defender for Cloud.
 1. Review the Industry summary and any recommendations.
 
 ### Review Security Alerts
 
-Azure Defender for kubernetes reviews your cluster's logs and detects behavior that might be undesired. Those alerts surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Security Center in the Azure Portal. Within about 24 hours of your cluster being up and running, you should start to see some alerts show up (Low and Medium).
+Microsoft Defender for kubernetes reviews your cluster's logs and detects behavior that might be undesired. Those alerts surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you should start to see some alerts show up (Low and Medium).
 
-1. Open the [Security Alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Azure Security Center.
+1. Open the [Security Alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud.
 1. View the alerts, and optionally add a _Filter_ for _Affected resource_ being your newly created cluster.
 
 ## Azure Sentinel
