@@ -200,11 +200,11 @@ Microsoft Defender for kubernetes reviews your cluster's logs and detects behavi
 1. Open the [Security Alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud.
 1. View the alerts, and optionally add a _Filter_ for _Affected resource_ being your newly created cluster.
 
-## Azure Sentinel
+## Microsoft Sentinel
 
-Data from Log Analytic on the networking and cluster infrastructure are being delivered to Azure Sentinel.
+Data from Log Analytic on the networking and cluster infrastructure are being delivered to Microsoft Sentinel.
 
-1. Open the [Azure Sentinel hub](https://portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel) on the Azure Portal.
+1. Open the [Microsoft Sentinel hub](https://portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel) on the Azure Portal.
 1. Select a Log Analytics workspace (networking or cluster)
 
 From here you can view Alerts, Incidents, start a Hunting session, view/add related Workbooks (such as the **Azure Kubernetes Service (AKS) Security** workbook), etc.
