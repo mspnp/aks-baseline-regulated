@@ -908,7 +908,7 @@
         },
         {
             "type": "Microsoft.Insights/scheduledQueryRules",
-            "apiVersion": "2021-02-01-preview",
+            "apiVersion": "2021-08-01",
             "name": "Image Imported into ACR from source other than approved Quarantine",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -947,7 +947,7 @@
         },
         {
             "type": "Microsoft.Insights/scheduledQueryRules",
-            "apiVersion": "2021-02-01-preview",
+            "apiVersion": "2021-08-01",
             "name": "PodFailedScheduledQuery",
             "location": "[parameters('location')]",
             "dependsOn": [
