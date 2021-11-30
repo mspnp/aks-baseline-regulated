@@ -419,7 +419,7 @@
                 },
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
@@ -1192,7 +1192,7 @@
                 },
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]",

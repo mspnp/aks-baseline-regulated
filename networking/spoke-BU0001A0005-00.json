@@ -198,7 +198,7 @@
             "resources": [
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/toHub",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', variables('imageBuilderSubnetNsgName'))]"
@@ -278,7 +278,7 @@
                 },
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/toHub",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/virtualNetworks', variables('imageBuilderVNetName'))]"
