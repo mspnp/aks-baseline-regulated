@@ -291,7 +291,7 @@
             "resources": [
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
@@ -355,7 +355,7 @@
             "resources": [
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
@@ -437,7 +437,7 @@
             "resources": [
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/bastionHosts', variables('bastionServiceName'))]",
@@ -479,7 +479,7 @@
             "resources": [
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.Storage/storageAccounts', variables('regionFlowLowStorageAccountName'))]",
@@ -590,7 +590,7 @@
             "resources": [
                 {
                     "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
+                    "apiVersion": "2021-05-01-preview",
                     "name": "Microsoft.Insights/default",
                     "dependsOn": [
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('hubLaName'))]",
