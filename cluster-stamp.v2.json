@@ -917,7 +917,9 @@
             ],
             "properties": {
                 "description":"The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.",
-                "actions": [],
+                "actions": {
+                    "actionGroups": []
+                },
                 "criteria": {
                     "allOf": [
                         {
@@ -956,7 +958,9 @@
             ],
             "properties": {
                 "description":"Example from: https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-alerts",
-                "actions": [],
+                "actions": {
+                    "actionGroups": []
+                },
                 "criteria": {
                     "allOf": [
                         {
