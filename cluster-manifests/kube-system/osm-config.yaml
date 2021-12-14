@@ -2,12 +2,27 @@ apiVersion: config.openservicemesh.io/v1alpha1
 kind: MeshConfig
 metadata:
   name: osm-mesh-config
+  namespace: kube-system
 spec:
   certificate:
+    certKeyBitSize: 2048
     serviceCertValidityDuration: 24h
+    ingressGateway:
+      secret:
+        name: osm-nginx-client-cert
+        namespace: ingress-nginx
+      subjectAltNames: 
+        - ingress-nginx.ingress-nginx.cluster.local
+      validityDuration: 24h
   featureFlags:
     enableEgressPolicy: true
-    enableWASMStats: false
+    enableWASMStats: true
+    enableMulticlusterMode: false
+    enableSnapshotCacheMode: false
+    enableAsyncProxyServiceMapping: false
+    enableIngressBackendPolicy: true
+    enableEnvoyActiveHealthChecks: false
+    enableRetryPolicy: false
   observability:
     enableDebugServer: false
     osmLogLevel: info
@@ -16,6 +31,7 @@ spec:
   sidecar:
     enablePrivilegedInitContainer: false
     logLevel: error
+    maxDataPlaneConnections: 0
   traffic:
     enableEgress: true
     enablePermissiveTrafficPolicyMode: false
@@ -23,4 +39,4 @@ spec:
       - 169.254.169.254/32
       - 168.63.129.16/32
       - 10.240.12.4/32
-    useHTTPSIngress: true
+
