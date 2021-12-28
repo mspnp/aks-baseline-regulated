@@ -16,6 +16,10 @@ Your cluster was deployed with Azure Policy and Azure AD Pod Managed Identity. Y
 
 Your GitHub repo will be the source of truth for your cluster's configuration. Typically this would be a private repo, but for ease of demonstration, it'll be connected to a public repo (all firewall permissions are set to allow this specific interaction.) You'll be updating a configuration resource for Flux so that it knows to point to _your own repo_.
 
+## Alternative - Using the Flux AKS extension
+
+In the AKS Baseline, the cluster is [bootstrapped using the Flux AKS extension](https://github.com/mspnp/aks-baseline/blob/main/05-bootstrap-prep.md). That makes bootstrapping more "real time" with cluster deployment instead of as a post-deployment process that is described here. This reference implementation will be updated to use the Flux AKS extension at some point in time, which will further minimize the time period between cluster deployment and bootstrapping and removes the need to manually install Flux.
+
 ## Steps
 
 1. Update kustomization files to use images from your container registry.
@@ -111,13 +115,13 @@ Your GitHub repo will be the source of truth for your cluster's configuration. T
 
    ```output
    NAME                                  STATUS   ROLES   AGE   VERSION
-   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.21.x
-   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.21.x
-   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.21.x
-   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.21.x
-   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.21.x
-   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.21.x
-   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.21.x
+   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.22.x
+   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.22.x
+   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.22.x
+   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.22.x
+   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.22.x
+   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.22.x
+   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.22.x
    ```
 
    > :watch: The access tokens obtained in the prior two steps are subject to a Microsoft Identity Platform TTL (e.g. six hours). If your `az` or `kubectl` commands start erroring out after hours of usage with a message related to permission/authorization, you'll need to re-execute the `az login` and `az aks get-credentials` (overwriting your context) to refresh those tokens.
