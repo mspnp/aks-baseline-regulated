@@ -13,7 +13,11 @@ spec:
         namespace: ingress-nginx
       subjectAltNames: 
         - ingress-nginx.ingress-nginx.cluster.local
-      validityDuration: 24h
+      validityDuration: 10d
+      # Currently nginx will not reload this certificate after it expires in 10 days, 
+      # please see the following two GitHub issues to track this issue:
+      # https://github.com/kubernetes/ingress-nginx/issues/5608
+      # https://github.com/openservicemesh/osm/issues/4394
   featureFlags:
     enableEgressPolicy: true
     enableWASMStats: true
