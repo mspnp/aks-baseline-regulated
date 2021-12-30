@@ -23,6 +23,7 @@ data:
   # the ingress controller directly is AAG.
   whitelist-source-range: 10.240.4.16/28
   ssl-redirect: "false"
+  allow-snippet-annotations: "true"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -40,6 +41,7 @@ rules:
       - nodes
       - pods
       - secrets
+      - namespaces
     verbs:
       - list
       - watch
@@ -58,7 +60,6 @@ rules:
       - list
       - watch
   - apiGroups:
-      - extensions
       - networking.k8s.io
     resources:
       - ingresses
@@ -74,7 +75,6 @@ rules:
       - create
       - patch
   - apiGroups:
-      - extensions
       - networking.k8s.io
     resources:
       - ingresses/status
@@ -141,7 +141,6 @@ rules:
       - list
       - watch
   - apiGroups:
-      - extensions
       - networking.k8s.io
     resources:
       - ingresses
@@ -149,36 +148,35 @@ rules:
       - get
       - list
       - watch
-  - apiGroups:                                                                                                 
-      - extensions                                                                                                 
-      - networking.k8s.io                                                                                               
-    resources:                                                                                                 
-      - ingresses/status                                                                                                 
-    verbs:                                                                                                 
-      - update                                                                                                 
-  - apiGroups:                                                                                                 
-      - networking.k8s.io                                                                                               
-    resources:                                                                                                 
-      - ingressclasses                                                                                                 
-    verbs:                                                                                                 
-      - get                                                                                                 
-      - list                                                                                                 
-      - watch                                                                                                 
-  - apiGroups:                                                                                                 
-      - ''                                                                                                 
-    resources:                                                                                                 
-      - configmaps                                                                                                 
-    resourceNames:                                                                                                 
-      - ingress-controller-leader-nginx                                                                                                 
-    verbs:                                                                                                 
-      - get                                                                                                 
-      - update                                                                                                 
-  - apiGroups:                                                                                                 
-      - ''                                                                                                 
-    resources:                                                                                                 
-      - configmaps                                                                                                 
-    verbs:                                                                                                 
-      - create                                                                                                 
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingressclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - configmaps
+    resourceNames:
+      - ingress-controller-leader
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ''
+    resources:
+      - configmaps
+    verbs:
+      - create
   - apiGroups:
       - ''
     resources:
@@ -220,6 +218,7 @@ spec:
     - name: https-webhook
       port: 443
       targetPort: webhook
+      appProtocol: https
   selector:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
@@ -241,11 +240,15 @@ spec:
   type: LoadBalancer
   loadBalancerIP: 10.240.4.4
   externalTrafficPolicy: Local
+  ipFamilyPolicy: SingleStack
+  ipFamilies: 
+    - IPv4
   ports:
     - name: https
       port: 443
       protocol: TCP
       targetPort: https
+      appProtocol: https
   selector:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
@@ -269,6 +272,7 @@ spec:
       app.kubernetes.io/instance: ingress-nginx
       app.kubernetes.io/component: controller
       pci-scope: out-of-scope
+  replicas: 1
   revisionHistoryLimit: 10
   minReadySeconds: 0
   template:
@@ -286,7 +290,7 @@ spec:
       dnsPolicy: ClusterFirst
       containers:
         - name: controller
-          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v0.49.0
+          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.1.0
           imagePullPolicy: IfNotPresent
           lifecycle:
             preStop:
@@ -297,12 +301,13 @@ spec:
             - /nginx-ingress-controller
             - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller
             - --election-id=ingress-controller-leader
-            - --ingress-class=nginx
+            - --controller-class=k8s.io/ingress-nginx
             - --default-ssl-certificate=$(POD_NAMESPACE)/ingress-tls-csi
             - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller
             - --validating-webhook=:8443
             - --validating-webhook-certificate=/usr/local/certificates/cert
             - --validating-webhook-key=/usr/local/certificates/key
+            - --v=3
           securityContext:
             capabilities:
               drop:
@@ -382,6 +387,17 @@ spec:
             volumeAttributes:
               secretProviderClass: aks-ingress-contoso-com-tls-secret-csi-akv
 ---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/component: controller
+  name: nginx
+spec:
+  controller: k8s.io/ingress-nginx
+---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -397,7 +413,7 @@ webhooks:
       - apiGroups:
           - networking.k8s.io
         apiVersions:
-          - v1beta1
+          - v1
         operations:
           - CREATE
           - UPDATE
@@ -407,12 +423,11 @@ webhooks:
     sideEffects: None
     admissionReviewVersions:
       - v1
-      - v1beta1
     clientConfig:
       service:
         namespace: ingress-nginx
         name: ingress-nginx-controller-admission
-        path: /networking/v1beta1/ingresses
+        path: /networking/v1/ingresses
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -535,6 +550,8 @@ spec:
             limits:
               cpu: 300m
               memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
       nodeSelector:
         kubernetes.io/os: linux
         pci-scope: out-of-scope
@@ -587,6 +604,8 @@ spec:
             limits:
               cpu: 300m
               memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
       nodeSelector:
         kubernetes.io/os: linux
         pci-scope: out-of-scope

@@ -103,7 +103,7 @@
         }
     },
     "variables": {
-        "kubernetesVersion": "1.21.2",
+        "kubernetesVersion": "1.22.4",
 
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
@@ -302,7 +302,8 @@
                     "name": "DependencyAgentLinux",
                     "location": "[parameters('location')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]"
+                        "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]",
+                        "[resourceId('Microsoft.Compute/virtualMachineScaleSets/extensions', 'vmss-jumpboxes', 'OMSExtension')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
@@ -917,7 +918,9 @@
             ],
             "properties": {
                 "description":"The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.",
-                "actions": [],
+                "actions": {
+                    "actionGroups": []
+                },
                 "criteria": {
                     "allOf": [
                         {
@@ -956,7 +959,9 @@
             ],
             "properties": {
                 "description":"Example from: https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-alerts",
-                "actions": [],
+                "actions": {
+                    "actionGroups": []
+                },
                 "criteria": {
                     "allOf": [
                         {
