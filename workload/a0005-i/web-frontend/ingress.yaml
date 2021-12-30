@@ -12,7 +12,7 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_ssl_name "web-frontend-sa.a0005-i.cluster.local";
-    nginx.ingress.kubernetes.io/proxy-ssl-secret: kube-system/osm-ca-bundle
+    nginx.ingress.kubernetes.io/proxy-ssl-secret: ingress-nginx/osm-nginx-client-cert
     nginx.ingress.kubernetes.io/proxy-ssl-server-name: "on"
     nginx.ingress.kubernetes.io/proxy-ssl-verify: "on"
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -32,3 +32,26 @@ spec:
             name: web-frontend
             port:
               number: 8080
+---
+apiVersion: policy.openservicemesh.io/v1alpha1
+kind: IngressBackend
+metadata:
+  name: web-frontend
+  labels:
+    app.kubernetes.io/name: a0005
+    app.kubernetes.io/component: web-frontend
+    pci-scope: in-scope
+spec:
+  backends:
+  - name: web-frontend
+    port:
+      number: 8080
+      protocol: https
+    tls:
+      skipClientCertValidation: false
+  sources:
+  - kind: Service
+    namespace: ingress-nginx
+    name: ingress-nginx-controller
+  - kind: AuthenticatedPrincipal
+    name: ingress-nginx.ingress-nginx.cluster.local

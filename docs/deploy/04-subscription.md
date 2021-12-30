@@ -85,7 +85,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 1. Check for a pre-existing resource group with the name `networkWatcherRG`.
 
    ```bash
-   NETWORK_WATCHER_RG_REGION=$(az group list --query "[?name=='networkWatcherRG'].location" -o tsv)
+   NETWORK_WATCHER_RG_REGION=$(az group list --query "[?name=='networkWatcherRG' || name=='NetworkWatcherRG'].location" -o tsv)
    ```
 
    If your subscription is managed in such a way that Azure Network Watcher resources are found in a resource group other than the Azure default of `networkWatcherRG` or they do not use the Azure default `NetworkWatcher_<region>` naming convention, you will need to adjust the various ARM templates to compensate. Network Watchers are singletons (per region) in subscriptions, and organizations often manage them (and Flow Logs) via Azure Policy. This walkthrough assumes default naming conventions as set by Azure's [automatic deployment feature of Network Watchers](https://docs.microsoft.com/azure/network-watcher/network-watcher-create#network-watcher-is-automatically-enabled).
