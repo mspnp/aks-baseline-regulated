@@ -55,8 +55,7 @@ Also, depending on your workload subscription scope, some of the policies applie
 
 As mentioned in the Azure Policy section above, we enable the following Microsoft Defender for Cloud's services.
 
-* [Microsoft Defender for Kubernetes](https://docs.microsoft.com/azure/security-center/defender-for-kubernetes-introduction)
-* [Microsoft Defender for Container Registries](https://docs.microsoft.com/azure/security-center/defender-for-container-registries-introduction)
+* [Microsoft Defender for Containers](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction?tabs=defender-for-container-arch-aks)
 * [Microsoft Defender for Key Vault](https://docs.microsoft.com/azure/security-center/defender-for-key-vault-introduction)
 * [Microsoft Defender for Azure DNS](https://docs.microsoft.com/azure/security-center/defender-for-dns-introduction)
 * [Microsoft Defender for Azure Resource Manager](https://docs.microsoft.com/azure/security-center/defender-for-resource-manager-introduction)
