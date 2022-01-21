@@ -61,9 +61,9 @@ ContainerRegistryRepositoryEvents
 
 Unless you performed some additional steps beyond this walkthrough's instructions, you'll notice that the value for all of the records share the same `Identity` -- that is the Object ID of the AKS cluster's managed identity, specifically kubelet (`<your-cluster-name>-agentpool`).
 
-### Microsoft Defender for container registries
+### Microsoft Defender for containers
 
-If you execute the following query, you'll see all denied requests for access to your container registry. Your container registry is private, and most (if not all) of this traffic is originating from Microsoft Defender for container registries -- which does not support private container registries.
+If you execute the following query, you'll see all denied requests for access to your container registry. Your container registry is private, and most (if not all) of this traffic is originating from Microsoft Defender for containers -- which does not support private container registries.
 
 ```kusto
 ContainerRegistryLoginEvents 
@@ -195,7 +195,7 @@ If your subscription has the **Azure Security Benchmark** Azure Policy initiativ
 
 ### Review Security Alerts
 
-Microsoft Defender for kubernetes reviews your cluster's logs and detects behavior that might be undesired. Those alerts surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you should start to see some alerts show up (Low and Medium).
+Microsoft Defender for Containers reviews your cluster's logs and detects behavior that might be undesired. Those alerts surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you should start to see some alerts show up (Low and Medium).
 
 1. Open the [Security Alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud.
 1. View the alerts, and optionally add a _Filter_ for _Affected resource_ being your newly created cluster.
