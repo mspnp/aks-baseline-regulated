@@ -27,7 +27,7 @@ To help govern our resources, there are policies we apply over the scope of thes
 
 | Policy Name                    | Scope                           | Purpose                                                                                           |
 |--------------------------------|---------------------------------|---------------------------------------------------------------------------------------------------|
-| Enable Microsoft Defender Standard | Subscription                | Ensures that Microsoft Defender for Kubernetes, Container Service, and Key Vault are always enabled. |
+| Enable Microsoft Defender Standard | Subscription                | Ensures that Microsoft Defender for Containers, and Key Vault are always enabled. |
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
 | VNet must have Network Watcher | rg-enterprise-networking-hubs   | Audit policy that will trigger if a network is deployed to a region that doesn't have a Network Watcher. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
