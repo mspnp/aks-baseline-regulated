@@ -222,7 +222,6 @@
             "name": "[variables('policySetDefinitionName-EnableDefender')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAksDefender'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAcrDefender'))]",
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAkvDefender'))]"
             ],
             "properties": {
@@ -238,9 +237,6 @@
                         "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAksDefender'))]"
                     },
                     {
-                        "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAcrDefender'))]"
-                    },
-                    {
                         "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAkvDefender'))]"
                     }
                 ]
@@ -251,8 +247,8 @@
             "apiVersion": "2019-09-01",
             "name": "[variables('policyDefinitionName-DenyAksWithoutDefender')]",
             "properties": {
-                "description": "This policy denies the creation of Azure Kubernetes Service cluster that is not protected with Microsoft Defender for Containers",
-                "displayName": "Microsoft Defender for Containers should be enabled in the cluster",
+                "description": "This policy denies the creation of Azure Kubernetes Service cluster that is not protected with Microsoft Defender for Containers.",
+                "displayName": "Microsoft Defender for Containers should be enabled in the cluster.",
                 "policyType": "Custom",
                 "mode": "All",
                 "metadata": {
@@ -601,7 +597,8 @@
             "resourceGroup": "[variables('rgName-bu0001A0005')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]"
+                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]",
+                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAksWithoutDefender'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -659,6 +656,18 @@
                                 "description": "Only support private AKS clusters, deny any other.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyAksWithoutDefender'), variables('rgName-bu0001A0005'))]",
+                            "comments": "Deny the creation of Azure Kubernetes Service cluster that is not protected with Microsoft Defender for Containers.",
+                            "properties": {
+                                "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAksWithoutDefender')), '2020-09-01').displayName), 125))]",
+                                "description": "Microsoft Defender for Containers should be enabled in the cluster.",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAksWithoutDefender'))]"
                             }
                         },
                         {
