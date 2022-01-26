@@ -58,7 +58,7 @@ As mentioned in the Azure Policy section above, we enable the following Microsof
 
 * [Microsoft Defender for Containers](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction)
 * [Microsoft Defender for Key Vault](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-key-vault-introduction)
-* [Microsoft Defender for Azure DNS](hhttps://docs.microsoft.com/azure/defender-for-cloud/defender-for-dns-introduction)
+* [Microsoft Defender for Azure DNS](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-dns-introduction)
 * [Microsoft Defender for Azure Resource Manager](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-resource-manager-introduction)
 
 Not only do we enable them in the steps below by default, but also set up an Azure Policy that ensures they stay enabled.
