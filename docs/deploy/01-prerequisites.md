@@ -35,10 +35,9 @@ Throughout this walkthrough, take note of the following symbol.
 
    ```bash
    az feature register --namespace "Microsoft.ContainerService" -n "EnablePodIdentityPreview"
-   az feature register --namespace "Microsoft.ContainerService" -n "AKS-AzureDefender"
 
    # Keep running until all say "Registered." (This may take up to 20 minutes.)
-   az feature list -o table --query "[?name=='Microsoft.ContainerService/EnablePodIdentityPreview' || name=='Microsoft.ContainerService/AKS-AzureDefender'].{Name:name,State:properties.state}"
+   az feature list -o table --query "[?name=='Microsoft.ContainerService/EnablePodIdentityPreview'].{Name:name,State:properties.state}"
 
 
    # When all say "Registered" then re-register the AKS resource provider
