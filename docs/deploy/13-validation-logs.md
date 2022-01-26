@@ -195,7 +195,7 @@ If your subscription has the **Azure Security Benchmark** Azure Policy initiativ
 
 ### Review Security Alerts
 
-Microsoft Defender for Containers reviews your cluster's logs and detects behavior that might be undesired. Those alerts surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you should start to see some alerts show up (Low and Medium).
+Microsoft Defender for Containers reviews your cluster's logs and detects runtime workload behavior that might be undesired. [Those alerts](https://docs.microsoft.com/azure/defender-for-cloud/alerts-reference#alerts-k8scluster) surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you may start to see some Low and Medium alerts show up.
 
 1. Open the [Security Alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud.
 1. View the alerts, and optionally add a _Filter_ for _Affected resource_ being your newly created cluster.
