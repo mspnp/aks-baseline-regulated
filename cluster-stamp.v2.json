@@ -1468,7 +1468,13 @@
                         }
                     ]
                 },
-                "disableLocalAccounts": true
+                "disableLocalAccounts": true,
+                "securityProfile": {
+                    "azureDefender": {
+                        "enabled": true,
+                        "logAnalyticsWorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                    }
+                }
             },
             "identity": {
                 "type": "UserAssigned",

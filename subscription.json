@@ -49,8 +49,8 @@
         "policyDefinitionId-NetworkWatcherShouldBeEnabled": "/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6",
 
         "policyDefinitionName-EnableAksDefender": "[guid(subscription().id, 'EnableDefenderForAks')]",
-        "policyDefinitionName-EnableAcrDefender": "[guid(subscription().id, 'EnableDefenderForAcr')]",
         "policyDefinitionName-EnableAkvDefender": "[guid(subscription().id, 'EnableDefenderForAkv')]",
+        "policyDefinitionName-DenyAksWithoutDefender": "[guid(subscription().id, 'DenyNonDefenderAks')]",
         "policyDefinitionName-DenyPublicAks": "[guid(subscription().id, 'DenyPublicAks')]",
         "policyDefinitionName-DenyAksWithoutPolicy": "[guid(subscription().id, 'DenyAksWithoutPolicy')]",
         "policyDefinitionName-DenyAagWithoutWaf": "[guid(subscription().id, 'DenyAagWithoutWaf')]",
@@ -99,10 +99,10 @@
             "apiVersion": "2019-09-01",
             "name": "[variables('policyDefinitionName-EnableAksDefender')]",
             "properties": {
-                "displayName": "Microsoft Defender for Kubernetes is enabled",
+                "displayName": "Microsoft Defender for Containers is enabled",
                 "policyType": "Custom",
                 "mode": "All",
-                "description": "Microsoft Defender for Kubernetes provides real-time threat protection for containerized environments and generates alerts for suspicious activities.",
+                "description": "Microsoft Defender for Containers provides real-time threat protection for containerized environments and generates alerts for suspicious activities.",
                 "metadata": {
                     "version": "1.0.0",
                     "category": "Microsoft Defender for Cloud"
@@ -120,7 +120,7 @@
                         "effect": "deployIfNotExists",
                         "details": {
                             "type": "Microsoft.Security/pricings",
-                            "name": "KubernetesService",
+                            "name": "Containers",
                             "deploymentScope": "subscription",
                             "existenceScope": "subscription",
                             "roleDefinitionIds": [
@@ -141,68 +141,7 @@
                                             {
                                                 "type": "Microsoft.Security/pricings",
                                                 "apiVersion": "2018-06-01",
-                                                "name": "KubernetesService",
-                                                "properties": {
-                                                    "pricingTier": "Standard"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Authorization/policyDefinitions",
-            "apiVersion": "2019-09-01",
-            "name": "[variables('policyDefinitionName-EnableAcrDefender')]",
-            "properties": {
-                "displayName": "Microsoft Defender for container registries is enabled",
-                "policyType": "Custom",
-                "mode": "All",
-                "description": "Microsoft Defender for container registries provides vulnerability scanning of any images pulled within the last 30 days, pushed to your registry, or imported, and exposes detailed findings per image.",
-                "metadata": {
-                    "version": "1.0.0",
-                    "category": "Microsoft Defender for Cloud"
-                },
-                "policyRule": {
-                    "if": {
-                        "allOf": [
-                            {
-                                "field": "type",
-                                "equals": "Microsoft.Resources/subscriptions"
-                            }
-                        ]
-                    },
-                    "then": {
-                        "effect": "deployIfNotExists",
-                        "details": {
-                            "type": "Microsoft.Security/pricings",
-                            "name": "ContainerRegistry",
-                            "deploymentScope": "subscription",
-                            "existenceScope": "subscription",
-                            "roleDefinitionIds": [
-                                "[variables('roleId-SecurityAdmin')]"
-                            ],
-                            "existenceCondition": {
-                                "field": "Microsoft.Security/pricings/pricingTier",
-                                "equals": "Standard"
-                            },
-                            "deployment": {
-                                "location": "[variables('deploymentResourceRegion')]",
-                                "properties": {
-                                    "mode": "incremental",
-                                    "template": {
-                                        "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
-                                        "contentVersion": "1.0.0.0",
-                                        "resources": [
-                                            {
-                                                "type": "Microsoft.Security/pricings",
-                                                "apiVersion": "2018-06-01",
-                                                "name": "ContainerRegistry",
+                                                "name": "Containers",
                                                 "properties": {
                                                     "pricingTier": "Standard"
                                                 }
@@ -283,7 +222,6 @@
             "name": "[variables('policySetDefinitionName-EnableDefender')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAksDefender'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAcrDefender'))]",
                 "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAkvDefender'))]"
             ],
             "properties": {
@@ -299,12 +237,40 @@
                         "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAksDefender'))]"
                     },
                     {
-                        "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAcrDefender'))]"
-                    },
-                    {
                         "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-EnableAkvDefender'))]"
                     }
                 ]
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('policyDefinitionName-DenyAksWithoutDefender')]",
+            "properties": {
+                "description": "This policy denies the creation of Azure Kubernetes Service cluster that is not protected with Microsoft Defender for Containers.",
+                "displayName": "Microsoft Defender for Containers should be enabled in the cluster.",
+                "policyType": "Custom",
+                "mode": "All",
+                "metadata": {
+                    "version": "1.0.0"
+                },
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.ContainerService/managedClusters"
+                            },
+                            {
+                                "field": "Microsoft.ContainerService/managedClusters/securityProfile.azureDefender.enabled",
+                                "notequals": "true"
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "Deny"
+                    }
+                }
             }
         },
         {
@@ -631,7 +597,8 @@
             "resourceGroup": "[variables('rgName-bu0001A0005')]",
             "dependsOn": [
                 "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
-                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]"
+                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]",
+                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAksWithoutDefender'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -689,6 +656,18 @@
                                 "description": "Only support private AKS clusters, deny any other.",
                                 "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyPublicAks'))]"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2020-09-01",
+                            "name": "[guid(variables('policyDefinitionName-DenyAksWithoutDefender'), variables('rgName-bu0001A0005'))]",
+                            "comments": "Deny the creation of Azure Kubernetes Service cluster that is not protected with Microsoft Defender for Containers.",
+                            "properties": {
+                                "displayName": "[trim(take(concat('[', variables('rgName-bu0001A0005'), '] ', reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAksWithoutDefender')), '2020-09-01').displayName), 125))]",
+                                "description": "Microsoft Defender for Containers should be enabled in the cluster.",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgName-bu0001A0005'))]",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName-DenyAksWithoutDefender'))]"
                             }
                         },
                         {
