@@ -61,7 +61,7 @@ ContainerRegistryRepositoryEvents
 
 Unless you performed some additional steps beyond this walkthrough's instructions, you'll notice that the value for all of the records share the same `Identity` -- that is the Object ID of the AKS cluster's managed identity, specifically kubelet (`<your-cluster-name>-agentpool`).
 
-### Microsoft Defender for containers
+### Microsoft Defender for Containers
 
 If you execute the following query, you'll see all denied requests for access to your container registry. Your container registry is private, and most (if not all) of this traffic is originating from Microsoft Defender for containers -- which does not support private container registries.
 
