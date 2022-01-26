@@ -28,7 +28,6 @@ To help govern our resources, there are policies we apply over the scope of thes
 | Policy Name                    | Scope                           | Purpose                                                                                           |
 |--------------------------------|---------------------------------|---------------------------------------------------------------------------------------------------|
 | Enable Microsoft Defender Standard | Subscription                | Ensures that Microsoft Defender for Containers, DNS, Key Vault, and Resource Manager are always enabled. |
-| Enable Microsoft Defender for Containers in the cluster | rg-bu0001a0005                | Ensures that Microsoft Defender for Containers is enabled in the cluster. |
 | Allowed resource types         | rg-enterprise-networking-hubs   | Restricts the hub resource group to just relevant networking resources.                           |
 | VNet must have Network Watcher | rg-enterprise-networking-hubs   | Audit policy that will trigger if a network is deployed to a region that doesn't have a Network Watcher. _(This is only created if your subscription doesn't already have Network Watchers in place.)_ |
 | Allowed resource types         | rg-enterprise-networking-spokes | Restricts the spokes resource group to just relevant networking resources.                        |
@@ -41,6 +40,7 @@ To help govern our resources, there are policies we apply over the scope of thes
 | No AKS clusters without Azure Policy | rg-bu0001a0005            | Restricts the creation of AKS clusters to only those that have the Azure Policy Add-on enabled.   |
 | No AKS clusters without BYOK OS & Data Disk Encryption | rg-bu0001a0005  | Restricts the creation of AKS clusters to only those that have customer-managed disk encryption enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
 | No AKS clusters without encryption-at-host | rg-bu0001a0005      | Restricts the creation of AKS clusters to only those that have the Encryption-At-Host feature enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
+| No AKS clusters without Microsoft Defender for Containers | rg-bu0001a0005                | Ensures that Microsoft Defender for Containers is enabled in the cluster. |
 | No App Gateways without WAF    | rg-bu0001a0005                  | Restricts the creation of Azure Application Gateway to only the WAF SKU. |
 | No VMSS with public IPs        | rg-bu0001a0005                  | Only VMSS that do not have public IPs can be created in this resource group. |
 
