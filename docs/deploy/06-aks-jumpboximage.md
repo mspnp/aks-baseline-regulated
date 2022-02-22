@@ -11,7 +11,7 @@ Your cluster's control plane (Kubernetes API Server) will not be accessible to t
 * You could could deploy compute resources into that subnet and use that as your ops workstation.
 * You could use the [AKS Run Command](https://docs.microsoft.com/azure/aks/private-clusters#aks-run-command-preview).
 
-Never use the AKS nodes (or OpenSSH containers running on them) as your access points (i.e using Azure Bastion to SSH into nodes); as this would be using the management target system as the management tool, which is not reliable. Also it adds an unnecessary surface area to your cluster which would also need to be considered from a regulatory compliance perspective. Always use a dedicated solution external to your cluster. Consider this guidance when evaluating if AKS Run Command is appropriate to use in your specific deployment, as this creates a transient pod within your cluster for proxied access.
+Never use the AKS nodes (or OpenSSH containers running on them) as your access points (i.e using Azure Bastion to SSH into nodes); as this would be using the management target system as the management tool, which is not as reliable. Also it adds an unnecessary surface area to your cluster which would also need to be considered from a regulatory compliance perspective. Always prefer a dedicated solution external to your cluster. Consider this guidance when evaluating if AKS Run Command is appropriate to use in your specific deployment, as this creates a transient pod within your cluster for proxied access.
 
 This reference implementation will be using the "compute resource in subnet" option above, typically known as a jump box. Even within this option, you have additional choices.
 
@@ -58,15 +58,23 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
 
 ### Build and deploy the jump box image
 
-Now that we have our image building network created, egressing through our hub, and all NSG/firewall rules applied, it's time to build and deploy our jump box image. We are using the general purpose AKS jump box image as described in the [AKS Jump Box Image Builder repository](https://github.com/mspnp/aks-jumpbox-imagebuilder); which comes with baked-in tooling such as Azure CLI, kubectl, helm, and flux. The network rules applied in the prior steps support its build-time requirements. If you use this infrastructure to build a modified version of this image template, you may need to add additional network allowances.
+Now that we have our image building network created, egressing through our hub, and all NSG/firewall rules applied, it's time to build and deploy our jump box image. We are using the general purpose AKS jump box image as described in the [AKS Jump Box Image Builder repository](https://github.com/mspnp/aks-jumpbox-imagebuilder); which comes with baked-in tooling such as Azure CLI, kubectl, helm, flux, etc.. The network rules applied in the prior steps support its specific build-time requirements. If you use this infrastructure to build a modified version of this image template, you may need to add additional network allowances or remove unneeded allowances.
+
+1. Download the ARM templates from the AKS Jump Box Image Builder repository.
+
+   Ideally core templates like this would be part of your private Bicep registry. For this walk through, we are simply downloading the remote Bicep templates locally for execution.
+
+   ```bash
+   wget -B https://raw.githubusercontent.com/mspnp/aks-jumpbox-imagebuilder/bicep-migration/ -x -nH --cut-dirs=3 -i jumpbox/jumpbox-bicep.txt -P jumpbox
+   ```
 
 1. Deploy custom Azure RBAC roles. _Optional._
 
-   Azure Image Builder requires permissions to be granted to its runtime identity. The following deploys two _custom_ Azure RBAC roles that encapsulate those exact permissions necessary. If you do not have permissions to create Azure RBAC roles in your subscription, you can skip this step. However, in Step 2 below, you'll then be required to apply existing built-in Azure RBAC roles to the service's identity, which are more-permissive than necessary, but would be fine to use for this walkthrough.
+   Azure Image Builder requires permissions to be granted to its runtime identity. The following deploys two _custom_ Azure RBAC roles that encapsulate those exact permissions necessary. If you do not have permissions to create Azure RBAC roles in your subscription, you can skip this step. However, in the next step below, you'll then be required to apply existing built-in Azure RBAC roles to the service's identity, which are more permissive than necessary, but would be fine to use for this walkthrough.
 
    ```bash
    # [This takes about one minute to run.]
-   az deployment sub create -u https://raw.githubusercontent.com/mspnp/aks-jumpbox-imagebuilder/main/createsubscriptionroles.json -l centralus -n DeployAibRbacRoles
+   az deployment sub create -f jumpbox/createsubscriptionroles.bicep -l centralus -n DeployAibRbacRoles
    ```
 
 1. Create the AKS jump box image template. (🛑 _if not using the custom roles created above._)
@@ -80,7 +88,7 @@ Now that we have our image building network created, egressing through our hub, 
    ROLEID_IMGDEPLOY=$(az deployment sub show -n DeployAibRbacRoles --query 'properties.outputs.roleResourceIds.value.customImageBuilderImageCreationRole.guid' -o tsv)
 
    # [This takes about one minute to run.]
-   az deployment group create -g rg-bu0001a0005 -u https://raw.githubusercontent.com/mspnp/aks-jumpbox-imagebuilder/main/azuredeploy.json -p buildInVnetResourceGroupName=rg-enterprise-networking-spokes buildInVnetName=vnet-spoke-BU0001A0005-00 buildInVnetSubnetName=snet-imagebuilder location=eastus2 imageBuilderNetworkingRoleGuid="${ROLEID_NETWORKING}" imageBuilderImageCreationRoleGuid="${ROLEID_IMGDEPLOY}" imageDestinationResourceGroupName=rg-bu0001a0005 -n CreateJumpBoxImageTemplate
+   az deployment group create -g rg-bu0001a0005 -f jumpbox/deploy.bicep -p buildInSubnetResourceId=${RESOURCEID_SUBNET_AIB} location=eastus2 imageBuilderNetworkingRoleGuid="${ROLEID_NETWORKING}" imageBuilderImageCreationRoleGuid="${ROLEID_IMGDEPLOY}" -n CreateJumpBoxImageTemplate
    ```
 
 1. Build the general-purpose AKS jump box image.
