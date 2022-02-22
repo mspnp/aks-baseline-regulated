@@ -65,7 +65,7 @@ Now that we have our image building network created, egressing through our hub, 
    Ideally core templates like this would be part of your private Bicep registry. For this walk through, we are simply downloading the remote Bicep templates locally for execution.
 
    ```bash
-   wget -B https://raw.githubusercontent.com/mspnp/aks-jumpbox-imagebuilder/bicep-migration/ -x -nH --cut-dirs=3 -i jumpbox/jumpbox-bicep.txt -P jumpbox
+   wget -B https://raw.githubusercontent.com/mspnp/aks-jumpbox-imagebuilder/main/ -x -nH --cut-dirs=3 -i jumpbox/jumpbox-bicep.txt -P jumpbox
    ```
 
 1. Deploy custom Azure RBAC roles. _Optional._
@@ -88,7 +88,7 @@ Now that we have our image building network created, egressing through our hub, 
    ROLEID_IMGDEPLOY=$(az deployment sub show -n DeployAibRbacRoles --query 'properties.outputs.roleResourceIds.value.customImageBuilderImageCreationRole.guid' -o tsv)
 
    # [This takes about one minute to run.]
-   az deployment group create -g rg-bu0001a0005 -f jumpbox/deploy.bicep -p buildInSubnetResourceId=${RESOURCEID_SUBNET_AIB} location=eastus2 imageBuilderNetworkingRoleGuid="${ROLEID_NETWORKING}" imageBuilderImageCreationRoleGuid="${ROLEID_IMGDEPLOY}" -n CreateJumpBoxImageTemplate
+   az deployment group create -g rg-bu0001a0005 -f jumpbox/azuredeploy.bicep -p buildInSubnetResourceId=${RESOURCEID_SUBNET_AIB} location=eastus2 imageBuilderNetworkingRoleGuid="${ROLEID_NETWORKING}" imageBuilderImageCreationRoleGuid="${ROLEID_IMGDEPLOY}" -n CreateJumpBoxImageTemplate
    ```
 
 1. Build the general-purpose AKS jump box image.

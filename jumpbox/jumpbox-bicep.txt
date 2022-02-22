@@ -1,4 +1,4 @@
 createsubscriptionroles.bicep
-deploy.bicep
+azuredeploy.bicep
 modules/aibImageWriteRoleAssignment.bicep
 modules/aibNetworkRoleAssignment.bicep
