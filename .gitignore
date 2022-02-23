@@ -5,3 +5,5 @@
 *.pem
 *.pub
 sp.json
+
+jumpbox/**/*.bicep
