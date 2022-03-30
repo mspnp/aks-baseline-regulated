@@ -22,7 +22,7 @@ data:
   #https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
   # This is our Azure Application Gateway range. The ONLY traffic that should be hitting
   # the ingress controller directly is AAG.
-  whitelist-source-range: 10.240.4.16/28
+  whitelist-source-range: 10.240.4.0/24
   ssl-redirect: "false"
   allow-snippet-annotations: "true"
 ---
@@ -239,7 +239,7 @@ metadata:
     service.beta.kubernetes.io/azure-load-balancer-internal-subnet: snet-cluster-ingressservices
 spec:
   type: LoadBalancer
-  loadBalancerIP: 10.240.4.4
+  loadBalancerIP: 10.240.3.244
   externalTrafficPolicy: Local
   ipFamilyPolicy: SingleStack
   ipFamilies:

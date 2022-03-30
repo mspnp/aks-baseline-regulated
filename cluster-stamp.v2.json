@@ -103,7 +103,7 @@
         }
     },
     "variables": {
-        "kubernetesVersion": "1.22.4",
+        "kubernetesVersion": "1.23.3",
 
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
@@ -662,7 +662,7 @@
                             "backendAddresses": [
                                 {
                                     /* This is the IP address that our ingress controller will request */
-                                    "ipAddress": "10.240.4.4"
+                                    "ipAddress": "10.240.3.244"
                                 }
                             ]
                         }
