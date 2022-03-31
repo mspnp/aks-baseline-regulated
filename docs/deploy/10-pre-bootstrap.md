@@ -91,7 +91,7 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                         && \
    az acr import --source quarantine/weaveworks/kured:1.9.0 -r $ACR_NAME_QUARANTINE -t live/weaveworks/kured:1.9.0 -n $ACR_NAME                         && \
    az acr import --source quarantine/ingress-nginx/controller:v1.1.2 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.1.2 -n $ACR_NAME       && \
-   az acr import --source quarantine/jettech/kube-webhook-certgen:v1.1.1 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v1.1.1 -n $ACR_NAME
+   az acr import --source k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v1.1.1 -n $ACR_NAME
    ```
 
 1. Trigger quarantine violation. _Optional._
