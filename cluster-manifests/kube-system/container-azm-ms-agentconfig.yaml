@@ -38,6 +38,8 @@ data:
         container_memory_working_set_threshold_percentage = 90.0
     [alertable_metrics_configuration_settings.pv_utilization_thresholds]
         pv_usage_threshold_percentage = 75.0
+    [alertable_metrics_configuration_settings.job_completion_threshold]
+        job_completion_threshold_time_minutes = 360
   integrations: |-
     [integrations.azure_network_policy_manager]
         collect_basic_metrics = true

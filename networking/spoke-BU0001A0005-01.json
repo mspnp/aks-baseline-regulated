@@ -762,7 +762,7 @@
                     {
                         "name": "snet-applicationgateway",
                         "properties": {
-                            "addressPrefix": "10.240.4.16/28",
+                            "addressPrefix": "10.240.5.0/24",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]"
                             },
