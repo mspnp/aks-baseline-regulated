@@ -751,7 +751,7 @@ resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04
   name: 'networkWatcherRG'
 }
 
-module regionalFlowlogsDeployment 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module regionalFlowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
   name: 'connect-hub-regional-flowlogs'
   scope: networkWatcherResourceGroup
   params: {

@@ -281,7 +281,7 @@ resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04
       name: substring('stnfl${location}${uniqueString(rgHubs.id)}', 0, 24)
   }
 
-module flowlogsDeployment 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'connect-spoke-bu0001A0005-00-flowlogs'
     scope: networkWatcherResourceGroup
     params: {
@@ -292,7 +292,7 @@ module flowlogsDeployment 'flowlogsDeployment.bicep' = if (deployFlowLogResource
     }
 }
 
-module hubsSpokesPeering 'hubsSpokesPeeringDeploy.bicep' = {
+module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     name: 'hub-to-jumpboxVNet-peering'
     scope: rgHubs
     params: {

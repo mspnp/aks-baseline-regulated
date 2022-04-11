@@ -584,13 +584,30 @@ resource nsgAcrDockerSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSet
     }
 }
 
+resource policyResourceIdNoPublicIpsInVnet 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    scope: subscription()
+    name: 'NoPublicIPsForNICsInVnet'
+  }
+
 @description('Deploys subscription-level policy related to spoke deployment.')
-module policyAssignmentNoPublicIpsInVnet 'policyAssignmentNoPublicIpsInVnet.bicep' = {
+module policyAssignmentNoPublicIpsInVnet '../modules/policyAssignmentDeployment.bicep' = {
     name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
     scope: subscription()
     params: {
-        clusterVNetId: clusterVNet.id
-        clusterVNetName: clusterVNet.name
+        name: guid(policyResourceIdNoPublicIpsInVnet.id, clusterVNet.id)
+        displayName: 'Network interfaces in [${clusterVNet.name}] should not have public IPs'
+        policyAssignmentDescription: 'Cluster VNet should never have a NIC with a public IP.'
+        parameters: {
+            vnetResourceId: {
+                value: clusterVNet.id
+            }
+        }
+        policyDefinitionId: policyResourceIdNoPublicIpsInVnet.id
+        nonComplianceMessages: [
+            {
+                message: 'No NICs with public IPs are allowed in the regulated environment spoke.'
+            }
+        ]
     }
 }
 
@@ -779,7 +796,7 @@ resource clusterVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
     }
 }
 
-module hubsSpokesPeering 'hubsSpokesPeeringDeploy.bicep' = {
+module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     name: 'hub-to-clustetVNet-peering'
     scope: rgHubs
     params: {
@@ -900,7 +917,7 @@ resource flowlogs_storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' 
     name: substring('stnfl${location}${uniqueString(rgHubs.id)}', 0, 24)
 }
 
-module flowlogsDeploymentAcrDockerSubnet 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAcrDockerSubnet 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AcrDockerSubnet-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -911,7 +928,7 @@ module flowlogsDeploymentAcrDockerSubnet 'flowlogsDeployment.bicep' = if (deploy
     }
 }
 
-module flowlogsDeploymentAksDefaultILBSubnet 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAksDefaultILBSubnet 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AksDefaultILB-Subnet-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -922,7 +939,7 @@ module flowlogsDeploymentAksDefaultILBSubnet 'flowlogsDeployment.bicep' = if (de
     }
 }
 
-module flowlogsDeploymentAppGatewaySubnet 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAppGatewaySubnet 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AppGateway-Subnet-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -933,7 +950,7 @@ module flowlogsDeploymentAppGatewaySubnet 'flowlogsDeployment.bicep' = if (deplo
     }
 }
 
-module flowlogsDeploymentksInScopeNodepools 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentksInScopeNodepools 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deploymentks-InScopeNodepools-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -944,7 +961,7 @@ module flowlogsDeploymentksInScopeNodepools 'flowlogsDeployment.bicep' = if (dep
     }
 }
 
-module flowlogsDeploymentAllowSshFromHubBastionInBound 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAllowSshFromHubBastionInBound 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AllowSshFromHubBastionInBound-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -955,7 +972,7 @@ module flowlogsDeploymentAllowSshFromHubBastionInBound 'flowlogsDeployment.bicep
     }
 }
 
-module flowlogsDeploymentAksOutOfScopeNodepools 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAksOutOfScopeNodepools 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AksOutOfScopeNodepools-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -966,7 +983,7 @@ module flowlogsDeploymentAksOutOfScopeNodepools 'flowlogsDeployment.bicep' = if 
     }
 }
 
-module flowlogsDeploymentAksPrivateLinkEndpoint 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAksPrivateLinkEndpoint 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AksPrivateLinkEndpoint-NSG'
     scope: networkWatcherResourceGroup
     params: {
@@ -977,7 +994,7 @@ module flowlogsDeploymentAksPrivateLinkEndpoint 'flowlogsDeployment.bicep' = if 
     }
 }
 
-module flowlogsDeploymentAksSystemNodepools 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+module flowlogsDeploymentAksSystemNodepools 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'flowlogs-Deployment-AksSystemNodepools-NSG'
     scope: networkWatcherResourceGroup
     params: {
