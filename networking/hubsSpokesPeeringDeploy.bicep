@@ -2,36 +2,24 @@ targetScope = 'resourceGroup'
 
 /*** PARAMETERS ***/
 
-@description('The name of the spokes resource group')
-@minLength(1)
-param spokesResourceGroupName string
-
-@description('The name of the hub\'s vNet')
+@description('The hub\'s VNet name')
 @minLength(2)
 param hubNetworkName string
 
-@description('The name of the vnet used for jumpbox image builds')
+@description('The spokes\'s VNet name')
 @minLength(2)
-param imageBuilderVNetName string
+param spokesVNetName string
+
+@description('The remote VNet resourceId')
+param remoteVirtualNetworkId string
 
 /*** RESOURCEGROUP ***/
 
-resource spokesResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
-  scope: subscription()
-  name: spokesResourceGroupName
-}
-
-@description('This vnet is used exclusively for jumpbox image builds.')
-resource imageBuilderVNet 'Microsoft.Network/virtualNetworks@2021-05-01' existing = {
-  scope: spokesResourceGroup
-  name: imageBuilderVNetName
-}
-
 resource hubsSpokesVirtualNetworkPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${hubNetworkName}/hub-to-${imageBuilderVNetName}'
+  name: '${hubNetworkName}/hub-to-${spokesVNetName}'
   properties: {
     remoteVirtualNetwork: {
-      id: imageBuilderVNet.id
+      id: remoteVirtualNetworkId
   }
   allowForwardedTraffic: false
   allowGatewayTransit: false

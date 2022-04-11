@@ -305,10 +305,10 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   resource azureFirewallSubnet 'subnets' existing = {
     name: 'AzureFirewallSubnet'
   }
-}
 
-resource azureBastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
-  name: 'subnets/AzureBastionSubnet'
+  resource azureBastionSubnet 'subnets' existing = {
+    name: 'AzureBastionSubnet'
+  }
 }
 
 resource vnetHub_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
@@ -370,7 +370,7 @@ resource azureBastion 'Microsoft.Network/bastionHosts@2021-05-01' = {
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: azureBastionSubnet.id
+            id: vnetHub::azureBastionSubnet.id
           }
           publicIPAddress: {
             id: pipAzureBastion.id
@@ -521,7 +521,7 @@ resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04
   name: 'networkWatcherRG'
 }
 
-module regionalFlowlogsDeployment 'regionalFlowlogsDeploy.bicep' = if (deployFlowLogResources) {
+module regionalFlowlogsDeployment 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
   name: 'connect-hub-regional-flowlogs'
   scope: networkWatcherResourceGroup
   params: {

@@ -6,6 +6,9 @@ targetScope = 'resourceGroup'
 @minLength(79)
 param hubVnetResourceId string
 
+@description('The organization\'s application ID')
+param orgAppId string = 'BU0001A0005'
+
 @allowed([
     'australiaeast'
     'canadacentral'
@@ -61,51 +64,28 @@ resource afRouteTable 'Microsoft.Network/routeTables@2021-05-01' = {
     }
 }
 
-@description('NSG on the jumpbox image builder subnet.')
-resource nsgJumpboxImgbuilderSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-BU0001A0005-00-imageBuilder'
+resource azureBastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
+    scope: rgHubs
+    name: 'subnets/AzureBastionSubnet'
+  }
+
+@description('NSG blocking all inbound traffic other than port 22 for jumpbox access.')
+resource nsgAllowSshFromHubBastionInBound 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-management-ops'
     location: location
     properties: {
         securityRules: [
             {
-                name: 'AllowAzureLoadBalancer60001InBound'
+                name: 'AllowSshFromHubBastionInBound'
                 properties: {
-                    description: 'Allows heath probe traffic to AIB Proxy VM on 60001 (SSH)'
+                    description: 'Allow our Azure Bastion users in.'
                     protocol: 'Tcp'
                     sourcePortRange: '*'
-                    sourceAddressPrefix: 'AzureLoadBalancer'
-                    destinationPortRange: '60001'
-                    destinationAddressPrefix: 'VirtualNetwork'
+                    sourceAddressPrefix: azureBastionSubnet.properties.addressPrefix
+                    destinationPortRange: '22'
+                    destinationAddressPrefix: '*'
                     access: 'Allow'
                     priority: 100
-                    direction: 'Inbound'
-                }
-            }
-            {
-                name: 'AllowVNet60001InBound'
-                properties: {
-                    description: 'Allows traffic from AIB Service PrivateLink to AIB Proxy VM'
-                    protocol: 'Tcp'
-                    sourcePortRange: '*'
-                    sourceAddressPrefix: 'VirtualNetwork'
-                    destinationPortRange: '60001'
-                    destinationAddressPrefix: 'VirtualNetwork'
-                    access: 'Allow'
-                    priority: 110
-                    direction: 'Inbound'
-                }
-            }
-            {
-                name: 'AllowVNet22InBound'
-                properties: {
-                    description: 'Allows Packer VM to receive SSH traffic from AIB Proxy VM'
-                    protocol: 'Tcp'
-                    sourcePortRange: '*'
-                    sourceAddressPrefix: 'VirtualNetwork'
-                    destinationPortRange: '22'
-                    destinationAddressPrefix: 'VirtualNetwork'
-                    access: 'Allow'
-                    priority: 120
                     direction: 'Inbound'
                 }
             }
@@ -124,12 +104,11 @@ resource nsgJumpboxImgbuilderSubnet 'Microsoft.Network/networkSecurityGroups@202
                 }
             }
             {
-                name: 'Allow443ToInternetOutBound'
+                name: 'Allow443InternetOutBound'
                 properties: {
-                    description: 'Allow VMs to communicate to Azure management APIs, Azure Storage, and perform install tasks.'
                     protocol: 'Tcp'
                     sourcePortRange: '*'
-                    sourceAddressPrefix: 'VirtualNetwork'
+                    sourceAddressPrefix: '*'
                     destinationPortRange: '443'
                     destinationAddressPrefix: 'Internet'
                     access: 'Allow'
@@ -138,27 +117,12 @@ resource nsgJumpboxImgbuilderSubnet 'Microsoft.Network/networkSecurityGroups@202
                 }
             }
             {
-                name: 'Allow80ToInternetOutBound'
+                name: 'Allow443VnetOutBound'
                 properties: {
-                    description: 'Allow Packer VM to use apt-get to upgrade packages'
                     protocol: 'Tcp'
                     sourcePortRange: '*'
                     sourceAddressPrefix: 'VirtualNetwork'
-                    destinationPortRange: '80'
-                    destinationAddressPrefix: 'Internet'
-                    access: 'Allow'
-                    priority: 102
-                    direction: 'Outbound'
-                }
-            }
-            {
-                name: 'AllowSshToVNetOutBound'
-                properties: {
-                    description: 'Allow Proxy VM to communicate to Packer VM'
-                    protocol: 'Tcp'
-                    sourcePortRange: '*'
-                    sourceAddressPrefix: 'VirtualNetwork'
-                    destinationPortRange: '22'
+                    destinationPortRange: '443'
                     destinationAddressPrefix: 'VirtualNetwork'
                     access: 'Allow'
                     priority: 110
@@ -168,7 +132,6 @@ resource nsgJumpboxImgbuilderSubnet 'Microsoft.Network/networkSecurityGroups@202
             {
                 name: 'DenyAllOutBound'
                 properties: {
-                    description: 'Deny all remaining outbound traffic'
                     protocol: '*'
                     sourcePortRange: '*'
                     sourceAddressPrefix: '*'
@@ -183,15 +146,14 @@ resource nsgJumpboxImgbuilderSubnet 'Microsoft.Network/networkSecurityGroups@202
     }
 }
 
-
 resource hubLaWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
     scope: rgHubs
     name: 'la-hub-${location}'
 }
 
-resource nsgJumpboxImgbuilderSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+resource nsgAllowSshFromHubBastionInBound_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
     name: 'toHub'
-    scope: nsgJumpboxImgbuilderSubnet
+    scope: nsgAllowSshFromHubBastionInBound
     properties: {
         workspaceId: hubLaWorkspace.id
         logs: [
@@ -207,29 +169,560 @@ resource nsgJumpboxImgbuilderSubnet_diagnosticSettings 'Microsoft.Insights/diagn
     }
 }
 
-@description('This vnet is used exclusively for jumpbox image builds.')
-resource imageBuilderVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-    name: 'vnet-spoke-BU0001A0005-00'
+@description('NSG on all AKS system nodepools. Feel free to constrict further both inbound and outbound!')
+resource nsgAksSystemNodepools 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-system-nodepools'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'DenySshInBound'
+                properties: {
+                    description: 'No SSH access allowed to nodes.'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '22'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 100
+                    direction: 'Inbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgAksSystemNodepools_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAksSystemNodepools
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('NSG on the AKS in-scope nodepools. Feel free to constrict further both inbound and outbound!')
+resource nsgAksInScopeNodepools 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-is-nodepools'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'DenySshInBound'
+                properties: {
+                    description: 'No SSH access allowed to nodes.'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '22'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 100
+                    direction: 'Inbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgAksInScopeNodepools_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAksInScopeNodepools
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('NSG on the AKS out-of-scope nodepools. Feel free to constrict further both inbound and outbound!')
+resource nsgAksOutOfScopeNodepools 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-oos-nodepools'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'DenySshInBound'
+                properties: {
+                    description: 'No SSH access allowed to nodes.'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '22'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 100
+                    direction: 'Inbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgAksOutOfScopeNodepools_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAksOutOfScopeNodepools
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('Default NSG on the private link subnet. No traffic should be allowed out, and only Tcp/443 in. Key Vault and Container Registry is expected to be accessed in here.')
+resource nsgAksPrivateLinkEndpoint 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-privatelinkendpoints'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'AllowAll443InFromVnet'
+                properties: {
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 100
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'DenyAllInBound'
+                properties: {
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 1000
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'DenyAllOutBound'
+                properties: {
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 1000
+                    direction: 'Outbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgAksPrivateLinkEndpoint_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAksPrivateLinkEndpoint
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('Default NSG on the AKS ILB subnet. Feel free to constrict further!')
+resource nsgAksDefaultILBSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-akslibs'
+    location: location
+    properties: {
+        securityRules: [
+        ]
+    }
+}
+
+resource nsgAksDefaultILBSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAksDefaultILBSubnet
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('NSG on the App Gateway subnet.')
+resource nsgAppGatewaySubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-appgw'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'Allow443InBound'
+                properties: {
+                    description: 'Allow ALL web traffic into 443. (If you wanted to allow-list specific IPs, this is where you\'d list them.)'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'Internet'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 100
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'AllowControlPlaneInBound'
+                properties: {
+                    description: 'Allow Azure Control Plane in. (https://docs.microsoft.com/azure/application-gateway/configuration-infrastructure#network-security-groups)'
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '65200-65535'
+                    destinationAddressPrefix: '*'
+                    access: 'Allow'
+                    priority: 110
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'AllowHealthProbesInBound'
+                properties: {
+                    description: 'Allow Azure Health Probes in. (https://docs.microsoft.com/azure/application-gateway/configuration-infrastructure#network-security-groups)'
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'AzureLoadBalancer'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 120
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'DenyAllInBound'
+                properties: {
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 1000
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'AllowAllOutBound'
+                properties: {
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: '*'
+                    access: 'Allow'
+                    priority: 1000
+                    direction: 'Outbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgAppGatewaySubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAppGatewaySubnet
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('NSG on the ACR docker subnet.')
+resource nsgAcrDockerSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-acragents'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'AllowKeyVaultOutBound'
+                properties: {
+                    description: 'Allow KeyVault Access'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'AzureKeyVault'
+                    access: 'Allow'
+                    priority: 100
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'AllowStorageOutBound'
+                properties: {
+                    description: 'Allow Storage Access'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'Storage'
+                    access: 'Allow'
+                    priority: 110
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'AllowEventHubOutBound'
+                properties: {
+                    description: 'Allow EventHub Access'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'EventHub'
+                    access: 'Allow'
+                    priority: 120
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'AllowAadOutBound'
+                properties: {
+                    description: 'Allow Azure Active Directory Access'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'AzureActiveDirectory'
+                    access: 'Allow'
+                    priority: 130
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'AllowAzureMonitorBound'
+                properties: {
+                    description: 'Allow Azure Active Directory Access'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'AzureMonitor'
+                    access: 'Allow'
+                    priority: 140
+                    direction: 'Outbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgAcrDockerSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgAcrDockerSubnet
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
+@description('Deploys subscription-level policy related to spoke deployment.')
+module policyAssignmentNoPublicIpsInVnet 'policyAssignmentNoPublicIpsInVnet.bicep' = {
+    name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
+    scope: subscription()
+    params: {
+        clusterVNetId: clusterVNet.id
+        clusterVNetName: clusterVNet.name
+    }
+}
+
+@description('cluster\'s virtual network. 65,536 (-reserved) IPs available to the workload, split across four subnets for AKS, one for App Gateway, and two for management.')
+resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
+    name: 'vnet-spoke-${orgAppId}-01'
     location: location
     properties: {
         addressSpace: {
             addressPrefixes: [
-                '10.241.0.0/28'
+                '10.240.0.0/16'
             ]
         }
         subnets: [
             {
-                name: 'snet-imagebuilder'
+                name: 'snet-cluster-systemnodepool'
                 properties: {
-                    addressPrefix: '10.241.0.0/28'
+                    addressPrefix: '10.240.8.0/22'
                     routeTable: {
-                        id: afRouteTable.name
+                        id: afRouteTable.id
                     }
                     networkSecurityGroup: {
-                        id: nsgJumpboxImgbuilderSubnet.name
+                        id: nsgAksSystemNodepools.id
                     }
-                    privateEndpointNetworkPolicies: 'Enabled'
+                    privateEndpointNetworkPolicies: 'Disabled'
                     privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-cluster-inscopenodepools'
+                properties: {
+                    addressPrefix: '10.240.12.0/22'
+                    networkSecurityGroup: {
+                        id: nsgAksInScopeNodepools.id
+                    }
+                    routeTable: {
+                        id: afRouteTable.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-cluster-outofscopenodepools'
+                properties: {
+                    addressPrefix: '10.240.16.0/22'
+                    networkSecurityGroup: {
+                        id: nsgAksOutOfScopeNodepools.id
+                    }
+                    routeTable: {
+                        id: afRouteTable.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-cluster-ingressservices'
+                properties: {
+                    addressPrefix: '10.240.4.0/28'
+                    networkSecurityGroup: {
+                        id: nsgAksDefaultILBSubnet.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-applicationgateway'
+                properties: {
+                    addressPrefix: '10.240.5.0/24'
+                    networkSecurityGroup: {
+                        id: nsgAppGatewaySubnet.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-management-ops'
+                properties: {
+                    addressPrefix: '10.240.1.0/28'
+                    routeTable: {
+                        id: afRouteTable.id
+                    }
+                    networkSecurityGroup: {
+                        id: nsgAllowSshFromHubBastionInBound.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-management-agents'
+                properties: {
+                    addressPrefix: '10.240.2.0/26'
+                    routeTable: {
+                        id: afRouteTable.id
+                    }
+                    networkSecurityGroup: {
+                        id: nsgAllowSshFromHubBastionInBound.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-management-acragents'
+                properties: {
+                    addressPrefix: '10.240.251.0/28'
+                    /*routeTable: {
+                        id: afRouteTable.id
+                    }*/
+                    networkSecurityGroup: {
+                        id: nsgAcrDockerSubnet.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+            {
+                name: 'snet-privatelinkendpoints'
+                properties: {
+                    addressPrefix: '10.240.250.0/28'
+                    routeTable: {
+                        id: afRouteTable.id
+                    }
+                    networkSecurityGroup: {
+                        id: nsgAksPrivateLinkEndpoint.id
+                    }
+                    privateEndpointNetworkPolicies: 'Disabled'
+                    privateLinkServiceNetworkPolicies: 'Enabled'
                 }
             }
         ]
@@ -239,12 +732,28 @@ resource imageBuilderVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
             ]
         }
     }
+
+    resource aksSystemNodepoolSubnet 'subnets' existing = {
+        name: 'snet-cluster-systemnodepool'
+    }
+
+    resource aksSystemInScopeNodepoolsSubnet 'subnets' existing = {
+        name: 'snet-cluster-inscopenodepools'
+    }
+
+    resource aksSystemOutOfScopeNodepoolsSubnet 'subnets' existing = {
+        name: 'snet-cluster-outofscopenodepools'
+    }
+
+    resource aksManagementOpsSubnet 'subnets' existing = {
+        name: 'snet-management-ops'
+    }
 }
 
 @description('Peer to regional hub.')
-resource imageBuilderVNetPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
+resource clusterVNet_virtualNetworkPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
     name: 'spoke-to-${last(split(hubVnetResourceId, '/'))}'
-    parent: imageBuilderVNet
+    parent: clusterVNet
     properties: {
         remoteVirtualNetwork: {
             id: hubVnetResourceId
@@ -256,53 +765,239 @@ resource imageBuilderVNetPeering 'Microsoft.Network/virtualNetworks/virtualNetwo
     }
 }
 
-resource imageBuilderVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+resource clusterVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
     name: 'toHub'
-    scope: imageBuilderVNet
+    scope: clusterVNet
     properties: {
-      workspaceId: hubLaWorkspace.id
-      metrics: [
-        {
-          category: 'AllMetrics'
-          enabled: true
+        workspaceId: hubLaWorkspace.id
+        metrics: [
+            {
+                category: 'AllMetrics'
+                enabled: true
+            }
+        ]
+    }
+}
+
+module hubsSpokesPeering 'hubsSpokesPeeringDeploy.bicep' = {
+    name: 'hub-to-clustetVNet-peering'
+    scope: rgHubs
+    params: {
+        hubNetworkName: last(split(hubVnetResourceId, '/'))
+        spokesVNetName: clusterVNet.name
+        remoteVirtualNetworkId: clusterVNet.id
+    }
+}
+
+@description('Enables Azure Container Registry Private Link on vnet.')
+resource acrPrivateDnsZones 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+    name: 'privatelink.azurecr.io'
+    location: 'global'
+    properties: {}
+}
+
+@description('Enables cluster vnet private zone DNS lookup - used by cluster vnet for direct DNS queries (ones not proxied via the hub).')
+resource acrPrivateDnsZones_virtualNetworkLink_toCluster 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+    name: 'to_${clusterVNet.name}'
+    parent: acrPrivateDnsZones
+    location: 'global'
+    properties: {
+        virtualNetwork: {
+            id: clusterVNet.id
         }
-      ]
+        registrationEnabled: false
+    }
+}
+
+@description('Enabling hub vnet private zone DNS lookup for ACR - used by azure firewall\'s dns proxy.')
+resource acrPrivateDnsZones_virtualNetworkLink_toHubVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+    name: 'to_${last(split(hubVnetResourceId, '/'))}'
+    parent: acrPrivateDnsZones
+    location: 'global'
+    properties: {
+        virtualNetwork: {
+            id: hubVnetResourceId
+        }
+        registrationEnabled: false
+    }
+}
+
+@description('Enables AKS Private Link on vnet.')
+resource aksPrivateDnsZones 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+    name: 'privatelink.${location}.azmk8s.io'
+    location: 'global'
+    properties: {}
+}
+
+@description('Enables Azure Key Vault Private Link on cluster vnet.')
+resource aksPrivateDnsZones_virtualNetworkLink_toClusterVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+    name: 'to_${last(split(hubVnetResourceId, '/'))}'
+    parent: aksPrivateDnsZones
+    location: 'global'
+    properties: {
+        virtualNetwork: {
+            id: clusterVNet.id
+        }
+        registrationEnabled: false
+    }
+}
+
+@description('Enables Azure Key Vault Private Link support.')
+resource akvPrivateDnsZones 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+    name: 'privatelink.vaultcore.azure.net'
+    location: 'global'
+    properties: {}
+}
+
+@description('Enables Azure Key Vault Private Link on cluster vnet.')
+resource akvPrivateDnsZones_virtualNetworkLink_toCluster 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+    name: 'to_${clusterVNet.name}'
+    parent: akvPrivateDnsZones
+    location: 'global'
+    properties: {
+        virtualNetwork: {
+            id: clusterVNet.id
+        }
+        registrationEnabled: false
+    }
+}
+
+@description('Enables hub vnet private zone DNS lookup for ACR - used by azure firewall\'s dns proxy.')
+resource akvPrivateDnsZones_virtualNetworkLink_toHubVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+    name: 'to_${last(split(hubVnetResourceId, '/'))}'
+    parent: akvPrivateDnsZones
+    location: 'global'
+    properties: {
+        virtualNetwork: {
+            id: hubVnetResourceId
+        }
+        registrationEnabled: false
+    }
+}
+
+@description('Used as primary entry point for workload. Expected to be assigned to an Azure Application Gateway.')
+resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
+    name: 'pip-BU0001A0005-00'
+    location: location
+    sku: {
+        name: 'Standard'
+    }
+    properties: {
+        publicIPAllocationMethod: 'Static'
+        idleTimeoutInMinutes: 4
+        publicIPAddressVersion: 'IPv4'
     }
 }
 
 resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
     scope: subscription()
     name: 'networkWatcherRG'
-  }
+}
 
-  @description('Storage account to store the flow logs')
-  resource flowlogs_storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
-      scope: rgHubs
-      name: substring('stnfl${location}${uniqueString(rgHubs.id)}', 0, 24)
-  }
+@description('Storage account to store the flow logs')
+resource flowlogs_storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
+    scope: rgHubs
+    name: substring('stnfl${location}${uniqueString(rgHubs.id)}', 0, 24)
+}
 
-module regionalFlowlogsDeployment 'regionalFlowlogsDeploy.bicep' = if (deployFlowLogResources) {
-    name: 'connect-spoke-bu0001A0005-00-flowlogs'
+module flowlogsDeploymentAcrDockerSubnet 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AcrDockerSubnet-NSG'
     scope: networkWatcherResourceGroup
     params: {
       location: location
-      targetResourceId: nsgJumpboxImgbuilderSubnet.id
+      targetResourceId: nsgAcrDockerSubnet.id
       laHubId: hubLaWorkspace.id
       flowLogsStorageId: flowlogs_storageAccount.id
     }
 }
 
-
-module hubsSpokesPeering 'hubsSpokesPeeringDeploy.bicep' = {
-    name: 'hub-to-spoke-peering'
-    scope: rgHubs
+module flowlogsDeploymentAksDefaultILBSubnet 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AksDefaultILB-Subnet-NSG'
+    scope: networkWatcherResourceGroup
     params: {
-      spokesResourceGroupName: resourceGroup().name
-      hubNetworkName: last(split(hubVnetResourceId, '/'))
-      imageBuilderVNetName: imageBuilderVNet.name
+      location: location
+      targetResourceId: nsgAksDefaultILBSubnet.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
+    }
+}
+
+module flowlogsDeploymentAppGatewaySubnet 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AppGateway-Subnet-NSG'
+    scope: networkWatcherResourceGroup
+    params: {
+      location: location
+      targetResourceId: nsgAppGatewaySubnet.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
+    }
+}
+
+module flowlogsDeploymentksInScopeNodepools 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deploymentks-InScopeNodepools-NSG'
+    scope: networkWatcherResourceGroup
+    params: {
+      location: location
+      targetResourceId: nsgAksInScopeNodepools.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
+    }
+}
+
+module flowlogsDeploymentAllowSshFromHubBastionInBound 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AllowSshFromHubBastionInBound-NSG'
+    scope: networkWatcherResourceGroup
+    params: {
+      location: location
+      targetResourceId: nsgAllowSshFromHubBastionInBound.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
+    }
+}
+
+module flowlogsDeploymentAksOutOfScopeNodepools 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AksOutOfScopeNodepools-NSG'
+    scope: networkWatcherResourceGroup
+    params: {
+      location: location
+      targetResourceId: nsgAksOutOfScopeNodepools.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
+    }
+}
+
+module flowlogsDeploymentAksPrivateLinkEndpoint 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AksPrivateLinkEndpoint-NSG'
+    scope: networkWatcherResourceGroup
+    params: {
+      location: location
+      targetResourceId: nsgAksPrivateLinkEndpoint.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
+    }
+}
+
+module flowlogsDeploymentAksSystemNodepools 'flowlogsDeployment.bicep' = if (deployFlowLogResources) {
+    name: 'flowlogs-Deployment-AksSystemNodepools-NSG'
+    scope: networkWatcherResourceGroup
+    params: {
+      location: location
+      targetResourceId: nsgAksSystemNodepools.id
+      laHubId: hubLaWorkspace.id
+      flowLogsStorageId: flowlogs_storageAccount.id
     }
 }
 
 /*** OUTPUTS ***/
 
-output imageBuilderSubnetResourceId string = imageBuilderVNet.properties.subnets[0].id
+output clusterVnetResourceId string = clusterVNet.id
+
+output jumpboxSubnetResourceId string = clusterVNet::aksManagementOpsSubnet.id
+
+output nodepoolSubnetResourceIds array = [
+    clusterVNet::aksSystemNodepoolSubnet
+    clusterVNet::aksSystemInScopeNodepoolsSubnet
+    clusterVNet::aksSystemOutOfScopeNodepoolsSubnet
+]
+
+output appGwPublicIpAddress string = pipPrimaryCluster.properties.ipAddress
