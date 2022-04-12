@@ -11,24 +11,44 @@ param enableAzureDefender bool = true
 @description('networkWatcherRG often times already exists in a subscription. Empty string will result in using the default resource location.')
 param networkWatcherRGRegion string = ''
 
+@description('Subsription deployment\'s main location (centralus if not specified)')
+@allowed([
+    'australiaeast'
+    'canadacentral'
+    'centralus'
+    'eastus'
+    'eastus2'
+    'westus2'
+    'francecentral'
+    'germanywestcentral'
+    'northeurope'
+    'southafricanorth'
+    'southcentralus'
+    'uksouth'
+    'westeurope'
+    'japaneast'
+    'southeastasia'
+  ])
+param location string = 'centralus'
+
 /*** RESOURCES ***/
 
 @description('This contains all of our regional hubs. Typically this would be found in your enterprise\'s Connectivity subscription.')
 resource rgHubs 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'rg-enterprise-networking-hubs'
-    location: 'centralus'
+    location: location
 }
 
-@description('This contains all of our regional spokes. Typically this would be found in your enterprise's Connectivity subscription or in the workload\'s subscription.')
+@description('This contains all of our regional spokes. Typically this would be found in your enterprise\'s Connectivity subscription or in the workload\'s subscription.')
 resource rgSpokes 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'rg-enterprise-networking-spokes'
-    location: 'centralus'
+    location: location
 }
 
 @description('This is the resource group for BU001A0005. Typically this would be found in your workload\'s subscription.')
 resource rgbu0001a0005 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'rg-bu0001a0005'
-    location: 'centralus'
+    location: location
 }
 
 @description('This is the resource group for Azure Network Watchers. Most subscriptions already have this.')
@@ -73,7 +93,7 @@ resource pdEnableAksDefender 'Microsoft.Authorization/policyDefinitions@2021-06-
                         equals: 'Standard'
                     }
                     deployment: {
-                        location: 'centralus'
+                        location: location
                         properties: {
                             mode: 'incremental'
                             template: {
@@ -134,7 +154,7 @@ resource pdEnableAkvDefender 'Microsoft.Authorization/policyDefinitions@2021-06-
                         equals: 'Standard'
                     }
                     deployment: {
-                        location: 'centralus'
+                        location: location
                         properties: {
                             mode: 'incremental'
                             template: {
@@ -424,3 +444,63 @@ module workloadPoliciesDeployment 'modules/workloadPoliciesDeployment.bicep' = {
     }
 }
 
+@description('Enable policy that ensures various Microsoft Defender services are enabled.')
+module defenderPolicyDeployment 'modules/policyAssignmentDeployment.bicep' = {
+    name: 'Apply-EnableDefender-Policy'
+    scope: subscription()
+    params: {
+        name: guid(subscription().id, 'EnableDefender')
+        displayName: psdEnableDefender.properties.displayName
+        location: location
+        identity: {
+            type: 'SystemAssigned'
+        }
+        policyAssignmentDescription: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
+        policyDefinitionId: psdEnableDefender.id
+        enforcementMode: enforceAzureDefenderAutoDeployPolicies ? 'Default' : 'DoNotEnforce'
+        metadata: {
+            version: '1.0.0'
+            category: 'Microsoft Defender for Cloud'
+        }
+    }
+}
+
+@description('Enable Microsoft Defender Standard for Key Vault. Requires Owner or Security Admin role.')
+resource enableKeyVaultspricing 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+    name: 'KeyVaults'
+    properties: {
+        pricingTier: 'Standard'
+    }
+}
+
+@description('Enable Microsoft Defender Standard for Container Registry. Requires Owner or Security Admin role.')
+resource enableContainerRegistry 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+    name: 'ContainerRegistry'
+    properties: {
+        pricingTier: 'Standard'
+    }
+}
+
+@description('Enable Microsoft Defender Standard for Kubernetes Service. Requires Owner or Security Admin role.')
+resource enableKubernetesService 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+    name: 'KubernetesService'
+    properties: {
+        pricingTier: 'Standard'
+    }
+}
+
+@description('Enable Microsoft Defender Standard for Azure Resource Manager. Requires Owner or Security Admin role.')
+resource enableArm 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+    name: 'Arm'
+    properties: {
+        pricingTier: 'Standard'
+    }
+}
+
+@description('Enable Microsoft Defender Standard for Azure DNS. Requires Owner or Security Admin role.')
+resource enableDns 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+    name: 'Dns'
+    properties: {
+        pricingTier: 'Standard'
+    }
+}

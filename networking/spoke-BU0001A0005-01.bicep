@@ -596,6 +596,7 @@ module policyAssignmentNoPublicIpsInVnet '../modules/policyAssignmentDeployment.
     params: {
         name: guid(policyResourceIdNoPublicIpsInVnet.id, clusterVNet.id)
         displayName: 'Network interfaces in [${clusterVNet.name}] should not have public IPs'
+        location: location
         policyAssignmentDescription: 'Cluster VNet should never have a NIC with a public IP.'
         parameters: {
             vnetResourceId: {
