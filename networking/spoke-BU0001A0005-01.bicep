@@ -584,31 +584,14 @@ resource nsgAcrDockerSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSet
     }
 }
 
-resource policyResourceIdNoPublicIpsInVnet 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
-    scope: subscription()
-    name: 'NoPublicIPsForNICsInVnet'
-  }
-
 @description('Deploys subscription-level policy related to spoke deployment.')
-module policyAssignmentNoPublicIpsInVnet 'modules/SubscriptionSpokePipUsagePolicyDeployment.bicep' = {
+module policyAssignmentNoPublicIpsInVnet './modules/policyAssignmentNoPublicIpsInVnet.bicep' = {
     name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
     scope: subscription()
     params: {
-        name: guid(policyResourceIdNoPublicIpsInVnet.id, clusterVNet.id)
-        displayName: 'Network interfaces in [${clusterVNet.name}] should not have public IPs'
         location: location
-        policyAssignmentDescription: 'Cluster VNet should never have a NIC with a public IP.'
-        parameters: {
-            vnetResourceId: {
-                value: clusterVNet.id
-            }
-        }
-        policyDefinitionId: policyResourceIdNoPublicIpsInVnet.id
-        nonComplianceMessages: [
-            {
-                message: 'No NICs with public IPs are allowed in the regulated environment spoke.'
-            }
-        ]
+        clusterVNetName: clusterVNet.name
+        clusterVNetId: clusterVNet.id
     }
 }
 
@@ -801,7 +784,7 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     name: 'hub-to-clustetVNet-peering'
     scope: rgHubs
     params: {
-        hubNetworkName: last(split(hubVnetResourceId, '/'))
+        hubVNetResourceId: hubVnetResourceId
         spokesVNetName: clusterVNet.name
         remoteVirtualNetworkId: clusterVNet.id
     }

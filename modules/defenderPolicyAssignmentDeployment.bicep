@@ -25,7 +25,7 @@ param enforcementMode string = 'Default'
   ])
 param location string = 'centralus'
 
-@description('The name of the policy definition set for enabling aks defender')
+@description('Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled. - Policy Assignment')
 param enableDefenderPolicyDefinitionSetName string
 
 /*** RESOURCES ***/

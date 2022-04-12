@@ -296,7 +296,7 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     name: 'hub-to-jumpboxVNet-peering'
     scope: rgHubs
     params: {
-      hubNetworkName: last(split(hubVnetResourceId, '/'))
+      hubVNetResourceId: hubVnetResourceId
       spokesVNetName: imageBuilderVNet.name
       remoteVirtualNetworkId: imageBuilderVNet.id
     }
