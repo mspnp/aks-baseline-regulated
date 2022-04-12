@@ -1,27 +1,16 @@
 targetScope = 'resourceGroup'
 
-/*** PARAMETERS ***/
-
-@description('allowedResources Policy Definition Id')
-param allowedResourcesPolicyDefinitionId string
-
-@description('networkWatcherShouldBeEnabled Policy Definition Id')
-param networkWatcherShouldBeEnabledPolicyDefinitionId string
-
-@description('The spokes resource group')
-param rgSpokes string
-
 /*** RESOURCES ***/
 
 @description('Allowed Resources Policy applied to the spokes RG to only allow select networking and observation resources.')
 module allowedResourcespolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     name: 'Spokes-allowedResourcespolicyAssignment'
-    scope: resourceGroup(rgSpokes)
+    scope: resourceGroup()
     params: {
-        name: guid(allowedResourcesPolicyDefinitionId, rgSpokes)
-        displayName: trim(take('[${rgSpokes}] ${reference(allowedResourcesPolicyDefinitionId, '2020-09-01').displayName}', 125))
+        name: guid('/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c', resourceGroup().name)
+        displayName: trim(take('[${resourceGroup().name}] ${reference('/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c', '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'List of supported resources for our enterprise spokes resource group'
-        policyDefinitionId: allowedResourcesPolicyDefinitionId
+        policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c'
         parameters: {
             listOfResourceTypesAllowed: {
                 value: [
@@ -42,12 +31,12 @@ module allowedResourcespolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
 @description('Applying the \'Network Watcher Should be Enabled\' policy to the Hub resource group.')
 module NetworkWatcherShouldBeEnabledPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     name: 'Spokes-NetworkWatcherShouldBeEnabledPolicyAssignment'
-    scope: resourceGroup(rgSpokes)
+    scope: resourceGroup()
     params: {
-        name: guid(networkWatcherShouldBeEnabledPolicyDefinitionId, rgSpokes)
-        displayName: trim(take('[${rgSpokes}] ${reference(networkWatcherShouldBeEnabledPolicyDefinitionId, '2020-09-01').displayName}', 125))
+        name: guid('/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6', resourceGroup().name)
+        displayName: trim(take('[${resourceGroup().name}] ${reference('/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6', '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Applying the \'Network Watcher Should be Enabled\' policy to the Spoke resource group.'
-        policyDefinitionId: networkWatcherShouldBeEnabledPolicyDefinitionId
+        policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6'
         parameters: {}
     }
 }

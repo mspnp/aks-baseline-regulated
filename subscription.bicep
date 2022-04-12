@@ -396,72 +396,34 @@ resource pdNoPublicIPsForVMScaleSets 'Microsoft.Authorization/policyDefinitions@
 @description('Hubs policies deployment')
 module hubsPoliciesDeployment 'modules/hubsPoliciesDeployment.bicep' = {
     name: 'Apply-${rgHubs.name}-Policies'
-    scope: resourceGroup(rgHubs.name)
-    params: {
-        rgHubs: rgHubs.name
-        allowedResourcesPolicyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c'
-        networkWatcherShouldBeEnabledPolicyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6'
-    }
+    scope: rgHubs
 }
 
 @description('Spokes policies deployment')
 module spokesPoliciesDeployment 'modules/spokesPoliciesDeployment.bicep' = {
     name: 'Apply-${rgSpokes.name}-Policies'
-    scope: resourceGroup(rgSpokes.name)
-    params: {
-        rgSpokes: rgSpokes.name
-        allowedResourcesPolicyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c'
-        networkWatcherShouldBeEnabledPolicyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/b6e2945c-0b7b-40f5-9233-7a5323b5cdc6'
-    }
+    scope: rgSpokes
 }
 
 @description('Network watcher\'s policies deployment')
 module networkWatchersPoliciesDeployment 'modules/networkWatchersPoliciesDeployment.bicep' = {
-    name: 'Apply-${rgNetworkWatchers}-Policies'
-    scope: resourceGroup(rgNetworkWatchers.name)
-    params: {
-        rgNetworkWatchers: rgNetworkWatchers.name
-        allowedResourcesPolicyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c'
-    }
+    name: 'Apply-${rgNetworkWatchers.name}-Policies'
+    scope: rgNetworkWatchers
 }
 
 @description('Workload\'s policies deployment')
 module workloadPoliciesDeployment 'modules/workloadPoliciesDeployment.bicep' = {
-    name: 'Apply-${rgbu0001a0005}-Policies'
-    scope: resourceGroup(rgbu0001a0005.name)
-    params: {
-        rgWorkload: rgbu0001a0005.name
-        allowedResourcesPolicyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c'
-        DenyPublicAksPolicyDefinitionId: guid(subscription().id, 'DenyPublicAks')
-        DenyAksWithoutDefenderPolicyDefinitionId: guid(subscription().id, 'DenyNonDefenderAks')
-        NoPublicIPsForVMScaleSetsPolicyDefinitionId: guid(subscription().id, 'NoPublicIPsForVMScaleSets')
-        DenyAksWithoutPolicyPolicyDefinitionId: guid(subscription().id, 'DenyAksWithoutPolicy')
-        DenyAagWithoutWafPolicyDefinitionId: guid(subscription().id, 'DenyAagWithoutWaf')
-        DenyAksWithoutRbacPolicyDefinitionId: guid(subscription().id, 'DenyAksWithoutRbac')
-        DenyOldAksPolicyDefinitionId: guid(subscription().id, 'DenyOldAksVersions')
-        CustomerManagedEncryptionPolicyDefinitionId: guid(subscription().id, 'CustomerManagedEncryption')
-        EncryptionAtHostPolicyDefinitionId: guid(subscription().id, 'EncryptionAtHost')
-    }
+    name: 'Apply-${rgbu0001a0005.name}-Policies'
+    scope: rgbu0001a0005
 }
 
 @description('Enable policy that ensures various Microsoft Defender services are enabled.')
-module defenderPolicyDeployment 'modules/policyAssignmentDeployment.bicep' = {
+module defenderPolicyDeployment 'modules/defenderPolicyAssignmentDeployment.bicep' = {
     name: 'Apply-EnableDefender-Policy'
     scope: subscription()
     params: {
-        name: guid(subscription().id, 'EnableDefender')
-        displayName: psdEnableDefender.properties.displayName
         location: location
-        identity: {
-            type: 'SystemAssigned'
-        }
-        policyAssignmentDescription: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
-        policyDefinitionId: psdEnableDefender.id
         enforcementMode: enforceAzureDefenderAutoDeployPolicies ? 'Default' : 'DoNotEnforce'
-        metadata: {
-            version: '1.0.0'
-            category: 'Microsoft Defender for Cloud'
-        }
     }
 }
 

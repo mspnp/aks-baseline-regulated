@@ -590,7 +590,7 @@ resource policyResourceIdNoPublicIpsInVnet 'Microsoft.Authorization/policyDefini
   }
 
 @description('Deploys subscription-level policy related to spoke deployment.')
-module policyAssignmentNoPublicIpsInVnet '../modules/policyAssignmentDeployment.bicep' = {
+module policyAssignmentNoPublicIpsInVnet 'modules/SubscriptionSpokePipUsagePolicyDeployment.bicep' = {
     name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
     scope: subscription()
     params: {

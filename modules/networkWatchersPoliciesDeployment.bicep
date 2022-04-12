@@ -1,24 +1,16 @@
 targetScope = 'resourceGroup'
 
-/*** PARAMETERS ***/
-
-@description('allowedResources Policy Definition Id')
-param allowedResourcesPolicyDefinitionId string
-
-@description('The Network Watchers resource group')
-param rgNetworkWatchers string
-
 /*** RESOURCES ***/
 
 @description('Allowed Resources Policy applied to the network watchers resource group to only allow select networking resources.')
 module allowedResourcespolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     name: 'NetworkWatchers-allowedResourcespolicyAssignment'
-    scope: resourceGroup(rgNetworkWatchers)
+    scope: resourceGroup()
     params: {
-        name: guid(allowedResourcesPolicyDefinitionId, rgNetworkWatchers)
-        displayName: trim(take('[${rgNetworkWatchers}] ${reference(allowedResourcesPolicyDefinitionId, '2020-09-01').displayName}', 125))
+        name: guid('/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c', resourceGroup().name)
+        displayName: trim(take('[${resourceGroup().name}] ${reference('/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c', '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'List of supported resources for our Network Watcher resource group'
-        policyDefinitionId: allowedResourcesPolicyDefinitionId
+        policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c'
         enforcementMode: 'DoNotEnforce'        
         parameters: {
             listOfResourceTypesAllowed: {
