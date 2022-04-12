@@ -42,15 +42,17 @@ module allowedResourcespolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     }
 }
 
-@description('Deny public AKS clusters policy applied to the workload resource group.')
+
+
+
 module DenyPublicAksPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     name: 'Workload-DenyPublicAksPolicyAssignment'
-    scope: resourceGroup(resourceGroup().name)
+    scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'DenyPublicAks'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'DenyPublicAks'), '2020-09-01').displayName}', 125))
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyPublicAks')), '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Only support private AKS clusters, deny any other.'
-        policyDefinitionId: guid(subscription().id, 'DenyPublicAks')
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyPublicAks'))
         parameters: {}
     }
 }
@@ -58,12 +60,12 @@ module DenyPublicAksPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
 @description('Deny the creation of Azure Kubernetes Service cluster that is not protected with Microsoft Defender for Containers.')
 module DenyAksWithoutDefenderPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     name: 'Workload-DenyAksWithoutDefenderPolicyAssignment'
-    scope: resourceGroup(resourceGroup().name)
+    scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'DenyNonDefenderAks'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'DenyNonDefenderAks'), '2020-09-01').displayName}', 125))
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyNonDefenderAks')), '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Microsoft Defender for Containers should be enabled in the cluster.'
-        policyDefinitionId: guid(subscription().id, 'DenyNonDefenderAks')
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyNonDefenderAks'))
         parameters: {}
     }
 }
@@ -74,8 +76,8 @@ module NoPublicIPsForVMScaleSetsPolicyAssignment 'policyAssignmentDeploymentRG.b
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'NoPublicIPsForVMScaleSets'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'NoPublicIPsForVMScaleSets'), '2020-09-01').displayName}', 125))
-        policyDefinitionId: guid(subscription().id, 'NoPublicIPsForVMScaleSets')
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'NoPublicIPsForVMScaleSets')), '2020-09-01').displayName}', 125))
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'NoPublicIPsForVMScaleSets'))
         parameters: {}
     }
 }
@@ -86,9 +88,9 @@ module DenyAksWithoutPolicyPolicyAssignment 'policyAssignmentDeploymentRG.bicep'
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'DenyAksWithoutPolicy'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'DenyAksWithoutPolicy'), '2020-09-01').displayName}', 125))
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyAksWithoutPolicy')), '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Only support AKS clusters with Azure Policy enabled, deny any other.'
-        policyDefinitionId: guid(subscription().id, 'DenyAksWithoutPolicy')
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyAksWithoutPolicy'))
         parameters: {}
     }
 }
@@ -99,9 +101,9 @@ module DenyAagWithoutWafPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = 
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'DenyAagWithoutWaf'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'DenyAagWithoutWaf'), '2020-09-01').displayName}', 125))
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyAagWithoutWaf')), '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Only allow Azure Application Gateway SKU with WAF support.'
-        policyDefinitionId: guid(subscription().id, 'DenyAagWithoutWaf')
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyAagWithoutWaf'))
         parameters: {}
     }
 }
@@ -112,9 +114,9 @@ module DenyAksWithoutRbacPolicyAssignment 'policyAssignmentDeploymentRG.bicep' =
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'DenyAksWithoutRbac'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'DenyAksWithoutRbac'), '2020-09-01').displayName}', 125))
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyAksWithoutRbac')), '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Only allow AKS with RBAC support enabled.'
-        policyDefinitionId: guid(subscription().id, 'DenyAksWithoutRbac')
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyAksWithoutRbac'))
         parameters: {}
     }
 }
@@ -125,9 +127,9 @@ module DenyOldAksPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'DenyOldAksVersions'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'DenyOldAksVersions'), '2020-09-01').displayName}', 125))
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyOldAksVersions')), '2020-09-01').displayName}', 125))
         policyAssignmentDescription: 'Disallow older AKS versions.'
-        policyDefinitionId: guid(subscription().id, 'DenyOldAksVersions')
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'DenyOldAksVersions'))
         parameters: {}
     }
 }
@@ -138,8 +140,8 @@ module CustomerManagedEncryptionPolicyAssignment 'policyAssignmentDeploymentRG.b
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'CustomerManagedEncryption'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'CustomerManagedEncryption'), '2020-09-01').displayName}', 125))
-        policyDefinitionId: guid(subscription().id, 'CustomerManagedEncryption')
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'CustomerManagedEncryption')), '2020-09-01').displayName}', 125))
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'CustomerManagedEncryption'))
         parameters: {}
     }
 }
@@ -150,10 +152,8 @@ module EncryptionAtHostPolicyAssignment 'policyAssignmentDeploymentRG.bicep' = {
     scope: resourceGroup()
     params: {
         name: guid(guid(subscription().id, 'EncryptionAtHost'), resourceGroup().name)
-        displayName: trim(take('[${resourceGroup().name}] ${reference(guid(subscription().id, 'EncryptionAtHost'), '2020-09-01').displayName}', 125))
-        policyDefinitionId: guid(subscription().id, 'EncryptionAtHost')
+        displayName: trim(take('[${resourceGroup().name}] ${reference(subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'EncryptionAtHost')), '2020-09-01').displayName}', 125))
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', guid(subscription().id, 'EncryptionAtHost'))
         parameters: {}
     }
 }
-
-

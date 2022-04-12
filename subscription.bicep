@@ -423,6 +423,7 @@ module defenderPolicyDeployment 'modules/defenderPolicyAssignmentDeployment.bice
     scope: subscription()
     params: {
         location: location
+        enableDefenderPolicyDefinitionSetName: psdEnableDefender.name
         enforcementMode: enforceAzureDefenderAutoDeployPolicies ? 'Default' : 'DoNotEnforce'
     }
 }

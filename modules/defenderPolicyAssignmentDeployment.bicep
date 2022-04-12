@@ -25,25 +25,23 @@ param enforcementMode string = 'Default'
   ])
 param location string = 'centralus'
 
-/*** RESOURCES ***/
+@description('The name of the policy definition set for enabling aks defender')
+param enableDefenderPolicyDefinitionSetName string
 
-@description('Ensures Microsoft Defender is enabled for select resources.')
-resource psdEnableDefender 'Microsoft.Authorization/policySetDefinitions@2021-06-01' existing = {
-    name: guid(subscription().id, 'EnableDefender')
-}
+/*** RESOURCES ***/
 
 @description('Assignment of policy')
 resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01' =  {
-    name: psdEnableDefender.id
+    name: guid(enableDefenderPolicyDefinitionSetName, subscription().id)
     identity: {
         type: 'SystemAssigned'
     }
     location: location
     properties: {
-        displayName: psdEnableDefender.properties.displayName
+        displayName: reference(subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', enableDefenderPolicyDefinitionSetName), '2020-09-01').displayName
         description: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
         notScopes: []
-        policyDefinitionId: psdEnableDefender.id
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', enableDefenderPolicyDefinitionSetName)
         enforcementMode: enforcementMode
         metadata: {
             version: '1.0.0'
@@ -51,4 +49,3 @@ resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01'
         }
     }
 }
-
