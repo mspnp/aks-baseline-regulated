@@ -98,14 +98,14 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
    ```bash
    # [This may take up to six minutes to run.]
-   az deployment sub create -f subscription.json -l centralus -p networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
+   az deployment sub create -f subscription.bicep -l centralus -p networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
    ```
 
    If you do not have permissions on your subscription to enable Microsoft Defender (which requires the Azure RBAC role of _Subscription Owner_ or _Security Admin_), then instead execute the following variation of the same command. This will not enable Microsoft Defender services nor will Azure Policy attempt to enable the same (the policy will still be created, but in audit-only mode). Your final implementation should be to a subscription with these security services activated.
 
    ```bash
    # [This may take up to five minutes to run.]
-   az deployment sub create -f subscription.json -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
+   az deployment sub create -f subscription.bicep -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
    ```
 
 ## Azure Security Benchmark
