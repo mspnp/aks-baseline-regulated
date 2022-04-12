@@ -40,27 +40,27 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
    RESOURCEID_VNET_HUB=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-region.v0 --query properties.outputs.hubVnetId.value -o tsv)
 
    # [This takes about one minute to run.]
-   az deployment group create -g rg-enterprise-networking-spokes -f networking/spoke-BU0001A0005-00.json -p location=eastus2 hubVnetResourceId="${RESOURCEID_VNET_HUB}"
+   az deployment group create -g rg-enterprise-networking-spokes -f networking/spoke-BU0001A0005-00.bicep -p location=eastus2 hubVnetResourceId="${RESOURCEID_VNET_HUB}"
    ```
 
 1. Update the regional hub deployment to account for the requirements of the spoke.
 
    Now that the first spoke network is created, the hub network's firewall needs to be updated to support the Azure Image Builder process that will execute in there. The hub firewall does NOT have any default permissive egress rules, and as such, each needed egress endpoint needs to be specifically allowed. This deployment builds on the prior with the added allowances in the firewall.
 
-   > :eyes: If you're curious to see what changed in the regional hub, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v0.json&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v1.json).
+   > :eyes: If you're curious to see what changed in the regional hub, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v0.bicep&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v1.bicep).
 
    ```bash
    RESOURCEID_SUBNET_AIB=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-00 --query properties.outputs.imageBuilderSubnetResourceId.value -o tsv)
 
    # [This takes about five minutes to run.]
-   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-region.v1.json -p location=eastus2 aksImageBuilderSubnetResourceId="${RESOURCEID_SUBNET_AIB}"
+   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-region.v1.bicep -p location=eastus2 aksImageBuilderSubnetResourceId="${RESOURCEID_SUBNET_AIB}"
    ```
 
 ### Build and deploy the jump box image
 
 Now that we have our image building network created, egressing through our hub, and all NSG/firewall rules applied, it's time to build and deploy our jump box image. We are using the general purpose AKS jump box image as described in the [AKS Jump Box Image Builder repository](https://github.com/mspnp/aks-jumpbox-imagebuilder); which comes with baked-in tooling such as Azure CLI, kubectl, helm, flux, etc.. The network rules applied in the prior steps support its specific build-time requirements. If you use this infrastructure to build a modified version of this image template, you may need to add additional network allowances or remove unneeded allowances.
 
-1. Download the ARM templates from the AKS Jump Box Image Builder repository.
+1. Download the Bicep templates from the AKS Jump Box Image Builder repository.
 
    Ideally core templates like this would be part of your private Bicep registry. For this walk through, we are simply downloading the remote Bicep templates locally for execution.
 
