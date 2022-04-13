@@ -417,13 +417,21 @@ module workloadPoliciesDeployment 'modules/workloadPoliciesDeployment.bicep' = {
     scope: rgbu0001a0005
 }
 
-@description('Enable policy that ensures various Microsoft Defender services are enabled.')
-module defenderPolicyDeployment 'modules/defenderPolicyAssignmentDeployment.bicep' = {
+@description('Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled. - Policy Assignment')
+module defenderPolicyDeployment 'modules/subscriptionPolicyAssignment.bicep' = {
     name: 'Apply-EnableDefender-Policy'
     scope: subscription()
     params: {
         location: location
-        enableDefenderPolicyDefinitionSetName: psdEnableDefender.name
+        policyAssignmentIdentity: {
+            type: 'SystemAssigned'
+        }
+        polcyAssignmentMetadata: {
+            version: '1.0.0'
+            category: 'Microsoft Defender for Cloud'
+        }
+        policyDefinitionName: psdEnableDefender.name
+        polcyAssignmentDescription: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
         enforcementMode: enforceAzureDefenderAutoDeployPolicies ? 'Default' : 'DoNotEnforce'
     }
 }
