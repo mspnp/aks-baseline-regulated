@@ -12,4 +12,4 @@ resources:
 - daemonset.yaml
 images:
 - name: docker.io/falcosecurity/falco
-  newName: acrakshj4l26oiftkuy.azurecr.io/live/falcosecurity/falco
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/falcosecurity/falco
