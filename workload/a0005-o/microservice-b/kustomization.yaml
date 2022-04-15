@@ -7,4 +7,4 @@ resources:
 - deployment.yaml
 images:
 - name: YOUR_ACR.azurecr.io/live/a0005/chain-api
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/a0005/chain-api
+  newName: acrakshj4l26oiftkuy.azurecr.io/live/a0005/chain-api
