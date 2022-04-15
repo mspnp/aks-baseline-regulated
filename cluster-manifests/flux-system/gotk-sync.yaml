@@ -8,7 +8,7 @@ spec:
   interval: 1m
   ref:
     branch: main
-  url: https://github.com/magrande/aks-baseline-regulated
+  url: https://github.com/mspnp/aks-baseline-regulated
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
 kind: Kustomization
