@@ -11,6 +11,6 @@ resources:
 - rbac.yaml
 images:
 - name: ghcr.io/fluxcd/source-controller
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/fluxcd/source-controller
+  newName: acrakshj4l26oiftkuy.azurecr.io/live/fluxcd/source-controller
 - name: ghcr.io/fluxcd/kustomize-controller
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/fluxcd/kustomize-controller
+  newName: acrakshj4l26oiftkuy.azurecr.io/live/fluxcd/kustomize-controller
