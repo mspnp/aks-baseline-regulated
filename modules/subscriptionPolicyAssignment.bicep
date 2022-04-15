@@ -43,16 +43,21 @@ param notScopes array = []
 
 /*** RESOURCES ***/
 
+resource policyDefintion 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    name: policyDefinitionName
+    scope: subscription()
+}
+
 @description('Assignment of policy')
 resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01' =  {
-    name: guid(policyDefinitionName, subscription().id)
+    name: guid(policyDefintion.name, subscription().id)
     identity: policyAssignmentIdentity
     location: location
     properties: {
-        displayName: reference(subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefinitionName), '2020-09-01').displayName
+        displayName: reference(subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefintion.name), '2020-09-01').displayName
         description: polcyAssignmentDescription
         notScopes: notScopes
-        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefinitionName)
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefintion.name)
         enforcementMode: enforcementMode
         metadata: polcyAssignmentMetadata
     }
