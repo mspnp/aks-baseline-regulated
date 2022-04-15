@@ -7,6 +7,6 @@ resources:
 - deployment.yaml
 images:
 - name: YOUR_ACR.azurecr.io/live/jettech/kube-webhook-certgen
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/jettech/kube-webhook-certgen
+  newName: acrakshj4l26oiftkuy.azurecr.io/live/jettech/kube-webhook-certgen
 - name: YOUR_ACR.azurecr.io/live/ingress-nginx/controller
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/ingress-nginx/controller
+  newName: acrakshj4l26oiftkuy.azurecr.io/live/ingress-nginx/controller
