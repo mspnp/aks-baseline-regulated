@@ -2,7 +2,7 @@ targetScope = 'resourceGroup'
 
 /*** PARAMETERS ***/
 
-@description('Determines whether the policy being assigned is built in or not.')
+@description('Indicates whether the policy being assigned is built in or not.')
 param builtIn bool = true
 
 @description('The name of the policy to assign.')
