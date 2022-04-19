@@ -457,7 +457,7 @@ resource enableContainerRegistry 'Microsoft.Security/pricings@2018-06-01' = if (
     }
 }
 
-@description('Enable Microsoft Defender Standard for Kubernetes Service. Requires Owner or Security Admin role.')
+@description('Enable Microsoft Defender for Kubernetes Service. Deprecated, please move to Defender for Containers. Requires Owner or Security Admin role.')
 resource enableKubernetesService 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'KubernetesService'
     properties: {
