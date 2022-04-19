@@ -17,7 +17,7 @@ param policyAssignmentParameters object = {}
 @description('This property provides the ability to test the outcome of a policy on existing resources without initiating the policy effect or triggering entries in the Azure Activity log')
 param policyAssignmentEnforcementMode string = 'Default'
 
-resource policyDefintion 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+resource policyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
     name: policyDefinitionName
     scope: subscription()
 }
