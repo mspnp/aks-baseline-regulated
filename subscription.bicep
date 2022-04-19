@@ -1,5 +1,17 @@
 targetScope = 'subscription'
 
+/* Required Permissions 
+        - Scope: Subscription
+          Role: Contributor
+          Reason: Creating resource groups, azure policy definations and assignments
+
+       Optional Permissions
+        - Scope: Subscription
+          Role: Security Admin (or Owner)
+          Reason: To enable Microsoft Defender for Kubernetes, Container Registry, and Key Vault.
+          Notes: If unable to obtain permissions, you must pass false to the enableAzureDefender parameter or have someone else enable these for you.
+*/
+
 /*** PARAMETERS ***/
 
 @description('By default Microsoft Defender for Kubernetes Service, Container Registry, and Key Vault are configured to deploy via Azure Policy, use this parameter to disable that.')
@@ -11,55 +23,42 @@ param enableMicrosoftDefenderForCloud bool = true
 @description('networkWatcherRG often times already exists in a subscription. Empty string will result in using the default resource location.')
 param networkWatcherRGRegion string = ''
 
+/*** VARIABLES ***/
+
 @description('This region is used as the default for all generic resource groups and for any additional deployment resources. No resources are actually deployed to this resource group.')
-@allowed([
-    'australiaeast'
-    'canadacentral'
-    'centralus'
-    'eastus'
-    'eastus2'
-    'westus2'
-    'francecentral'
-    'germanywestcentral'
-    'northeurope'
-    'southafricanorth'
-    'southcentralus'
-    'uksouth'
-    'westeurope'
-    'japaneast'
-    'southeastasia'
-  ])
-param location string = 'centralus'
+var deploymentResourceRegion = 'centralus' 
+
+/*** EXISTING RESOURCES ***/
+
+@description('Security Admin Role built-in role.')
+resource securityAdminRole 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+    name: 'fb1c8493-542b-48eb-b624-b4c8fea62acd'
+}
 
 /*** RESOURCES ***/
 
 @description('This contains all of our regional hubs. Typically this would be found in your enterprise\'s Connectivity subscription.')
 resource rgHubs 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'rg-enterprise-networking-hubs'
-    location: location
+    location: deploymentResourceRegion
 }
 
 @description('This contains all of our regional spokes. Typically this would be found in your enterprise\'s Connectivity subscription or in the workload\'s subscription.')
 resource rgSpokes 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'rg-enterprise-networking-spokes'
-    location: location
+    location: deploymentResourceRegion
 }
 
 @description('This is the resource group for BU001A0005. Typically this would be found in your workload\'s subscription.')
 resource rgbu0001a0005 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'rg-bu0001a0005'
-    location: location
+    location: deploymentResourceRegion
 }
 
 @description('This is the resource group for Azure Network Watchers. Most subscriptions already have this.')
 resource rgNetworkWatchers 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'networkWatcherRG'
-    location: empty(networkWatcherRGRegion) ? 'centralus' : networkWatcherRGRegion
-}
-
-@description('Security Admin Role built-in role.')
-resource securityAdminRole 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
-    name: 'fb1c8493-542b-48eb-b624-b4c8fea62acd'
+    location: networkWatcherRGRegion
 }
 
 @description('Microsoft Defender for Containers provides real-time threat protection for containerized environments and generates alerts for suspicious activities.')
@@ -98,7 +97,7 @@ resource pdEnableAksDefender 'Microsoft.Authorization/policyDefinitions@2021-06-
                         equals: 'Standard'
                     }
                     deployment: {
-                        location: location
+                        location: deploymentResourceRegion
                         properties: {
                             mode: 'incremental'
                             template: {
@@ -159,7 +158,7 @@ resource pdEnableAkvDefender 'Microsoft.Authorization/policyDefinitions@2021-06-
                         equals: 'Standard'
                     }
                     deployment: {
-                        location: location
+                        location: deploymentResourceRegion
                         properties: {
                             mode: 'incremental'
                             template: {
@@ -427,7 +426,7 @@ module defenderPolicyDeployment 'modules/subscriptionPolicyAssignment.bicep' = {
     name: 'Apply-EnableDefender-Policy'
     scope: subscription()
     params: {
-        location: location
+        location: deploymentResourceRegion
         policyAssignmentIdentity: {
             type: 'SystemAssigned'
         }
@@ -470,7 +469,7 @@ resource enableKubernetesService 'Microsoft.Security/pricings@2018-06-01' = if (
 resource enableArm 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'Arm'
     properties: {
-        pricingTier: 'Standard'
+        pricingTier: 'Standard' // Isn't included in the Azure Policy applications above.
     }
 }
 
@@ -478,6 +477,6 @@ resource enableArm 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosof
 resource enableDns 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'Dns'
     properties: {
-        pricingTier: 'Standard'
+        pricingTier: 'Standard' // Isn't included in the Azure Policy applications above.
     }
 }

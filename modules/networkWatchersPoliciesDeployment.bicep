@@ -10,7 +10,7 @@ module allowedResourcespolicyAssignment 'resourceGroupPolicyAssignment.bicep' = 
         builtIn: true
         policyDefinitionName: 'a08ec900-254a-4555-9bf5-e42af04b5c5c'
         policyAssignmentDescription: 'List of supported resources for our Network Watcher resource group'
-        policyAssignmentEnforcementMode: 'DoNotEnforce'
+        policyAssignmentEnforcementMode: 'DoNotEnforce' // Since this RG may be under existing policy control in your subscription, adding this policy as audit-only.
         policyAssignmentParameters: {
             listOfResourceTypesAllowed: {
                 value: [
