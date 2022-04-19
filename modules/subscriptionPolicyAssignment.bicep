@@ -23,12 +23,15 @@ param polcyAssignmentMetadata object = {}
 @description('The policy\'s excluded scopes')
 param notScopes array = []
 
-/*** RESOURCES ***/
+/*** EXISTING RESOURCES ***/
 
+@description('Existing policy definition')
 resource policyDefintion 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
     name: policyDefinitionName
     scope: subscription()
 }
+
+/*** RESOURCES ***/
 
 @description('Assignment of policy')
 resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01' =  {

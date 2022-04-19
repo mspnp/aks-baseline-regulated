@@ -29,7 +29,6 @@ resource DenyAksWithoutRbacPolicyDefinition 'Microsoft.Authorization/policyDefin
     scope: subscription()
 }
 
-
 @description('Kubernetes Services should be upgraded to a non-vulnerable Kubernetes version - Policy definition')
 resource DenyOldAksPolicyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
     name: 'fb893a29-21bb-418c-a157-e99480ec364c'
