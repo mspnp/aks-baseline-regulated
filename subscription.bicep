@@ -5,13 +5,13 @@ targetScope = 'subscription'
 @description('By default Microsoft Defender for Kubernetes Service, Container Registry, and Key Vault are configured to deploy via Azure Policy, use this parameter to disable that.')
 param enforceAzureDefenderAutoDeployPolicies bool = true
 
-@description('By default Microsoft Defender for Kubernetes Service, Container Registry, and Key Vault are enabled; use this parameter to prevent them from being enabled. Deploying these requires subscription Owner or Security Admin roles.')
-param enableAzureDefender bool = true
+@description('By default Microsoft Defender for Containers service is enabled; use this parameter to prevent the involved pricings from being enabled. Deploying these requires subscription Owner or Security Admin roles.')
+param enableMicrosoftDefenderForCloud bool = true
 
 @description('networkWatcherRG often times already exists in a subscription. Empty string will result in using the default resource location.')
 param networkWatcherRGRegion string = ''
 
-@description('Subsription deployment\'s main location (centralus if not specified)')
+@description('This region is used as the default for all generic resource groups and for any additional deployment resources. No resources are actually deployed to this resource group.')
 @allowed([
     'australiaeast'
     'canadacentral'
@@ -57,6 +57,11 @@ resource rgNetworkWatchers 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     location: empty(networkWatcherRGRegion) ? 'centralus' : networkWatcherRGRegion
 }
 
+@description('Security Admin Role built-in role.')
+resource securityAdminRole 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+    name: 'fb1c8493-542b-48eb-b624-b4c8fea62acd'
+}
+
 @description('Microsoft Defender for Containers provides real-time threat protection for containerized environments and generates alerts for suspicious activities.')
 resource pdEnableAksDefender 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
     name: guid(subscription().id, 'EnableDefenderForAks')
@@ -86,7 +91,7 @@ resource pdEnableAksDefender 'Microsoft.Authorization/policyDefinitions@2021-06-
                     deploymentScope: 'subscription'
                     existenceScope: 'subscription'
                     roleDefinitionIds: [
-                        '/providers/Microsoft.Authorization/roleDefinitions/fb1c8493-542b-48eb-b624-b4c8fea62acd'
+                        securityAdminRole.id
                     ]
                     existenceCondition: {
                         field: 'Microsoft.Security/pricings/pricingTier'
@@ -147,7 +152,7 @@ resource pdEnableAkvDefender 'Microsoft.Authorization/policyDefinitions@2021-06-
                     deploymentScope: 'subscription'
                     existenceScope: 'subscription'
                     roleDefinitionIds: [
-                        '/providers/Microsoft.Authorization/roleDefinitions/fb1c8493-542b-48eb-b624-b4c8fea62acd'
+                        securityAdminRole.id
                     ]
                     existenceCondition: {
                         field: 'Microsoft.Security/pricings/pricingTier'
@@ -431,13 +436,14 @@ module defenderPolicyDeployment 'modules/subscriptionPolicyAssignment.bicep' = {
             category: 'Microsoft Defender for Cloud'
         }
         policyDefinitionName: psdEnableDefender.name
-        polcyAssignmentDescription: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
+        policyAssignmentDescription: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
         enforcementMode: enforceAzureDefenderAutoDeployPolicies ? 'Default' : 'DoNotEnforce'
+        notScopes: []
     }
 }
 
 @description('Enable Microsoft Defender Standard for Key Vault. Requires Owner or Security Admin role.')
-resource enableKeyVaultspricing 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+resource enableKeyVaultspricing 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'KeyVaults'
     properties: {
         pricingTier: 'Standard'
@@ -445,7 +451,7 @@ resource enableKeyVaultspricing 'Microsoft.Security/pricings@2018-06-01' = if (e
 }
 
 @description('Enable Microsoft Defender Standard for Container Registry. Requires Owner or Security Admin role.')
-resource enableContainerRegistry 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+resource enableContainerRegistry 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'ContainerRegistry'
     properties: {
         pricingTier: 'Standard'
@@ -453,7 +459,7 @@ resource enableContainerRegistry 'Microsoft.Security/pricings@2018-06-01' = if (
 }
 
 @description('Enable Microsoft Defender Standard for Kubernetes Service. Requires Owner or Security Admin role.')
-resource enableKubernetesService 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+resource enableKubernetesService 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'KubernetesService'
     properties: {
         pricingTier: 'Standard'
@@ -461,7 +467,7 @@ resource enableKubernetesService 'Microsoft.Security/pricings@2018-06-01' = if (
 }
 
 @description('Enable Microsoft Defender Standard for Azure Resource Manager. Requires Owner or Security Admin role.')
-resource enableArm 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+resource enableArm 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'Arm'
     properties: {
         pricingTier: 'Standard'
@@ -469,7 +475,7 @@ resource enableArm 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDef
 }
 
 @description('Enable Microsoft Defender Standard for Azure DNS. Requires Owner or Security Admin role.')
-resource enableDns 'Microsoft.Security/pricings@2018-06-01' = if (enableAzureDefender) {
+resource enableDns 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'Dns'
     properties: {
         pricingTier: 'Standard'

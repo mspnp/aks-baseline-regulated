@@ -6,25 +6,7 @@ targetScope = 'subscription'
 param enforcementMode string = 'Default'
 
 @description('Subsription deployment\'s main location (centralus if not specified)')
-@allowed([
-    'australiaeast'
-    'canadacentral'
-    'centralus'
-    'eastus'
-    'eastus2'
-    'westus2'
-    'francecentral'
-    'germanywestcentral'
-    'northeurope'
-    'southafricanorth'
-    'southcentralus'
-    'uksouth'
-    'westeurope'
-    'japaneast'
-    'southeastasia'
-  ])
-param location string = 'centralus'
-
+param location string
 
 @description('The name of the policy or policy set to assign.')
 param policyDefinitionName string
@@ -33,7 +15,7 @@ param policyDefinitionName string
 param policyAssignmentIdentity object = {}
 
 @description('The desciption of the policy assignment')
-param polcyAssignmentDescription string = ''
+param policyAssignmentDescription string = ''
 
 @description('Policy assignment metadata; this parameter can by any object')
 param polcyAssignmentMetadata object = {}
@@ -55,7 +37,7 @@ resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01'
     location: location
     properties: {
         displayName: reference(subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefintion.name), '2020-09-01').displayName
-        description: polcyAssignmentDescription
+        description: policyAssignmentDescription
         notScopes: notScopes
         policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefintion.name)
         enforcementMode: enforcementMode

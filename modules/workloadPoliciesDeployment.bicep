@@ -88,13 +88,19 @@ module NoPublicIPsForVMScaleSetsPolicyAssignment 'resourceGroupPolicyAssignment.
     }
 }
 
+@description('Azure Policy Add-on for Kubernetes service (AKS) should be installed and enabled on your clusters - Policy definition')
+resource DenyAksWithoutPolicyPolicyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    name: '0a15ec92-a229-4763-bb14-0ea34a568f8d'
+    scope: subscription()
+}
+
 @description('Only support AKS clusters with Azure Policy enabled, deny any other. - Policy Assignment')
 module DenyAksWithoutPolicyPolicyAssignment 'resourceGroupPolicyAssignment.bicep' = {
     name: 'Workload-DenyAksWithoutPolicyPolicyAssignment'
     scope: resourceGroup()
     params: {
         builtIn: true
-        policyDefinitionName: '0a15ec92-a229-4763-bb14-0ea34a568f8d'
+        policyDefinitionName: DenyAksWithoutPolicyPolicyDefinition.name
         policyAssignmentDescription: 'Only support AKS clusters with Azure Policy enabled, deny any other.'
     }
 }
@@ -115,15 +121,27 @@ module DenyAagWithoutWafPolicyAssignment 'resourceGroupPolicyAssignment.bicep' =
     }
 }
 
+@description('Role-Based Access Control (RBAC) should be used on Kubernetes Services - Policy definition.')
+resource DenyAksWithoutRbacPolicyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    name: 'ac4a19c2-fa67-49b4-8ae5-0b2e78c49457'
+    scope: subscription()
+}
+
 @description('Deny AKS clusters without RBAC policy applied to the appliction resource group. - Policy assignment')
 module DenyAksWithoutRbacPolicyAssignment 'resourceGroupPolicyAssignment.bicep' = {
     name: 'Workload-DenyAksWithoutRbacPolicyAssignment'
     scope: resourceGroup()
     params: {
         builtIn: true
-        policyDefinitionName: 'ac4a19c2-fa67-49b4-8ae5-0b2e78c49457'
+        policyDefinitionName: DenyAksWithoutRbacPolicyDefinition.name
         policyAssignmentDescription: 'Only allow AKS with RBAC support enabled.'
     }
+}
+
+@description('Kubernetes Services should be upgraded to a non-vulnerable Kubernetes version - Policy definition')
+resource DenyOldAksPolicyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    name: 'fb893a29-21bb-418c-a157-e99480ec364c'
+    scope: subscription()
 }
 
 @description('Deny AKS clusters on old version policy applied to the appliction resource group. - Policy Assignment')
@@ -132,9 +150,15 @@ module DenyOldAksPolicyAssignment 'resourceGroupPolicyAssignment.bicep' = {
     scope: resourceGroup()
     params: {
         builtIn: true
-        policyDefinitionName: 'fb893a29-21bb-418c-a157-e99480ec364c'
+        policyDefinitionName: DenyOldAksPolicyDefinition.name
         policyAssignmentDescription: 'Disallow older AKS versions.'
     }
+}
+
+@description('Both operating systems and data disks in Azure Kubernetes Service clusters should be encrypted by customer-managed keys - Policy definition')
+resource CustomerManagedEncryptionPolicyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    name: '7d7be79c-23ba-4033-84dd-45e2a5ccdd67'
+    scope: subscription()
 }
 
 @description('\'Customer-Managed Disk Encryption\' applied to resource group - Policy Assignment.')
@@ -143,16 +167,22 @@ module CustomerManagedEncryptionPolicyAssignment 'resourceGroupPolicyAssignment.
     scope: resourceGroup()
     params: {
         builtIn: true
-        policyDefinitionName: '7d7be79c-23ba-4033-84dd-45e2a5ccdd67'
+        policyDefinitionName: CustomerManagedEncryptionPolicyDefinition.name
     }
 }
 
-@description('\'Encryption at Host\' policy applied to the resource group - Policy Assignment.')
+@description('Temp disks and cache for agent node pools in Azure Kubernetes Service clusters should be encrypted at host - Policy definition')
+resource EncryptionAtHostPolicyDefinition 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
+    name: '41425d9f-d1a5-499a-9932-f8ed8453932c'
+    scope: subscription()
+}
+
+@description('Temp disks and cache for agent node pools in Azure Kubernetes Service clusters should be encrypted at host - Policy Assignment.')
 module EncryptionAtHostPolicyAssignment 'resourceGroupPolicyAssignment.bicep' = {
     name: 'Workload-EncryptionAtHostPolicyAssignment'
     scope: resourceGroup()
     params: {
         builtIn: true
-        policyDefinitionName: '41425d9f-d1a5-499a-9932-f8ed8453932c'
+        policyDefinitionName: EncryptionAtHostPolicyDefinition.name
     }
 }
