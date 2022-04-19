@@ -449,7 +449,7 @@ resource enableKeyVaultspricing 'Microsoft.Security/pricings@2018-06-01' = if (e
     }
 }
 
-@description('Enable Microsoft Defender Standard for Container Registry. Requires Owner or Security Admin role.')
+@description('Enable Microsoft Defender Standard for Container Registry. Deprecated, please move to Defender for Containers. Requires Owner or Security Admin role.')
 resource enableContainerRegistry 'Microsoft.Security/pricings@2018-06-01' = if (enableMicrosoftDefenderForCloud) {
     name: 'ContainerRegistry'
     properties: {
