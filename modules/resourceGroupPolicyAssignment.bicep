@@ -8,7 +8,7 @@ param builtIn bool = true
 @description('The name of the policy to assign.')
 param policyDefinitionName string
 
-@description('The desciption of the policy assignment')
+@description('The description of the policy assignment.')
 param policyAssignmentDescription string = ''
 
 @description('The desciption of the policy assignment')
