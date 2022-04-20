@@ -50,7 +50,7 @@ resource rgSpokes 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 }
 
 @description('This is the resource group for BU001A0005. Typically this would be found in your workload\'s subscription.')
-resource rgbu0001a0005 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource rgbu0001a0005 'Microsoft.Resources/resourceGroups@2021-04-01'  = {
     name: 'rg-bu0001a0005'
     location: deploymentResourceRegion
 }
@@ -427,17 +427,13 @@ module defenderPolicyDeployment 'modules/subscriptionPolicyAssignment.bicep' = {
     scope: subscription()
     params: {
         location: deploymentResourceRegion
-        policyAssignmentIdentity: {
-            type: 'SystemAssigned'
-        }
         polcyAssignmentMetadata: {
             version: '1.0.0'
             category: 'Microsoft Defender for Cloud'
         }
-        policyDefinitionName: psdEnableDefender.name
+        policyDefinitionSetName: psdEnableDefender.name
         policyAssignmentDescription: 'Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled.'
         enforcementMode: enforceAzureDefenderAutoDeployPolicies ? 'Default' : 'DoNotEnforce'
-        notScopes: []
     }
 }
 

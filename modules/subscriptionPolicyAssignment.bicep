@@ -3,46 +3,47 @@ targetScope = 'subscription'
 /*** PARAMETERS ***/
 
 @description('The policy assignment enforcement mode.')
+@allowed([
+    'Default'
+    'DoNotEnforce'
+])
 param enforcementMode string = 'Default'
 
-@description('Subsription deployment\'s main location (centralus if not specified)')
+@description('Subsription deployment\'s main location.')
+@minLength(4)
 param location string
 
-@description('The name of the policy or policy set to assign.')
-param policyDefinitionName string
+@description('The name of the policy set to assign.')
+@minLength(36)
+@maxLength(36)
+param policyDefinitionSetName string
 
-@description('This object contains the type of policy assignment identity')
-param policyAssignmentIdentity object = {}
+@description('The desciption of the policy assignment.')
+@minLength(1)
+param policyAssignmentDescription string
 
-@description('The desciption of the policy assignment')
-param policyAssignmentDescription string = ''
-
-@description('Policy assignment metadata; this parameter can by any object')
+@description('Policy assignment metadata; this parameter can by any object.')
 param polcyAssignmentMetadata object = {}
 
-@description('The policy\'s excluded scopes')
-param notScopes array = []
+/*** VARIABLES ***/
 
-/*** EXISTING RESOURCES ***/
-
-@description('Existing policy definition')
-resource policyDefintion 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
-    name: policyDefinitionName
-    scope: subscription()
-}
+var builtIntPolicyDefinitionSetId = subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefinitionSetName)
 
 /*** RESOURCES ***/
 
 @description('Assignment of policy')
 resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01' =  {
-    name: guid(policyDefintion.name, subscription().id)
-    identity: policyAssignmentIdentity
+    name: guid(builtIntPolicyDefinitionSetId)
+    identity: {
+        type: 'SystemAssigned'
+    }
     location: location
+    scope: subscription()
     properties: {
-        displayName: reference(subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefintion.name), '2020-09-01').displayName
+        displayName: reference(builtIntPolicyDefinitionSetId, '2021-06-01').displayName
         description: policyAssignmentDescription
-        notScopes: notScopes
-        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policySetDefinitions', policyDefintion.name)
+        notScopes: []
+        policyDefinitionId: builtIntPolicyDefinitionSetId
         enforcementMode: enforcementMode
         metadata: polcyAssignmentMetadata
     }
