@@ -6,7 +6,7 @@ targetScope = 'resourceGroup'
 var denyAksWithoutRbacPolicyDefinitionName = 'ac4a19c2-fa67-49b4-8ae5-0b2e78c49457'
 
 @description('Only support the a list of resources for our workload resource group - Policy definition.')
-var allowedResourcespolicyAssignmentName = 'a08ec900-254a-4555-9bf5-e42af04b5c5c'
+var allowedResourcesPolicyAssignmentName = 'a08ec900-254a-4555-9bf5-e42af04b5c5c'
 
 @description('Azure Policy Add-on for Kubernetes service (AKS) should be installed and enabled on your clusters - Policy definition')
 var DenyAksWithoutPolicyPolicyDefinitionName = '0a15ec92-a229-4763-bb14-0ea34a568f8d'
