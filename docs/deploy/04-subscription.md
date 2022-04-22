@@ -105,7 +105,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
    ```bash
    # [This may take up to five minutes to run.]
-   az deployment sub create -f subscription.bicep -l centralus -p enableAzureDefender=false enforceAzureDefenderAutoDeployPolicies=false networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
+   az deployment sub create -f subscription.bicep -l centralus -p enableMicrosoftDefenderForCloud=false enforceAzureDefenderAutoDeployPolicies=false networkWatcherRGRegion="${NETWORK_WATCHER_RG_REGION}"
    ```
 
 ## Azure Security Benchmark

@@ -9,7 +9,7 @@ targetScope = 'subscription'
         - Scope: Subscription
           Role: Security Admin (or Owner)
           Reason: To enable Microsoft Defender for Kubernetes, Container Registry, and Key Vault.
-          Notes: If unable to obtain permissions, you must pass false to the enableAzureDefender parameter or have someone else enable these for you.
+          Notes: If unable to obtain permissions, you must pass false to the enableMicrosoftDefenderForCloud parameter or have someone else enable these for you.
 */
 
 /*** PARAMETERS ***/
@@ -58,7 +58,7 @@ resource rgbu0001a0005 'Microsoft.Resources/resourceGroups@2021-04-01'  = {
 @description('This is the resource group for Azure Network Watchers. Most subscriptions already have this.')
 resource rgNetworkWatchers 'Microsoft.Resources/resourceGroups@2021-04-01' = {
     name: 'networkWatcherRG'
-    location: networkWatcherRGRegion
+    location: empty(networkWatcherRGRegion) ? deploymentResourceRegion : networkWatcherRGRegion
 }
 
 @description('Microsoft Defender for Containers provides real-time threat protection for containerized environments and generates alerts for suspicious activities.')
@@ -417,6 +417,12 @@ module networkWatchersPoliciesDeployment 'modules/networkWatchersPoliciesDeploym
 
 @description('Workload\'s policies deployment')
 module workloadPoliciesDeployment 'modules/workloadPoliciesDeployment.bicep' = {
+    dependsOn:[
+        pdDenyPublicAks
+        pdDenyAksWithoutDefender
+        pdNoPublicIPsForVMScaleSets
+        pdDenyAagWithoutWaf
+    ]
     name: 'Apply-${rgbu0001a0005.name}-Policies'
     scope: rgbu0001a0005
 }

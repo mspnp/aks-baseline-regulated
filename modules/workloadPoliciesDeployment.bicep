@@ -51,7 +51,7 @@ module allowedResourcespolicyAssignment 'resourceGroupPolicyAssignment.bicep' = 
     scope: resourceGroup()
     params: {
         builtIn: true
-        policyDefinitionName: allowedResourcespolicyAssignmentName
+        policyDefinitionName: allowedResourcesPolicyAssignmentName
         policyAssignmentDescription: 'List of supported resources for our workload resource group'
         policyAssignmentParameters: {
             listOfResourceTypesAllowed: {
