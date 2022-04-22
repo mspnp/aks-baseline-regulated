@@ -417,7 +417,7 @@ module networkWatchersPoliciesDeployment 'modules/networkWatchersPoliciesDeploym
 
 @description('Workload\'s policies deployment')
 module workloadPoliciesDeployment 'modules/workloadPoliciesDeployment.bicep' = {
-    dependsOn:[
+    dependsOn: [
         pdDenyPublicAks
         pdDenyAksWithoutDefender
         pdNoPublicIPsForVMScaleSets
