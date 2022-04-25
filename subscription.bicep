@@ -428,7 +428,7 @@ module workloadPoliciesDeployment 'modules/workloadPoliciesDeployment.bicep' = {
 }
 
 @description('Ensures that Microsoft Defender for Kuberentes Service, Container Service, and Key Vault are enabled. - Policy Assignment')
-module defenderPolicyDeployment 'modules/subscriptionPolicyAssignment.bicep' = {
+module defenderPolicyDeployment 'modules/subscriptionPolicySetAssignment.bicep' = {
     name: 'Apply-EnableDefender-Policy'
     scope: subscription()
     params: {
