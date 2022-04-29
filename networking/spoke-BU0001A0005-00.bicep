@@ -235,10 +235,10 @@ resource imageBuilderVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
                 properties: {
                     addressPrefix: '10.241.0.0/28'
                     routeTable: {
-                        id: afRouteTable.name
+                        id: afRouteTable.id
                     }
                     networkSecurityGroup: {
-                        id: nsgJumpboxImgbuilderSubnet.name
+                        id: nsgJumpboxImgbuilderSubnet.id
                     }
                     privateEndpointNetworkPolicies: 'Enabled'
                     privateLinkServiceNetworkPolicies: 'Disabled'
@@ -299,6 +299,7 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     params: {
       hubVNetResourceId: hubVnetResourceId
       spokesVNetName: imageBuilderVNet.name
+      rgSpokes: resourceGroup().name
     }
 }
 

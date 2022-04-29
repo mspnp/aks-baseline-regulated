@@ -10,11 +10,16 @@ param hubVNetResourceId string
 @minLength(2)
 param spokesVNetName string
 
+@description('The spokes\'s resource group')
+@minLength(1)
+param rgSpokes string
+
 /*** EXISTING RESOURCES ***/
 
 @description('The spoke\'s VNet')
 resource spokesVNet 'Microsoft.Network/virtualNetworks@2021-05-01' existing = {
   name: spokesVNetName
+  scope: resourceGroup(rgSpokes)
 }
 
 /*** RESOURCES ***/

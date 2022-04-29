@@ -48,11 +48,17 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' existing = {
   name: 'fw-${location}'
 }
 
-resource azureBastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
+@description('The regional hub network')
+resource hubsVnet 'Microsoft.Network/virtualNetworks@2021-05-01' existing = {
     scope: rgHubs
-    name: 'subnets/AzureBastionSubnet'
+    name: 'vnet-${location}-hub'
+
+    resource azureBastionSubnet 'subnets' existing = {
+        name: 'AzureBastionSubnet'
+      }
 }
 
+@description('The hub\'s resource group')
 resource hubLaWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
     scope: rgHubs
     name: 'la-hub-${location}'
@@ -101,7 +107,7 @@ resource nsgAllowSshFromHubBastionInBound 'Microsoft.Network/networkSecurityGrou
                     description: 'Allow our Azure Bastion users in.'
                     protocol: 'Tcp'
                     sourcePortRange: '*'
-                    sourceAddressPrefix: azureBastionSubnet.properties.addressPrefix
+                    sourceAddressPrefix: hubsVnet::azureBastionSubnet.properties.addressPrefix
                     destinationPortRange: '22'
                     destinationAddressPrefix: '*'
                     access: 'Allow'
@@ -599,17 +605,6 @@ resource nsgAcrDockerSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSet
     }
 }
 
-@description('Deploys subscription-level policy related to spoke deployment. ')
-module policyAssignmentNoPublicIpsInVnet './modules/subscriptionPolicyAssignment.bicep' = {
-    name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
-    scope: subscription()
-    params: {
-        location: location
-        clusterVNetName: clusterVNet.name
-        clusterVNetId: clusterVNet.id
-    }
-}
-
 @description('cluster\'s virtual network. 65,536 (-reserved) IPs available to the workload, split across four subnets for AKS, one for App Gateway, and two for management.')
 resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
     name: 'vnet-spoke-${orgAppId}-01'
@@ -766,6 +761,14 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
     }
 }
 
+@description('Deploys subscription-level policy related to spoke deployment. ')
+module policyAssignmentNoPublicIpsInVnet './modules/ClusterVNetShouldNotHaveNICwithpublicIP.bicep' = {
+    name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
+    params: {
+        clusterVNetId: clusterVNet.id
+    }
+}
+
 @description('Peer to regional hub.')
 resource clusterVNet_virtualNetworkPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
     name: 'spoke-to-${last(split(hubVnetResourceId, '/'))}'
@@ -801,6 +804,7 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     params: {
         hubVNetResourceId: hubVnetResourceId
         spokesVNetName: clusterVNet.name
+        rgSpokes: resourceGroup().name
     }
 }
 
@@ -999,9 +1003,9 @@ output clusterVnetResourceId string = clusterVNet.id
 output jumpboxSubnetResourceId string = clusterVNet::aksManagementOpsSubnet.id
 
 output nodepoolSubnetResourceIds array = [
-    clusterVNet::aksSystemNodepoolSubnet
-    clusterVNet::aksSystemInScopeNodepoolsSubnet
-    clusterVNet::aksSystemOutOfScopeNodepoolsSubnet
+    clusterVNet::aksSystemNodepoolSubnet.id
+    clusterVNet::aksSystemInScopeNodepoolsSubnet.id
+    clusterVNet::aksSystemOutOfScopeNodepoolsSubnet.id
 ]
 
 output appGwPublicIpAddress string = pipPrimaryCluster.properties.ipAddress

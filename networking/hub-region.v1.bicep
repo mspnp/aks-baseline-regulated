@@ -64,6 +64,11 @@ resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-0
   name: last(split(aksImageBuilderSubnetResourceId, '/'))
 }
 
+resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
+  scope: subscription()
+  name: 'networkWatcherRG'
+}
+
 /*** RESOURCES ***/
 
 @description('This Log Analytics workspace stores logs from the regional hub network, its spokes, and bastion. Log analytics is a regional resource, as such there will be one workspace per hub (region)')
@@ -81,7 +86,7 @@ resource laHub 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
 }
 
 @description('Enables Azure Sentinal integration.')
-var laHubSolutionName = 'SecurityInsights(\'${laHub.name}\')'
+var laHubSolutionName = 'SecurityInsights(${laHub.name})'
 resource laHubSolution 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
   name: laHubSolutionName
   location: location
@@ -273,11 +278,9 @@ resource nsgBastionSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSetti
     workspaceId: laHub.id
     logs: [
       {
-        categoryGroup: 'NetworkSecurityGroupEvent'
+        category: 'NetworkSecurityGroupEvent'
         enabled: true
       }
-    ]
-    metrics: [
       {
         category: 'NetworkSecurityGroupRuleCounter'
         enabled: true
@@ -461,12 +464,12 @@ resource imageBuilder_ipgroups 'Microsoft.Network/ipGroups@2021-05-01' = {
   location: location
   properties: {
     ipAddresses: [
-      aksImageBuilderSubnet.properties.addressPrefix
+      reference(aksImageBuilderSubnetResourceId, '2021-05-01').addressPrefix
     ]
   }
 }
 
-resource region_flowlog_storageAccount_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2017-05-01-preview' = {
+resource region_flowlog_storageAccount_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2017-05-01-preview' = if (deployFlowLogResources) {
   name: 'default'
   scope: flowlogs_storageAccount::blobStorage
   properties: {
@@ -504,6 +507,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
     '3'
   ]
   properties: {
+    additionalProperties: {
+      'Network.DNS.EnableProxy': 'true'
+    }
     sku: {
       tier: 'Premium'
       name: 'AZFW_VNet'
@@ -534,7 +540,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'ntp'
               description: 'Network Time Protocol (NTP) time synchronization for image builder VMs.'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 'UDP'
@@ -563,7 +569,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'to-azuremanagement'
               description: 'This for AIB VMs to communicate with Azure management API.'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -579,7 +585,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'to-blobstorage'
               description: 'This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -595,7 +601,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'apt-get'
               description: 'This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               'sourceIpGroups': [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -618,7 +624,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 name: 'install-azcli'
                 description: 'This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
                 sourceIpGroups: [
-                  imageBuilder_ipgroups.id
+                  resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
                 ]
                 protocols: [
                   {
@@ -636,7 +642,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 name: 'install-k8scli'
                 description: 'This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
                 sourceIpGroups: [
-                  imageBuilder_ipgroups.id
+                  resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
                 ]
                 protocols: [
                   {
@@ -656,7 +662,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-helm'
               description: 'This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -674,7 +680,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-flux'
               description: 'This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -693,7 +699,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-open-service-mesh'
               description: 'This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -710,7 +716,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-terraform'
               description: 'This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroups.id
+                resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
                 {
@@ -747,11 +753,6 @@ resource hubFirewall_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
       }
     ]
   }
-}
-
-resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
-  scope: subscription()
-  name: 'networkWatcherRG'
 }
 
 module regionalFlowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {

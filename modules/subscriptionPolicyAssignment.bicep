@@ -13,7 +13,7 @@ param enforcementMode string = 'Default'
 @minLength(4)
 param location string
 
-@description('The name of the policy set to assign.')
+@description('The name of the policy or policy set to assign.')
 @minLength(36)
 @maxLength(36)
 param policyDefinitionSetName string
@@ -33,7 +33,7 @@ var builtIntPolicyDefinitionSetId = subscriptionResourceId('Microsoft.Authorizat
 
 @description('Assignment of policy')
 resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01' =  {
-    name: guid(builtIntPolicyDefinitionSetId)
+    name: guid(builtIntPolicyDefinitionSetId, subscription().id)
     identity: {
         type: 'SystemAssigned'
     }

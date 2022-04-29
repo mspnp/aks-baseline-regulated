@@ -88,7 +88,7 @@ resource laHub 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
 }
 
 @description('Enables Azure Sentinal integration.')
-var laHubSolutionName = 'SecurityInsights(\'${laHub.name}\')'
+var laHubSolutionName = 'SecurityInsights(${laHub.name})'
 resource laHubSolution 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
   name: laHubSolutionName
   location: location
@@ -280,11 +280,9 @@ resource nsgBastionSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSetti
     workspaceId: laHub.id
     logs: [
       {
-        categoryGroup: 'NetworkSecurityGroupEvent'
+        category: 'NetworkSecurityGroupEvent'
         enabled: true
       }
-    ]
-    metrics: [
       {
         category: 'NetworkSecurityGroupRuleCounter'
         enabled: true
@@ -468,7 +466,7 @@ resource imageBuilder_ipgroup 'Microsoft.Network/ipGroups@2021-05-01' = {
   location: location
   properties: {
     ipAddresses: [
-      aksImageBuilderSubnet.properties.addressPrefix
+      reference(aksImageBuilderSubnetResourceId, '2021-05-01').addressPrefix
     ]
   }
 }
@@ -485,7 +483,7 @@ resource aksJumpbox_ipgroup 'Microsoft.Network/ipGroups@2021-05-01' = {
   location: location
   properties: {
     ipAddresses: [
-      aksJumpboxSubnet.properties.addressPrefix
+      reference(aksJumpboxSubnetResourceId, '2021-05-01').addressPrefix
     ]
   }
 }
