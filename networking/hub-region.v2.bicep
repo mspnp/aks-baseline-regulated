@@ -71,6 +71,12 @@ resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-0
   name: last(split(aksImageBuilderSubnetResourceId, '/'))
 }
 
+@description('NetworkWatcher ResourceGroup; it contains regional Network Watchers')
+resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
+  scope: subscription()
+  name: 'networkWatcherRG'
+}
+
 /*** RESOURCES ***/
 
 @description('This Log Analytics workspace stores logs from the regional hub network, its spokes, and bastion. Log analytics is a regional resource, as such there will be one workspace per hub (region)')
@@ -969,11 +975,7 @@ resource hubFirewall_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
   }
 }
 
-resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
-  scope: subscription()
-  name: 'networkWatcherRG'
-}
-
+@description('Flow Logs deployment')
 module regionalFlowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
   name: 'connect-hub-regional-flowlogs'
   scope: networkWatcherResourceGroup

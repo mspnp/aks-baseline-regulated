@@ -525,6 +525,7 @@ resource hubFirewall_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
   }
 }
 
+@description('Flow Logs deployment.')
 module regionalFlowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
   name: 'connect-hub-regional-flowlogs'
   scope: networkWatcherResourceGroup

@@ -48,6 +48,7 @@ resource hubLaWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-pre
     name: 'la-hub-${location}'
 }
 
+@description('NetworkWatcher ResourceGroup; it contains regional Network Watchers')
 resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
     scope: subscription()
     name: 'networkWatcherRG'
@@ -282,6 +283,7 @@ resource imageBuilderVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSetti
     }
 }
 
+@description('Flow Logs deployment')
 module flowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'connect-spoke-bu0001A0005-00-flowlogs'
     scope: networkWatcherResourceGroup
