@@ -1,10 +1,10 @@
 # Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Workloads
 
-This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds directly upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-secure-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns.
+This reference implementation demonstrates the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service) that is under regulatory compliance requirements (such as PCI). This implementation builds directly upon the [AKS Baseline Cluster reference implementation](https://github.com/mspnp/aks-baseline) and adds to it additional implementation points that are more commonly seen in regulated environments vs typical "public cloud" consumption patterns.
 
 | 🎓 Foundational Understanding |
 |:------------------------------|
-| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-secure-baseline) architecture, you should start there before continuing here.** This architecture is constructed from the AKS baseline, which is the foundation for this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
+| **If you haven't familiarized yourself with the general-purpose [AKS baseline cluster](https://github.com/mspnp/aks-baseline) architecture, you should start there before continuing here.** This architecture is constructed from the AKS baseline, which is the foundation for this body of work. This reference implementation avoids rearticulating points that are already addressed in the AKS baseline cluster. |
 
 ## Compliance
 
