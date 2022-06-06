@@ -42,7 +42,7 @@ Following the steps below will result in an Azure AD configuration that will be 
 
    ```bash
    AADOBJECTNAME_GROUP_CLUSTERADMIN=cluster-admins-bu0001a000500
-   AADOBJECTID_GROUP_CLUSTERADMIN=$(az ad group create --display-name $AADOBJECTNAME_GROUP_CLUSTERADMIN --mail-nickname $AADOBJECTNAME_GROUP_CLUSTERADMIN --description "Principals in this group are cluster admins in the bu0001a000500 cluster." --query objectId -o tsv)
+   AADOBJECTID_GROUP_CLUSTERADMIN=$(az ad group create --display-name $AADOBJECTNAME_GROUP_CLUSTERADMIN --mail-nickname $AADOBJECTNAME_GROUP_CLUSTERADMIN --description "Principals in this group are cluster admins in the bu0001a000500 cluster." --query id -o tsv)
    ```
 
 1. Create a "break-glass" cluster administrator user for your AKS cluster.
@@ -52,7 +52,7 @@ Following the steps below will result in an Azure AD configuration that will be 
    ```bash
    TENANTDOMAIN_K8SRBAC=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
    AADOBJECTNAME_USER_CLUSTERADMIN=bu0001a000500-admin
-   AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-login --password ChangeMebu0001a0005AdminChangeMe --query objectId -o tsv)
+   AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-sign-in --password ChangeMebu0001a0005AdminChangeMe --query id -o tsv)
    ```
 
 1. Add the cluster admin user(s) to the cluster admin security group.

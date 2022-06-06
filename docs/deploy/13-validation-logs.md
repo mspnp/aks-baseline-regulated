@@ -4,7 +4,7 @@ Your infrastructure and [workload is emitting logs](./13-validation.md), here ar
 
 You can access these logs all directly from the attached Log Analytics workspace(s), but when you do you'll need to filter to specific resources. For simplicity the steps below direct you to the pre-filtered view offered by the Azure Portal when viewing within the context of each service.
 
-Remember, since this implementation builds on the AKS Baseline, [validations performed there](https://github.com/mspnp/aks-secure-baseline/blob/main/10-validation.md#validate-azure-monitor-for-containers-prometheus-metrics) such as viewing Prometheus metrics and Kured logs are also applicable to this cluster.
+Remember, since this implementation builds on the AKS Baseline, [validations performed there](https://github.com/mspnp/aks-baseline/blob/main/11-validation.md#validate-azure-monitor-for-containers-prometheus-metrics) such as viewing Prometheus metrics and Kured logs are also applicable to this cluster.
 
 ## Azure Firewall
 

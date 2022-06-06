@@ -23,7 +23,7 @@ Throughout this walkthrough, take note of the following symbol.
 
    The Azure AD tenant backing your Cluster's API RBAC does NOT need to be the same tenant associated with your Azure subscription. Your organization may have dedicated Azure AD tenants used specifically as a separation between Azure resource management, and Kubernetes control plane access. Ensure you're following your organization's practices when it comes to separation of identity stores to ensure limited "blast radius" on any compromised accounts.
 
-1. Latest [Azure CLI installed](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) or you can perform this from Azure Cloud Shell by clicking below.
+1. Latest [Azure CLI installed](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) (must be at least 2.37), or you can perform this from Azure Cloud Shell by clicking below.
 
    [![Launch Azure Cloud Shell](https://docs.microsoft.com/azure/includes/media/cloud-shell-try-it/hdi-launch-cloud-shell.png)](https://shell.azure.com/bash)
 
