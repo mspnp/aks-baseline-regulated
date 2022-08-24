@@ -608,7 +608,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
             {
               name: 'apt-get'
               description: 'This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
-              'sourceIpGroups': [
+              sourceIpGroups: [
                 resourceId('Microsoft.Network/ipGroups', imageBuilder_ipgroups.name)
               ]
               protocols: [
