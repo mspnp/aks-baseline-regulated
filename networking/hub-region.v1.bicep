@@ -58,9 +58,15 @@ resource rgBuilderVirutalNetwork 'Microsoft.Resources/resourceGroups@2021-04-01'
   name: split(aksImageBuilderSubnetResourceId, '/')[4]
 }
 
-@description('AKS ImageBuilder subnet')
-resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
+@description('AKS Spoke Virtual Network')
+resource aksSpokeVnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: rgBuilderVirutalNetwork
+  name: split(aksImageBuilderSubnetResourceId, '/')[8]
+}
+
+@description('AKS ImageBuilder subnet')
+resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+  parent: aksSpokeVnet
   name: last(split(aksImageBuilderSubnetResourceId, '/'))
 }
 
@@ -464,7 +470,7 @@ resource imageBuilder_ipgroups 'Microsoft.Network/ipGroups@2021-05-01' = {
   location: location
   properties: {
     ipAddresses: [
-      reference(aksImageBuilderSubnetResourceId, '2021-05-01').addressPrefix
+      aksImageBuilderSubnet.properties.addressPrefix
     ]
   }
 }
