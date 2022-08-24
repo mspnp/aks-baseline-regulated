@@ -645,6 +645,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
             }
             {
               name: 'azure-policy-addon'
+#disable-next-line no-hardcoded-env-urls
               description: 'All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com'
               sourceIpGroups: [
                 aks_ipgroup.id
@@ -656,7 +657,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
+#disable-next-line no-hardcoded-env-urls
                   'data.policy.core.windows.net'
+#disable-next-line no-hardcoded-env-urls
                   'store.policy.core.windows.net'
               ]
             }
@@ -712,6 +715,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
+#disable-next-line no-hardcoded-env-urls
                 'management.azure.com'
               ]
             }
@@ -728,6 +732,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
+#disable-next-line no-hardcoded-env-urls
                 '*.blob.core.windows.net'
               ]
             }
@@ -768,7 +773,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 ]
                 targetFqdns: [
                   'aka.ms'
+#disable-next-line no-hardcoded-env-urls                  
                   'azurecliextensionsync.blob.core.windows.net'
+#disable-next-line no-hardcoded-env-urls
                   'azurecliprod.blob.core.windows.net'
                 ]
             }
@@ -886,7 +893,8 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
-                  'login.microsoftonline.com'
+#disable-next-line no-hardcoded-env-urls
+                'login.microsoftonline.com'
               ]
             }
             {
@@ -902,6 +910,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
+#disable-next-line no-hardcoded-env-urls                
                 'management.azure.com'
               ]
             }
@@ -919,7 +928,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               ]
               targetFqdns: [
                 'aka.ms'
+#disable-next-line no-hardcoded-env-urls
                 'azurecliprod.blob.core.windows.net'
+#disable-next-line no-hardcoded-env-urls
                 'azcliextensionsync.blob.core.windows.net'
               ]
             }
