@@ -65,10 +65,28 @@ resource rgSpokes 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: split(aksImageBuilderSubnetResourceId, '/')[4]
 }
 
-@description('AKS ImageBuilder subnet')
-resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
+@description('AKS Spoke Virtual Network BU0001A0005-00')
+resource aksImageBuilderVnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: rgSpokes
+  name: split(aksImageBuilderSubnetResourceId, '/')[8]
+}
+
+@description('AKS ImageBuilder subnet')
+resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+  parent: aksImageBuilderVnet
   name: last(split(aksImageBuilderSubnetResourceId, '/'))
+}
+
+@description('AKS Spoke Virtual Network BU0001A0005-01')
+resource aksJumpboxVnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+  scope: rgSpokes
+  name: split(aksJumpboxSubnetResourceId, '/')[8]
+}
+
+@description('AKS Jumpbox subnet')
+resource aksJumpboxSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+  parent: aksJumpboxVnet
+  name: last(split(aksJumpboxSubnetResourceId, '/'))
 }
 
 @description('NetworkWatcher ResourceGroup; it contains regional Network Watchers')
@@ -472,15 +490,9 @@ resource imageBuilder_ipgroup 'Microsoft.Network/ipGroups@2021-05-01' = {
   location: location
   properties: {
     ipAddresses: [
-      reference(aksImageBuilderSubnetResourceId, '2021-05-01').addressPrefix
+      aksImageBuilderSubnet.properties.addressPrefix
     ]
   }
-}
-
-@description('AKS Jumpbox subnet')
-resource aksJumpboxSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
-  scope: rgSpokes
-  name: last(split(aksJumpboxSubnetResourceId, '/'))
 }
 
 @description('This holds IP addresses of known AKS Jumpboxs in attached spokes.')
@@ -489,7 +501,7 @@ resource aksJumpbox_ipgroup 'Microsoft.Network/ipGroups@2021-05-01' = {
   location: location
   properties: {
     ipAddresses: [
-      reference(aksJumpboxSubnetResourceId, '2021-05-01').addressPrefix
+      aksJumpboxSubnet.properties.addressPrefix
     ]
   }
 }
