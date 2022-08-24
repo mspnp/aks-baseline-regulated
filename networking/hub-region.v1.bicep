@@ -584,6 +584,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
+#disable-next-line no-hardcoded-env-urls
                 'management.azure.com'
               ]
             }
@@ -600,6 +601,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
+#disable-next-line no-hardcoded-env-urls
                     '*.blob.core.windows.net'
               ]
             }
@@ -640,7 +642,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 ]
                 targetFqdns: [
                   'aka.ms'
+#disable-next-line no-hardcoded-env-urls
                   'azurecliextensionsync.blob.core.windows.net'
+#disable-next-line no-hardcoded-env-urls
                   'azurecliprod.blob.core.windows.net'
                 ]
             }
