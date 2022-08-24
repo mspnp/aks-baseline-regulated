@@ -10,7 +10,7 @@ param clusterVNetId string
 
 resource policyResourceIdNoPublicIpsInVnet 'Microsoft.Authorization/policyDefinitions@2021-06-01' existing = {
     scope: subscription()
-    name: 'a4675f09-0d14-5616-9065-7be139cb3e24'
+    name: guid(subscription().id, 'NoPublicIPsForNICsInVnet')
 }
 
 /*** RESOURCES ***/
