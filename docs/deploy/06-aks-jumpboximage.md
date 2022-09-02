@@ -60,9 +60,9 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
 
 Now that we have our image building network created, egressing through our hub, and all NSG/firewall rules applied, it's time to build and deploy our jump box image. We are using the general purpose AKS jump box image as described in the [AKS Jump Box Image Builder repository](https://github.com/mspnp/aks-jumpbox-imagebuilder); which comes with baked-in tooling such as Azure CLI, kubectl, helm, flux, etc.. The network rules applied in the prior steps support its specific build-time requirements. If you use this infrastructure to build a modified version of this image template, you may need to add additional network allowances or remove unneeded allowances.
 
-1. Download the Bicep templates from the AKS Jump Box Image Builder repository.
+1. Download the ARM templates from the AKS Jump Box Image Builder repository.
 
-   Ideally core templates like this would be part of your private Bicep registry. For this walk through, we are simply downloading the remote Bicep templates locally for execution.
+   Ideally core templates like this would be part of your private Bicep registry. For this walk through, we are simply downloading the remote ARM templates locally for execution.
 
    ```bash
    wget -B https://raw.githubusercontent.com/mspnp/aks-jumpbox-imagebuilder/main/ -x -nH --cut-dirs=3 -i jumpbox/jumpbox-bicep.txt -P jumpbox

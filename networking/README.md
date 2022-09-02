@@ -1,6 +1,6 @@
-# Networking Bicep Templates
+# Networking Azure Resource Manager (ARM) Templates
 
-This is part of the Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Workloads.. For more information see the [readme file in the root](/README.md). These files are the Bicep templates used in the deployment of this reference implementation. This reference implementation uses a standard hub-spoke model.
+This is part of the Azure Kubernetes Service (AKS) Baseline Cluster for Regulated Workloads.. For more information see the [readme file in the root](/README.md). These files are the ARM templates used in the deployment of this reference implementation. This reference implementation uses a standard hub-spoke model.
 
 ## Files
 

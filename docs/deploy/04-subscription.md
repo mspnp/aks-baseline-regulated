@@ -88,9 +88,9 @@ Not only do we enable them in the steps below by default, but also set up an Azu
    NETWORK_WATCHER_RG_REGION=$(az group list --query "[?name=='networkWatcherRG' || name=='NetworkWatcherRG'].location" -o tsv)
    ```
 
-   If your subscription is managed in such a way that Azure Network Watcher resources are found in a resource group other than the Azure default of `networkWatcherRG` or they do not use the Azure default `NetworkWatcher_<region>` naming convention, you will need to adjust the various Bicep templates to compensate. Network Watchers are singletons (per region) in subscriptions, and organizations often manage them (and Flow Logs) via Azure Policy. This walkthrough assumes default naming conventions as set by Azure's [automatic deployment feature of Network Watchers](https://docs.microsoft.com/azure/network-watcher/network-watcher-create#network-watcher-is-automatically-enabled).
+   If your subscription is managed in such a way that Azure Network Watcher resources are found in a resource group other than the Azure default of `networkWatcherRG` or they do not use the Azure default `NetworkWatcher_<region>` naming convention, you will need to adjust the various ARM templates to compensate. Network Watchers are singletons (per region) in subscriptions, and organizations often manage them (and Flow Logs) via Azure Policy. This walkthrough assumes default naming conventions as set by Azure's [automatic deployment feature of Network Watchers](https://docs.microsoft.com/azure/network-watcher/network-watcher-create#network-watcher-is-automatically-enabled).
 
-   If at any time during the deployment you get an error stating "**resource 'NetworkWatcher_\<region>' not found**", you will need to skip flow log creation by passing `false` to that Bicep template's `deployFlowLogResources` parameter or you can manually create the required Network Watcher with that name.
+   If at any time during the deployment you get an error stating "**resource 'NetworkWatcher_\<region>' not found**", you will need to skip flow log creation by passing `false` to that ARM template's `deployFlowLogResources` parameter or you can manually create the required Network Watcher with that name.
 
 1. Perform subscription-level deployment.
 
@@ -110,7 +110,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 ## Azure Security Benchmark
 
-It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in Bicep template above, as we don't want to overwrite anything already existing in your subscription. This policy can only be applied once for Microsoft Defender for Cloud to detect it properly, and if we deployed a version above, you might inadvertently break existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
+It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can only be applied once for Microsoft Defender for Cloud to detect it properly, and if we deployed a version above, you might inadvertently break existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
 
 > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-22).
 
