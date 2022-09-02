@@ -380,6 +380,11 @@ resource pipAzureBastion 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   sku: {
     name: 'Standard'
   }
+  zones: [
+    '1'
+    '2'
+    '3'    
+  ]
   properties: {
     publicIPAllocationMethod: 'Static'
     idleTimeoutInMinutes: 4
