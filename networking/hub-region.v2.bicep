@@ -558,6 +558,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
     '3'
   ]
   properties: {
+    additionalProperties: {
+      'Network.DNS.EnableProxy': 'true'
+    }
     sku: {
       tier: 'Premium'
       name: 'AZFW_VNet'
