@@ -744,6 +744,9 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
             ]
         }
     }
+    dependsOn: [
+        policyAssignmentNoPublicIpsInVnet
+    ]
 
     resource aksSystemNodepoolSubnet 'subnets' existing = {
         name: 'snet-cluster-systemnodepool'
@@ -766,7 +769,7 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
 module policyAssignmentNoPublicIpsInVnet './modules/ClusterVNetShouldNotHaveNICwithpublicIP.bicep' = {
     name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
     params: {
-        clusterVNetId: clusterVNet.id
+        clusterVNetId: resourceId('Microsoft.Network/virtualNetworks','vnet-spoke-${orgAppId}-01')
     }
 }
 
