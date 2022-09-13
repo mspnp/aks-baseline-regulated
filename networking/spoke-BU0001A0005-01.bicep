@@ -849,7 +849,7 @@ resource aksPrivateDnsZones 'Microsoft.Network/privateDnsZones@2020-06-01' = {
     properties: {}
 }
 
-@description('Enables Azure Key Vault Private Link on cluster vnet.')
+@description('Enabling hub vnet private zone DNS lookup for private AKS - used by azure firewall\'s dns proxy.')
 resource aksPrivateDnsZones_virtualNetworkLink_toClusterVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
     name: 'to_${last(split(hubVnetResourceId, '/'))}'
     parent: aksPrivateDnsZones
