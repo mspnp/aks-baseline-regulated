@@ -30,10 +30,10 @@ resource hubsSpokesVirtualNetworkPeering 'Microsoft.Network/virtualNetworks/virt
   properties: {
     remoteVirtualNetwork: {
       id: spokesVNet.id
-  }
-  allowForwardedTraffic: false
-  allowGatewayTransit: false
-  allowVirtualNetworkAccess: true
-  useRemoteGateways: false
+    }
+    allowForwardedTraffic: false
+    allowGatewayTransit: false
+    allowVirtualNetworkAccess: true
+    useRemoteGateways: false
   }
 }

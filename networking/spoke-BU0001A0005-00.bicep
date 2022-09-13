@@ -307,6 +307,9 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
       spokesVNetName: imageBuilderVNet.name
       rgSpokes: resourceGroup().name
     }
+    dependsOn: [
+        imageBuilderVNetPeering
+    ]
 }
 
 /*** OUTPUTS ***/

@@ -807,6 +807,9 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
         spokesVNetName: clusterVNet.name
         rgSpokes: resourceGroup().name
     }
+    dependsOn: [
+        clusterVNet_virtualNetworkPeering
+    ]
 }
 
 @description('Enables Azure Container Registry Private Link on vnet.')
