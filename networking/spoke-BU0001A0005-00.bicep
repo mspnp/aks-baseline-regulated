@@ -252,6 +252,10 @@ resource imageBuilderVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
             ]
         }
     }
+
+    resource snetImageBuilder 'subnets' existing = {
+        name: 'snet-imagebuilder'
+    }
 }
 
 @description('Peer to regional hub.')
@@ -307,4 +311,4 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
 
 /*** OUTPUTS ***/
 
-output imageBuilderSubnetResourceId string = imageBuilderVNet.properties.subnets[0].id
+output imageBuilderSubnetResourceId string = imageBuilderVNet::snetImageBuilder.id
