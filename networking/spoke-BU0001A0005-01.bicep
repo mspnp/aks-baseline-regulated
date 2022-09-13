@@ -800,7 +800,7 @@ resource clusterVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
 }
 
 module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
-    name: 'hub-to-clustetVNet-peering'
+    name: 'hub-to-clusterVNet-peering'
     scope: rgHubs
     params: {
         hubVNetResourceId: hubVnetResourceId
@@ -882,7 +882,7 @@ resource akvPrivateDnsZones_virtualNetworkLink_toCluster 'Microsoft.Network/priv
     }
 }
 
-@description('Enables hub vnet private zone DNS lookup for ACR - used by azure firewall\'s dns proxy.')
+@description('Enables hub vnet private zone DNS lookup for AKV - used by azure firewall\'s dns proxy.')
 resource akvPrivateDnsZones_virtualNetworkLink_toHubVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
     name: 'to_${last(split(hubVnetResourceId, '/'))}'
     parent: akvPrivateDnsZones
