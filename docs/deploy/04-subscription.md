@@ -118,9 +118,8 @@ It is recommended that your Azure _subscription_ have the **Azure Security Bench
 
 1. Open the [**Regulatory Compliance** screen in Microsoft Defender for Cloud](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/22)
 1. Click on **Manage compliance policies**
-1. Click on your subscription
-1. Ensure the **Azure Security Benchmark** is applied as the **Microsoft Defender for Cloud default policy**.
-1. You'll want to ensure all relevant standards (e.g. **PCI DSS 3.2.1**) are **Enabled** under **Industry & regulatory standards**
+1. Expand the tree, and click on your subscription
+1. Navigate to **Security policy** blade since you'll want to ensure the **Azure Security Benchmark** and all relevant standards (e.g. **PCI DSS 3.2.1**) are **Enabled** under **Industry & regulatory standards**
 1. The **Regulatory Compliance** dashboard in Microsoft Defender for Cloud might take an hour or two to reflect any modifications you've made.
 
 **None of the above is required for this walkthrough**, but we want to ensure you're aware of these subscription-level policies and how you can enable them for your final implementation. All subscriptions containing PCI workloads should have the **PCI DSS 3.2.1** Industry & regulatory standards reports enabled, which _requires_ that the **Azure Security Benchmark** is applied as the default policy.
