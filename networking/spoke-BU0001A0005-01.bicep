@@ -61,7 +61,7 @@ resource hubsVnet 'Microsoft.Network/virtualNetworks@2021-05-01' existing = {
 @description('The hub\'s resource group')
 resource hubLaWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
     scope: rgHubs
-    name: 'la-hub-${location}'
+    name: 'la-hub-${location}-${uniqueString(rgHubs.id, 'vnet-${location}-hub')}'
 }
 
 @description('NetworkWatcher ResourceGroup; it contains regional Network Watchers')
