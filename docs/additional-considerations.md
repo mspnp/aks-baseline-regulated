@@ -2,7 +2,7 @@
 
 This reference implementation is designed to be a starting point for your eventual architecture. It does not enable "every security option possible." While some of the features that are not enabled we'd encourage their usage, practicality supporting high completion rate of this material prevents the enablement of some feature. For example, your subscription permissions, already existing security policies in the subscription, existing policies that might block deployment, simplicity in demonstration, etc. Not all going through this walkthrough have the luxury of exploring it in a situation where they are subscription owner and Azure AD administrator. Because they were not trivial to deploy in this walkthrough, we wanted to ensure you at least have a list of things we'd have liked to include out of the box or at least have introduced as a consideration. Review these and add them into your final architecture as you see fit.
 
-In addition to the ones mentioned below, the [Azure Architecture Center guidance for PCI-DSS 3.2.1 with AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-intro) also includes sepcific recommendations that might not be implemented in this solution. Some of those will be called out below.
+In addition to the ones mentioned below, the [Azure Architecture Center guidance for PCI-DSS 3.2.1 with AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-intro) also includes sepcific recommendations that might not be implemented in this solution. Some of those will be called out below.
 
 ## Host/disk encryption
 
@@ -13,15 +13,15 @@ In addition to the ones mentioned below, the [Azure Architecture Center guidance
 
 While OS and data disks (and their caches) are already encrypted at rest with Microsoft-managed keys, for additional control over encryption keys you can use customer-managed keys for encryption at rest for both the OS and the data disks in your AKS cluster. This reference implementation doesn't actually use any disks in the cluster, and the OS disk is ephemeral.
 
-> :notebook: See the [Azure Architecture Center PCI-DSS 3.2.1 Disc encryption article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#disk-encryption).
+> :notebook: See the [Azure Architecture Center PCI-DSS 3.2.1 Disc encryption article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#disk-encryption).
 
 Note, we enable an Azure Policy alert detecting clusters without this feature enabled. The reference implementation will trip this policy alert because there is no `diskEncryptionSetID` provided on the cluster resource. The policy is in place as a reminder of this security feature that you might wish to use. The policy is set to "audit" not "block."
 
 ### Host-based encryption
 
-You can take OS and data disk encryption one step further and also bring the encryption up to the Azure host. Using [Host-Based Encryption](https://docs.microsoft.com/azure/aks/enable-host-encryption) means that the temp disks now will be encrypted at rest using platform-managed keys. This will then cover encryption of the VMSS ephemeral OS disk and temp disks.
+You can take OS and data disk encryption one step further and also bring the encryption up to the Azure host. Using [Host-Based Encryption](https://learn.microsoft.com/azure/aks/enable-host-encryption) means that the temp disks now will be encrypted at rest using platform-managed keys. This will then cover encryption of the VMSS ephemeral OS disk and temp disks.
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Disc encryption article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#disk-encryption).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Disc encryption article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#disk-encryption).
 
 Note, like above, we enable an Azure Policy detecting clusters without this feature enabled. The reference implementation will trip this policy alert because this feature is not enabled on the `agentPoolProfiles`. The policy is in place as a reminder of this security feature that you might wish to use once it is GA. The policy is set to "audit" not "block."
 
@@ -34,7 +34,7 @@ Note, like above, we enable an Azure Policy detecting clusters without this feat
 
 ### Enable Network Watcher and Traffic Analytics
 
-Observability into your network is critical for compliance. [Network Watcher](https://docs.microsoft.com/azure/network-watcher/network-watcher-monitoring-overview), combined with [Traffic Analytics](https://docs.microsoft.com/azure/network-watcher/traffic-analytics) will help provide a perspective into traffic traversing your networks. This reference implementation will _attempt_ to deploy NSG Flow Logs and Traffic Analytics. These features depend on a regional Network Watcher resource being installed on your subscription. Network Watchers are singletons in a subscription, and their creation is _usually_ automatic and  might exist in a resource group you do not have RBAC access to. We strongly encourage you to enable [NSG flow logs](https://docs.microsoft.com/azure/network-watcher/network-watcher-nsg-flow-logging-overview) on your AKS Cluster subnets, build agent subnets, Azure Application Gateway, and other subnets that may be a source of traffic into and out of your cluster. Ensure you're sending your NSG Flow Logs to a **V2 Storage Account** and set your retention period in the Storage Account for these logs to a value that is at least as long as your compliance needs (e.g. 90 days).
+Observability into your network is critical for compliance. [Network Watcher](https://learn.microsoft.com/azure/network-watcher/network-watcher-monitoring-overview), combined with [Traffic Analytics](https://learn.microsoft.com/azure/network-watcher/traffic-analytics) will help provide a perspective into traffic traversing your networks. This reference implementation will _attempt_ to deploy NSG Flow Logs and Traffic Analytics. These features depend on a regional Network Watcher resource being installed on your subscription. Network Watchers are singletons in a subscription, and their creation is _usually_ automatic and  might exist in a resource group you do not have RBAC access to. We strongly encourage you to enable [NSG flow logs](https://learn.microsoft.com/azure/network-watcher/network-watcher-nsg-flow-logging-overview) on your AKS Cluster subnets, build agent subnets, Azure Application Gateway, and other subnets that may be a source of traffic into and out of your cluster. Ensure you're sending your NSG Flow Logs to a **V2 Storage Account** and set your retention period in the Storage Account for these logs to a value that is at least as long as your compliance needs (e.g. 90 days).
 
 In addition to Network Watcher aiding in compliance considerations, it's also a highly valuable network troubleshooting utility. As your network is private and heavy with flow restrictions, troubleshooting network flow issues can be time consuming. Network Watcher can help provide additional insight when other troubleshooting means are not sufficient.
 
@@ -42,11 +42,11 @@ As an added measure use apply the [Flow logs should be enabled for every network
 
 ### More strict Network Security Groups (NSGs)
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Subnet security through NSGs article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#subnet-security-through-network-security-groups-nsgs).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Subnet security through NSGs article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#subnet-security-through-network-security-groups-nsgs).
 
 ### Azure Key Vault network restrictions
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Azure Key Vault network restrictions article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-key-vault-network-restrictions).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Azure Key Vault network restrictions article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-key-vault-network-restrictions).
 
 
 ### Expanded NetworkPolicies
@@ -55,7 +55,7 @@ Not all user-provided namespaces in this reference implementation employ a zero-
 
 ### Enable DDoS Protection
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [DDoS protection article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#ddos-protection).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [DDoS protection article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#ddos-protection).
 
 
 </details>
@@ -69,7 +69,7 @@ Not all user-provided namespaces in this reference implementation employ a zero-
 
 When describing your workload's security needs, leverage all relevant [`securityContext` settings](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for your containers. The workloads deployed in this reference implementation do NOT represent best practices, as this reference implementation was mainly infrastructure focused.
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Pod security article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#pod-security).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Pod security article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#pod-security).
 
 ### Pin image versions
 
@@ -88,7 +88,7 @@ This guidance should also be followed when using the Dockerfile `FROM` command.
 
 ### Customized Azure Policies for AKS
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Azure Policy considerations article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-policy-considerations).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Azure Policy considerations article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-policy-considerations).
 
 ### Customized Azure Policies for Azure resources
 
@@ -96,11 +96,11 @@ The reference implementation includes a few examples of Azure Policy that can ac
 
 ### Allow list for resource types
 
-The reference implementation puts in place an allow list for what resource types are allowed in the various resource groups. This helps control what gets deployed, which can prevent an unexpected resource type from being deployed. If your subscription is exclusively for your regulated workload, then also consider only having the necessary [resource providers registered](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers#registration) to cover that service list. Don't register [resource providers for Azure services](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers) that are not going to be part of your environment. This will guard against a misconfiguration in Azure Policy's enforcement.
+The reference implementation puts in place an allow list for what resource types are allowed in the various resource groups. This helps control what gets deployed, which can prevent an unexpected resource type from being deployed. If your subscription is exclusively for your regulated workload, then also consider only having the necessary [resource providers registered](https://learn.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers#registration) to cover that service list. Don't register [resource providers for Azure services](https://learn.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers) that are not going to be part of your environment. This will guard against a misconfiguration in Azure Policy's enforcement.
 
 ### Management Groups
 
-This reference implementation is expected to be deployed in a standalone subscription.  As such, Azure Policies are applied at a relatively local scope (subscription or resource group). If you have multiple subscriptions that will be under regulatory compliance, consider grouping them under a [management group hierarchy](https://docs.microsoft.com/azure/cloud-adoption-framework/ready/enterprise-scale/management-group-and-subscription-organization) that applies the relevant Azure Policies uniformly across your in-scope subscriptions.
+This reference implementation is expected to be deployed in a standalone subscription.  As such, Azure Policies are applied at a relatively local scope (subscription or resource group). If you have multiple subscriptions that will be under regulatory compliance, consider grouping them under a [management group hierarchy](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/enterprise-scale/management-group-and-subscription-organization) that applies the relevant Azure Policies uniformly across your in-scope subscriptions.
 
 </details>
 
@@ -111,7 +111,7 @@ This reference implementation is expected to be deployed in a standalone subscri
 
 ### Enterprise onboarding to Microsoft Defender for Cloud
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Security monitoring article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#security-monitoring).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Security monitoring article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#security-monitoring).
 
 ### Create triage process for alerts
 
@@ -126,7 +126,7 @@ From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_
 
 ### OCI Artifact Signing
 
-Azure Container Registry supports the [signing of images](https://docs.microsoft.com/azure/container-registry/container-registry-content-trust), built on [CNFC Notary (v1)](https://github.com/theupdateframework/notary). This, coupled with an admission controller that supports validating signatures, can ensure that you're only running images that you've signed with your private keys. This integration is not something that is provided, today, end-to-end by Azure Container Registry and AKS (Azure Policy), and can consider bringing open source solutions like [SSE Connaisseur](https://github.com/sse-secure-systems/connaisseur) or [IBM Portieris](https://github.com/IBM/portieris). A working group in the CNFC is currently working on [Notary v2](https://github.com/notaryproject/notaryproject) for signing OCI Artifacts (i.e. container images and helm charts), and both the ACR and AKS roadmap includes adding a more native end-to-end experience in this space built upon this foundation.
+Azure Container Registry supports the [signing of images](https://learn.microsoft.com/azure/container-registry/container-registry-content-trust), built on [CNFC Notary (v1)](https://github.com/theupdateframework/notary). This, coupled with an admission controller that supports validating signatures, can ensure that you're only running images that you've signed with your private keys. This integration is not something that is provided, today, end-to-end by Azure Container Registry and AKS (Azure Policy), and can consider bringing open source solutions like [SSE Connaisseur](https://github.com/sse-secure-systems/connaisseur) or [IBM Portieris](https://github.com/IBM/portieris). A working group in the CNFC is currently working on [Notary v2](https://github.com/notaryproject/notaryproject) for signing OCI Artifacts (i.e. container images and helm charts), and both the ACR and AKS roadmap includes adding a more native end-to-end experience in this space built upon this foundation.
 
 ### Customer-managed encryption
 
@@ -141,7 +141,7 @@ While container images and other OCI artifacts typically do not contain sensitiv
 
 ### JIT and Conditional Access Policies
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.2.1 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-721) and this repo's [Azure AD Conditional Access](./conditional-access.md) page.
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.2.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-721) and this repo's [Azure AD Conditional Access](./conditional-access.md) page.
 
 ### Custom Cluster Roles
 
@@ -190,7 +190,7 @@ Inline, we talked about many ISV's security agents being able to detect relevant
 
 Microsoft Sentinel was enabled in this reference implementation. No alerts were created or any sort of "usage" of it, other than enabling it. You may already be using another SIEM, likewise you may find that a SIEM is not cost effective for your solution. Evaluate if you will derive benefit from Microsoft Sentinel in your solution, and tune as needed.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 10.5 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-monitor#requirement-105)
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 10.5 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-monitor#requirement-105)
 
 </details>
 
@@ -205,7 +205,7 @@ While we generally discourage any storage of state within a cluster, you may fin
 
 All backup process needs to classify the data contained within the backup. This is true of data both within and external to your cluster. If the data falls within regulatory scope, you'll need extend your compliance boundaries to the lifecycle and destination of the backup -- which will be outside of the cluster. Consider geographic restrictions, encryption at rest, access controls, roles and responsibilities, auditing, time-to-live, and tampering prevention (check-sums, etc) when designing your backup system. Backups can be a vector for malicious intent, with a bad actor compromising a backup and then forcing an event in which their backup is restored.
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Cluster backups (state and resources) article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#cluster-backups-state-and-resources).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Cluster backups (state and resources) article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#cluster-backups-state-and-resources).
 
 </details>
 
@@ -235,7 +235,7 @@ The in-cluster `omsagent` pods running in `kube-system` are the Log Analytics co
 
 ### Retention and continous export
 
-> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Security monitoring article](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#security-monitoring).
+> :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Security monitoring article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#security-monitoring).
 
 </details>
 

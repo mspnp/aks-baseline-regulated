@@ -127,7 +127,7 @@ resource laHubSolution 'Microsoft.OperationsManagement/solutions@2015-11-01-prev
   }
 }
 
-@description('Wraps the AzureBastion subnet in this regional hub. Source: https://docs.microsoft.com/azure/bastion/bastion-nsg')
+@description('Wraps the AzureBastion subnet in this regional hub. Source: https://learn.microsoft.com/azure/bastion/bastion-nsg')
 resource nsgBastionSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
   name: 'nsg-${location}-bastion'
   location: location
@@ -619,7 +619,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
           rules: [
             {
               name: 'runtime'
-              description: 'This covers all runtime requirements for AKS (sans addons). If you wish to use a more restricted set of values than what this provides, see: https://docs.microsoft.com/azure/firewall/protect-azure-kubernetes-service and https://docs.microsoft.com/azure/aks/limit-egress-traffic#required-outbound-network-rules-and-fqdns-for-aks-clusters and remove this entry'
+              description: 'This covers all runtime requirements for AKS (sans addons). If you wish to use a more restricted set of values than what this provides, see: https://learn.microsoft.com/azure/firewall/protect-azure-kubernetes-service and https://learn.microsoft.com/azure/aks/limit-egress-traffic#required-outbound-network-rules-and-fqdns-for-aks-clusters and remove this entry'
               sourceIpGroups: [
                 aks_ipgroup.id
               ]
@@ -635,7 +635,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
             }
             {
               name: 'azure-monitor-addon'
-              description: 'All required for Azure Monitor for containers per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your cluster\'s log analytics instances.'
+              description: 'All required for Azure Monitor for containers per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your cluster\'s log analytics instances.'
               sourceIpGroups: [
                   aks_ipgroup.id
               ]
@@ -654,7 +654,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
             {
               name: 'azure-policy-addon'
 #disable-next-line no-hardcoded-env-urls
-              description: 'All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com'
+              description: 'All required for Azure Policy per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com'
               sourceIpGroups: [
                 aks_ipgroup.id
               ]

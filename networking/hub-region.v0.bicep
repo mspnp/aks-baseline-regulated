@@ -85,7 +85,7 @@ resource laHubSolution 'Microsoft.OperationsManagement/solutions@2015-11-01-prev
   }
 }
 
-@description('Wraps the AzureBastion subnet in this regional hub. Source: https://docs.microsoft.com/azure/bastion/bastion-nsg')
+@description('Wraps the AzureBastion subnet in this regional hub. Source: https://learn.microsoft.com/azure/bastion/bastion-nsg')
 resource nsgBastionSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
   name: 'nsg-${location}-bastion'
   location: location

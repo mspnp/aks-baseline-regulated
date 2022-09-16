@@ -1,6 +1,6 @@
 # Access resource logs & Microsoft Defender for Cloud data
 
-Your infrastructure and [workload is emitting logs](./13-validation.md), here are a few key logs you may wish to consider being familiar with and/or building [log-based queries](https://docs.microsoft.com/azure/azure-monitor/logs/get-started-queries) around. Below are some a few queries to get you started exploring the captured data.
+Your infrastructure and [workload is emitting logs](./13-validation.md), here are a few key logs you may wish to consider being familiar with and/or building [log-based queries](https://learn.microsoft.com/azure/azure-monitor/logs/get-started-queries) around. Below are some a few queries to get you started exploring the captured data.
 
 You can access these logs all directly from the attached Log Analytics workspace(s), but when you do you'll need to filter to specific resources. For simplicity the steps below direct you to the pre-filtered view offered by the Azure Portal when viewing within the context of each service.
 
@@ -80,7 +80,7 @@ If you executed the optional extra import command on the [image quarantine step 
 
 ## AKS Cluster
 
-Monitoring your cluster is critical, especially when you're running a production cluster. Azure Monitor is configured to surface cluster logs, here you can see those logs as they are generated. [Azure Monitor for containers](https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-overview) is configured on this cluster for this purpose.
+Monitoring your cluster is critical, especially when you're running a production cluster. Azure Monitor is configured to surface cluster logs, here you can see those logs as they are generated. [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview) is configured on this cluster for this purpose.
 
 1. In the Azure Portal, navigate to your AKS cluster resource.
 1. Select **Logs**.
@@ -195,7 +195,7 @@ If your subscription has the **Azure Security Benchmark** Azure Policy initiativ
 
 ### Review Security Alerts
 
-Microsoft Defender for Containers reviews your cluster's logs and detects runtime workload behavior that might be undesired. [Those alerts](https://docs.microsoft.com/azure/defender-for-cloud/alerts-reference#alerts-k8scluster) surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you may start to see some Low and Medium alerts show up.
+Microsoft Defender for Containers reviews your cluster's logs and detects runtime workload behavior that might be undesired. [Those alerts](https://learn.microsoft.com/azure/defender-for-cloud/alerts-reference#alerts-k8scluster) surface in the Azure Resource Graph (`securityresources` -> `microsoft.security/locations/alerts`) and also in Microsoft Defender for Cloud in the Azure Portal. Within about 24 hours of your cluster being up and running, you may start to see some Low and Medium alerts show up.
 
 1. Open the [Security Alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud.
 1. View the alerts, and optionally add a _Filter_ for _Affected resource_ being your newly created cluster.

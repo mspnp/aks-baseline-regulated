@@ -14,4 +14,4 @@ Your organization will likely have its own standards for their hub-spoke or vwan
 
 ## See also
 
-* [Hub-spoke network topology in Azure](https://docs.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke)
+* [Hub-spoke network topology in Azure](https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke)

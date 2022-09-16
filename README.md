@@ -34,13 +34,13 @@ Finally, this implementation uses a small, custom application as an example work
 #### Azure platform
 
 * AKS v1.23
-  * System and User [node pool separation](https://docs.microsoft.com/azure/aks/use-system-pools)
-  * [AKS-managed Azure AD](https://docs.microsoft.com/azure/aks/managed-aad)
+  * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
+  * [AKS-managed Azure AD](https://learn.microsoft.com/azure/aks/managed-aad)
   * Managed Identities for kubelet and control plane
   * Azure CNI
-  * [Azure Monitor for containers](https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
+  * [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
   * Private Cluster (Kubernetes API Server)
-  * [Azure AD Pod Identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity)
+  * [Azure AD Pod Identity](https://learn.microsoft.com/azure/aks/use-azure-ad-pod-identity)
 * Azure Virtual Networks (hub-spoke)
   * Azure Firewall managed egress
   * Hub-proxied DNS
@@ -53,10 +53,10 @@ Finally, this implementation uses a small, custom application as an example work
 
 #### In-cluster Open-Source Software components
 
-* [Secrets Store CSI Driver for Kubernetes](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver)
+* [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver)
 * [Falco](https://falco.org)
 * [Flux 2 GitOps Operator](https://fluxcd.io)
-* [Kured](https://docs.microsoft.com/azure/aks/node-updates-kured)
+* [Kured](https://learn.microsoft.com/azure/aks/node-updates-kured)
 * [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
 * [Open Service Mesh](https://openservicemesh.io/)
 
@@ -137,7 +137,7 @@ Most of the Azure resources deployed in the prior steps will have ongoing billin
 
 All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in that it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Azure AD role guide](./docs/rbac-suggestions.md)** shipped as part of this reference implementation.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7, 8, and 9 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7, 8, and 9 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity).
 
 ## Is that all, what about … !?
 
@@ -160,9 +160,9 @@ Kubernetes is a very flexible platform, giving infrastructure and application op
 ## Related documentation
 
 * [Azure Kubernetes Service Baseline Architecture](https://aka.ms/architecture/aks-baseline)
-* [Azure Kubernetes Service Documentation](https://docs.microsoft.com/azure/aks/)
-* [Microsoft Azure Well-Architected Framework](https://docs.microsoft.com/azure/architecture/framework/)
-* [Microservices architecture on AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-microservices/aks-microservices)
+* [Azure Kubernetes Service Documentation](https://learn.microsoft.com/azure/aks/)
+* [Microsoft Azure Well-Architected Framework](https://learn.microsoft.com/azure/architecture/framework/)
+* [Microservices architecture on AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-microservices/aks-microservices)
 
 ## Contributions
 

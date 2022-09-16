@@ -6,7 +6,7 @@ This reference implementation is mostly focused on infrastructure, and minimal a
 
 If you're looking for a list of recommended roles to delineate responsibilities across, consider the following. Obviously you'll need to build roles that are reasonable for your organization and workload.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.1.1 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-711).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.1.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-711).
 
 * **Application Developers** are responsible for developing software in service to the business. All code developed by this role is subject to a set of training and quality gates upholding compliance, attestation, and release management processes. This role might be granted some read privileges in related kubernetes namespaces and read privileges on related workload Azure resources, but this role is not responsible for deploying or modifying any transitioning state in a running system. This team may manage build pipelines, but usually not deployment pipelines.
 

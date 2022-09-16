@@ -4,13 +4,13 @@ You've [built the jump box image](./06-aks-jumpboximage.md), now you need to bui
 
 ## Jump box user management
 
-You have multiple options on how you manage your jump box users. Because jump box user management isn't the focus of the walkthrough, we'll stick with a relatively straight-forward mechanism to keep you moving. However, generally you'll want to ensure you're using a solution like [Linux Active Directory sign-in](https://docs.microsoft.com/azure/virtual-machines/linux/login-using-aad) so that you can take advantage of Azure AD Conditional Access policies, JIT permissions, etc. Employ whatever user governance mechanism will help you achieve your desired compliance outcome and still being able to easily on- and off-board users as your ops teams' needs and personnel change.
+You have multiple options on how you manage your jump box users. Because jump box user management isn't the focus of the walkthrough, we'll stick with a relatively straight-forward mechanism to keep you moving. However, generally you'll want to ensure you're using a solution like [Linux Active Directory sign-in](https://learn.microsoft.com/azure/virtual-machines/linux/login-using-aad) so that you can take advantage of Azure AD Conditional Access policies, JIT permissions, etc. Employ whatever user governance mechanism will help you achieve your desired compliance outcome and still being able to easily on- and off-board users as your ops teams' needs and personnel change.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7 & 8 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7 & 8 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity).
 
 ## Expected results
 
-Following the steps below, you'll end up with a SSH public-key-based solution that leverages [cloud-init](https://docs.microsoft.com/azure/virtual-machines/linux/using-cloud-init). The results will be captured in `jumpBoxCloudInit.yml` which you will later convert to Base64 for use in your cluster's ARM template.
+Following the steps below, you'll end up with a SSH public-key-based solution that leverages [cloud-init](https://learn.microsoft.com/azure/virtual-machines/linux/using-cloud-init). The results will be captured in `jumpBoxCloudInit.yml` which you will later convert to Base64 for use in your cluster's ARM template.
 
 ## Steps
 
@@ -30,7 +30,7 @@ Following the steps below, you'll end up with a SSH public-key-based solution th
 
       > On Windows, as an alternative to bash in WSL, you can use a solution like PuTTYGen found in the [PuTTY installer](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
       >
-      > Azure also has a SSH Public Key resources type that allows you to [generate SSH keys](https://docs.microsoft.com/azure/virtual-machines/ssh-keys-portal) and keep public keys available as a managed resource.
+      > Azure also has a SSH Public Key resources type that allows you to [generate SSH keys](https://learn.microsoft.com/azure/virtual-machines/ssh-keys-portal) and keep public keys available as a managed resource.
 1. _Optional 🛑._ Remove the `- default` line to remove the default admin user from the jump box.
 
    If you leave the `- default` line in the file, then the default admin user (defined in the cluster's ARM template as pseudo-random name to discourage usage) will also exist on this jump box. We do not provide any instructions on setting up this default user to be a valid user you can access, and as such you might wish to simply remove it from the jump box. That user has unrestricted sudo access, by default. Unfortunately, you cannot directly deploy the jump box infrastructure with this user removed, so removing it via cloud-init is a common resolution -- by not including `- default` in this file.

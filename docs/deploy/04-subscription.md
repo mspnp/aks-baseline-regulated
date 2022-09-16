@@ -4,7 +4,7 @@ In the prior step, you've set up an Azure AD tenant to fullfil your [cluster's c
 
 ## Subscription and resource group topology
 
-This reference implementation is split across several resource groups in a single subscription. This is to replicate the fact that many organizations will split certain responsibilities into specialized subscriptions (e.g. regional hubs in a _Connectivity_ subscription and workloads in landing zone subscriptions). We expect you to explore this reference implementation within a single subscription, but when you implement this cluster at your organization, you will need to take what you've learned here and apply it to your expected subscription and resource group topology; such as those [offered by the Cloud Adoption Framework](https://docs.microsoft.com/azure/cloud-adoption-framework/decision-guides/subscriptions/). This single subscription, multiple resource group model is for simplicity of demonstration purposes only.
+This reference implementation is split across several resource groups in a single subscription. This is to replicate the fact that many organizations will split certain responsibilities into specialized subscriptions (e.g. regional hubs in a _Connectivity_ subscription and workloads in landing zone subscriptions). We expect you to explore this reference implementation within a single subscription, but when you implement this cluster at your organization, you will need to take what you've learned here and apply it to your expected subscription and resource group topology; such as those [offered by the Cloud Adoption Framework](https://learn.microsoft.com/azure/cloud-adoption-framework/decision-guides/subscriptions/). This single subscription, multiple resource group model is for simplicity of demonstration purposes only.
 
 ## Expected results
 
@@ -48,7 +48,7 @@ For this reference implementation, our Azure Policies applied to these resource 
 
 This is not an exhaustive list of Azure Policies that you can create or assign, and instead an example of the types of polices you should consider having in place. Policies like these help prevent a misconfiguration of a service that would expose you to unexpected compliance concerns. Let the Azure control plane guard against configurations that are untenable for your compliance requirements as an added safeguard. While we deploy policies at the subscription and resource group scope, your organization may also utilize management groups. We've found it's best to also ensure your target subscription and target resource groups have "scope-local" policies specific to their needs; so it doesn't take a dependency on a higher order policy existing or not -- even if that leads to a duplication of policy.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.4 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-224) and [Azure Policy considerations](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-policy-considerations).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.4 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-224) and [Azure Policy considerations](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-policy-considerations).
 
 Also, depending on your workload subscription scope, some of the policies applied above may be better suited at the subscription level (like no public AKS clusters). Since we don't assume you're coming to this walkthrough with a dedicated subscription, we've scoped the restrictions to only those resource groups we ask you to create. Apply your policies where it makes the most sense to do so in your final implementation.
 
@@ -56,10 +56,10 @@ Also, depending on your workload subscription scope, some of the policies applie
 
 As mentioned in the Azure Policy section above, we enable the following Microsoft Defender for Cloud's services.
 
-* [Microsoft Defender for Containers](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction)
-* [Microsoft Defender for Key Vault](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-key-vault-introduction)
-* [Microsoft Defender for Azure DNS](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-dns-introduction)
-* [Microsoft Defender for Azure Resource Manager](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-resource-manager-introduction)
+* [Microsoft Defender for Containers](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction)
+* [Microsoft Defender for Key Vault](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-key-vault-introduction)
+* [Microsoft Defender for Azure DNS](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-dns-introduction)
+* [Microsoft Defender for Azure Resource Manager](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-resource-manager-introduction)
 
 Not only do we enable them in the steps below by default, but also set up an Azure Policy that ensures they stay enabled.
 
@@ -88,7 +88,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
    NETWORK_WATCHER_RG_REGION=$(az group list --query "[?name=='networkWatcherRG' || name=='NetworkWatcherRG'].location" -o tsv)
    ```
 
-   If your subscription is managed in such a way that Azure Network Watcher resources are found in a resource group other than the Azure default of `networkWatcherRG` or they do not use the Azure default `NetworkWatcher_<region>` naming convention, you will need to adjust the various ARM templates to compensate. Network Watchers are singletons (per region) in subscriptions, and organizations often manage them (and Flow Logs) via Azure Policy. This walkthrough assumes default naming conventions as set by Azure's [automatic deployment feature of Network Watchers](https://docs.microsoft.com/azure/network-watcher/network-watcher-create#network-watcher-is-automatically-enabled).
+   If your subscription is managed in such a way that Azure Network Watcher resources are found in a resource group other than the Azure default of `networkWatcherRG` or they do not use the Azure default `NetworkWatcher_<region>` naming convention, you will need to adjust the various ARM templates to compensate. Network Watchers are singletons (per region) in subscriptions, and organizations often manage them (and Flow Logs) via Azure Policy. This walkthrough assumes default naming conventions as set by Azure's [automatic deployment feature of Network Watchers](https://learn.microsoft.com/azure/network-watcher/network-watcher-create#network-watcher-is-automatically-enabled).
 
    If at any time during the deployment you get an error stating "**resource 'NetworkWatcher_\<region>' not found**", you will need to skip flow log creation by passing `false` to that ARM template's `deployFlowLogResources` parameter or you can manually create the required Network Watcher with that name.
 
@@ -112,7 +112,7 @@ Not only do we enable them in the steps below by default, but also set up an Azu
 
 It is recommended that your Azure _subscription_ have the **Azure Security Benchmark** Azure Policy initiative applied. We could not deploy it in ARM above, as we don't want to overwrite anything already existing in your subscription. This policy can only be applied once for Microsoft Defender for Cloud to detect it properly, and if we deployed a version above, you might inadvertently break existing policy configuration on your subscription. If you have the ability to apply it without any negative impact on other resources your subscription, you can do so by doing the following.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2 in AKS](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-22).
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-22).
 
 ### Steps
 
@@ -128,7 +128,7 @@ It is recommended that your Azure _subscription_ have the **Azure Security Bench
 
 Consider evaluating additional Azure Policies to help guard your subscription from undesirable resource deployments. Here are some to consider.
 
-* [PCI-DSS 3.2.1 Blueprint](https://docs.microsoft.com/azure/governance/blueprints/samples/pci-dss-3.2.1/)
+* [PCI-DSS 3.2.1 Blueprint](https://learn.microsoft.com/azure/governance/blueprints/samples/pci-dss-3.2.1/)
 * Allowed locations
 * Allowed locations for resource groups
 * External accounts with read permissions should be removed from your subscription
@@ -136,11 +136,11 @@ Consider evaluating additional Azure Policies to help guard your subscription fr
 * External accounts with owner permissions should be removed from your subscription
 * Network interfaces should not have public IPs
 
-Like the Azure Security Benchmark, we'd like to apply these, and similar, in this walkthrough; but we acknowledge that they might be disruptive if you are deploying this walkthrough to a subscription with other existing resources. Please take the time to review the [built-in Azure Policies](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) and the [ability to create your own](https://docs.microsoft.com/azure/governance/policy/tutorials/create-and-manage), and craft policies that will help keep you within regulatory compliance from an Azure Resource location & features perspective.
+Like the Azure Security Benchmark, we'd like to apply these, and similar, in this walkthrough; but we acknowledge that they might be disruptive if you are deploying this walkthrough to a subscription with other existing resources. Please take the time to review the [built-in Azure Policies](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Definitions) and the [ability to create your own](https://learn.microsoft.com/azure/governance/policy/tutorials/create-and-manage), and craft policies that will help keep you within regulatory compliance from an Azure Resource location & features perspective.
 
 ## Accessing compliance documentation
 
-A summary of all of [Microsoft and Azure's compliance offerings are available](https://docs.microsoft.com/compliance/regulatory/offering-home). If you're looking for compliance reports (AOC, Shared Responsibility Matrix), you can access them via the Azure Portal. Your regulatory requirements may require you to have a copy of these documents available.
+A summary of all of [Microsoft and Azure's compliance offerings are available](https://learn.microsoft.com/compliance/regulatory/offering-home). If you're looking for compliance reports (AOC, Shared Responsibility Matrix), you can access them via the Azure Portal. Your regulatory requirements may require you to have a copy of these documents available.
 
 ### Steps
 
