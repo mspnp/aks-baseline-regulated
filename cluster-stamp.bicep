@@ -74,4 +74,14 @@ param jumpBoxImageResourceId string
 @minLength(100)
 param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
 
+/*** VARIABLES ***/
+
+var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
+var clusterName = 'aks-${subRgUniqueString}'
+
 /*** RESOURCES ***/
+
+resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-${clusterName}-controlplane'
+  location: location
+}
