@@ -79,14 +79,35 @@ param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
 
+/*** EXISTING RESOURCES ***/
+
+@description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
+resource managedIdentityOperatorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'f1a07417-d97a-45cb-824c-7a7467783830'
+  scope: subscription()
+}
+
 /*** RESOURCES ***/
 
+@description('The control plane identity used by the cluster.')
 resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-${clusterName}-controlplane'
   location: location
 }
 
+@description('The in-cluster ingress controller identity used by pod identity agent to acquire access tokens to read ssl certs from Azure KeyVault.')
 resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-ingresscontroller'
+  name: 'mi-${clusterName}-ingresscontroller'
   location: location
+}
+
+@description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Idenity.')
+resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: miIngressController
+  name: guid(resourceGroup().id, miClusterControlPlane.name, managedIdentityOperatorRole.id)
+  properties: {
+    roleDefinitionId: managedIdentityOperatorRole.id
+    principalId: miClusterControlPlane.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
