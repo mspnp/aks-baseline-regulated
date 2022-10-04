@@ -85,3 +85,8 @@ resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities
   name: 'mi-${clusterName}-controlplane'
   location: location
 }
+
+resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-ingresscontroller'
+  location: location
+}
