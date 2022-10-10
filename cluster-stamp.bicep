@@ -521,6 +521,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
     ]
   }
   dependsOn: [
+    peKv
     kvMiAppGatewayKeyVaultReader_roleAssignment
     kvMiAppGatewaySecretsUserRole_roleAssignment
   ]
