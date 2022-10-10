@@ -124,6 +124,19 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   location: location
   properties: {
     accessPolicies: [
+      {
+        tenantId: miIngressController.properties.tenantId
+        objectId: miIngressController.properties.principalId
+        permissions: {
+          secrets: [
+            'get'
+          ]
+          certificates: [
+            'get'
+          ]
+          keys: []
+        }
+      }
     ]
     sku: {
       family: 'A'
