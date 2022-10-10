@@ -241,6 +241,28 @@ resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   }
 }
 
+@description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with kv.')
+resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
+  name: 'pe-${kv.name}'
+  location: location
+  properties: {
+    subnet: {
+      id: targetVirtualNetwork::snetPrivatelinkendpoints.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'to-${targetVirtualNetwork.name}'
+        properties: {
+          privateLinkServiceId: kv.id
+          groupIds: [
+            'vault'
+          ]
+        }
+      }
+    ]
+  }
+}
+
 @description('The regional load balancer resource that ingests all the client requests and forward them back to the aks regulated cluster after passing the configured WAF rules.')
 resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
   name: 'agw-${clusterName}'
