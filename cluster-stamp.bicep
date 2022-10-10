@@ -279,6 +279,20 @@ resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
       }
     ]
   }
+
+  resource pdzg 'privateDnsZoneGroups' = {
+    name: 'default'
+    properties: {
+      privateDnsZoneConfigs: [
+        {
+          name: 'privatelink-akv-net'
+          properties: {
+            privateDnsZoneId: pdzKv.id
+          }
+        }
+      ]
+    }
+  }
 }
 
 @description('The regional load balancer resource that ingests all the client requests and forward them back to the aks regulated cluster after passing the configured WAF rules.')
