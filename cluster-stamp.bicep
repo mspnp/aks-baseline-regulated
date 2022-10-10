@@ -111,6 +111,12 @@ resource managedIdentityOperatorRole 'Microsoft.Authorization/roleDefinitions@20
   scope: subscription()
 }
 
+@description('Built-in Azure RBAC role that is applied a Key Vault to grant with metadata, certificates, keys and secrets read privileges. Granted to App Gateway\'s managed identity.')
+resource keyVaultReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '21090545-7ca7-4776-b22c-e363652d74d2'
+  scope: subscription()
+}
+
 /*** RESOURCES ***/
 
 @description('The control plane identity used by the cluster.')
@@ -206,6 +212,17 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     properties: {
       value: aksIngressControllerCertificate
     }
+  }
+}
+
+@description('Grant the Azure Application Gateway managed identity with key vault reader role permissions; this allows pulling frontend and backend certificates.')
+resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  scope: kv
+  name: guid(resourceGroup().id, 'mi-appgateway', keyVaultReaderRole.id)
+  properties: {
+    roleDefinitionId: keyVaultReaderRole.id
+    principalId: miAppGateway.properties.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -486,6 +503,9 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       }
     ]
   }
+  dependsOn: [
+    kvMiAppGatewayKeyVaultReader_roleAssignment
+  ]
 }
 
 @description('The diagnostic settings configuration for the aks regulated cluster regional load balancer.')
