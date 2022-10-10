@@ -201,3 +201,235 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
   }
 }
+
+@description('The aks regulated cluster log analytics workspace.')
+resource law 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
+  name: 'law-${clusterName}'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 90
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+  }
+}
+
+@description('The regional load balancer resource that ingests all the client requests and forward them back to the aks regulated cluster after passing the configured WAF rules.')
+resource agw 'Microsoft.Network/applicationGateways@2020-11-01' = {
+  name: 'agw-${clusterName}'
+  location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${miAppGateway.id}': {
+      }
+    }
+  }
+  zones: [
+    '1'
+    '2'
+    '3'
+  ]
+  properties: {
+    sku: {
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
+    }
+    sslPolicy: {
+      policyType: 'Custom'
+      cipherSuites: [
+        'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+        'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+      ]
+      minProtocolVersion: 'TLSv1_2'
+    }
+    trustedRootCertificates: [
+      {
+        name: 'root-cert-wildcard-aks-ingress-contoso'
+        properties: {
+          keyVaultSecretId: kv::kvsAppGwIngressInternalAksIngressTls.properties.secretUri
+        }
+      }
+    ]
+    gatewayIPConfigurations: [
+      {
+        name: 'agw-ip-configuration'
+        properties: {
+          subnet: {
+            id: targetVirtualNetwork::snetApplicationGateway.id
+          }
+        }
+      }
+    ]
+    frontendIPConfigurations: [
+      {
+        name: 'agw-frontend-ip-configuration'
+        properties: {
+          publicIPAddress: {
+            id: resourceId(subscription().subscriptionId, targetResourceGroup.name, 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0005-00')
+          }
+        }
+      }
+    ]
+    frontendPorts: [
+      {
+        name: 'agw-frontend-ports'
+        properties: {
+          port: 443
+        }
+      }
+    ]
+    autoscaleConfiguration: {
+      minCapacity: 0
+      maxCapacity: 10
+    }
+    webApplicationFirewallConfiguration: {
+      enabled: true
+      firewallMode: 'Prevention'
+      ruleSetType: 'OWASP'
+      ruleSetVersion: '3.2'
+      disabledRuleGroups: []
+      requestBodyCheck: true
+      maxRequestBodySizeInKb: 128
+      fileUploadLimitInMb: 100
+    }
+    enableHttp2: false
+    sslCertificates: [
+      {
+        name: 'agw-${clusterName}-ssl-certificate'
+        properties: {
+          keyVaultSecretId:  kv::kvsGatewaySslCert.properties.secretUri
+        }
+      }
+    ]
+    probes: [
+      {
+        name: 'probe-bu0001a0005-00.aks-ingress.contoso.com'
+        properties: {
+          protocol: 'Https'
+          path: '/favicon.ico'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          pickHostNameFromBackendHttpSettings: true
+          minServers: 0
+          match: {
+          }
+        }
+      }
+      {
+        name: 'ingress-controller'
+        properties: {
+          protocol: 'Https'
+          path: '/healthz'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          pickHostNameFromBackendHttpSettings: true
+          minServers: 0
+          match: {
+          }
+        }
+      }
+    ]
+    backendAddressPools: [
+      {
+        name: 'bu0001a0005-00.aks-ingress.contoso.com'
+        properties: {
+          backendAddresses: [
+            {
+              ipAddress: '10.240.4.4'
+            }
+          ]
+        }
+      }
+    ]
+    backendHttpSettingsCollection: [
+      {
+        name: 'aks-ingress-contoso-backendpool-httpsettings'
+        properties: {
+          port: 443
+          protocol: 'Https'
+          cookieBasedAffinity: 'Disabled'
+          hostName: 'bu0001a0005-00.aks-ingress.contoso.com'
+          pickHostNameFromBackendAddress: false
+          requestTimeout: 20
+          probe: {
+            id: resourceId('Microsoft.Network/applicationGateways/probes', 'agw-${clusterName}','probe-bu0001a0005-00.aks-ingress.contoso.com')
+          }
+          trustedRootCertificates: [
+            {
+              id: resourceId('Microsoft.Network/applicationGateways/trustedRootCertificates', 'agw-${clusterName}','root-cert-wildcard-aks-ingress-contoso')
+            }
+          ]
+        }
+      }
+    ]
+    httpListeners: [
+      {
+        name: 'listener-https'
+        properties: {
+          frontendIPConfiguration: {
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'agw-${clusterName}','agw-frontend-ip-configuration')
+          }
+          frontendPort: {
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'agw-${clusterName}','agw-frontend-ports')
+          }
+          protocol: 'Https'
+          sslCertificate: {
+            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'agw-${clusterName}','agw-${clusterName}-ssl-certificate')
+          }
+          hostName: 'bicycle.contoso.com'
+          hostNames: []
+          requireServerNameIndication: true
+        }
+      }
+    ]
+    requestRoutingRules: [
+      {
+        name: 'agw-routing-rules'
+        properties: {
+          ruleType: 'Basic'
+          httpListener: {
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'agw-${clusterName}','listener-https')
+          }
+          backendAddressPool: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'agw-${clusterName}','bu0001a0005-00.aks-ingress.contoso.com')
+          }
+          backendHttpSettings: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'agw-${clusterName}','aks-ingress-contoso-backendpool-httpsettings')
+          }
+        }
+      }
+    ]
+  }
+}
+
+@description('The diagnostic settings configuration for the aks regulated cluster regional load balancer.')
+resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: agw
+  name: 'default'
+  properties: {
+    workspaceId: law.id
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayPerformanceLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayFirewallLog'
+        enabled: true
+      }
+    ]
+  }
+}
+
+/*** OUTPUTS ***/
+
+output agwName string = agw.name
