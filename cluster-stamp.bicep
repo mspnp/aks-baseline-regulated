@@ -241,6 +241,24 @@ resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   }
 }
 
+@description('The kv private dns zone required by Private Link support.')
+resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: 'privatelink.vaultcore.azure.net'
+  location: 'global'
+
+  // Enabling Azure Key Vault Private Link on the spoke vnet.
+  resource vnetlnk 'virtualNetworkLinks' = {
+    name: 'to_${targetVirtualNetwork.name}'
+    location: 'global'
+    properties: {
+      virtualNetwork: {
+        id: targetVirtualNetwork.id
+      }
+      registrationEnabled: false
+    }
+  }
+}
+
 @description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with kv.')
 resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
   name: 'pe-${kv.name}'
