@@ -79,7 +79,24 @@ param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
 
-/*** EXISTING RESOURCES ***/
+/*** EXISTING RESOURCE GROUP RESOURCES ***/
+
+@description('Spoke resource group')
+resource targetResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+  scope: subscription()
+  name: '${split(targetVnetResourceId,'/')[4]}'
+}
+
+@description('The Spoke virtual network')
+resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+  scope: targetResourceGroup
+  name: '${last(split(targetVnetResourceId,'/'))}'
+
+  // Spoke virutual network's subnet for application gateway
+  resource snetApplicationGateway 'subnets' existing = {
+    name: 'snet-applicationgateway'
+  }
+}
 
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
 resource managedIdentityOperatorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
