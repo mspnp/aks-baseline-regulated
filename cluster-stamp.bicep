@@ -103,6 +103,8 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
   }
 }
 
+/*** EXISTING SUBSCRIPTION RESOURCES ***/
+
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
 resource managedIdentityOperatorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: 'f1a07417-d97a-45cb-824c-7a7467783830'
