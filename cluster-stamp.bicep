@@ -427,6 +427,29 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
   }
 }
 
+@description('The diagnostic settings configuration for the aks regulated cluster regional load balancer.')
+resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: agw
+  name: 'default'
+  properties: {
+    workspaceId: law.id
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayPerformanceLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayFirewallLog'
+        enabled: true
+      }
+    ]
+  }
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
