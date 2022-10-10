@@ -342,11 +342,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       }
     }
   }
-  zones: [
-    '1'
-    '2'
-    '3'
-  ]
+  zones: pickZones('Microsoft.Network', 'applicationGateways', location, 3)
   properties: {
     sku: {
       name: 'WAF_v2'
