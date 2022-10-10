@@ -101,6 +101,12 @@ resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2
   location: location
 }
 
+@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read ssl certs and secrets from Azure KeyVault.')
+resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-appgateway'
+  location: location
+}
+
 @description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Idenity.')
 resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: miIngressController
