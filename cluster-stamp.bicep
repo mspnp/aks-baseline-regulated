@@ -237,7 +237,7 @@ resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 }
 
 @description('The regional load balancer resource that ingests all the client requests and forward them back to the aks regulated cluster after passing the configured WAF rules.')
-resource agw 'Microsoft.Network/applicationGateways@2020-11-01' = {
+resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
   name: 'agw-${clusterName}'
   location: location
   identity: {
@@ -422,29 +422,6 @@ resource agw 'Microsoft.Network/applicationGateways@2020-11-01' = {
             id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'agw-${clusterName}','aks-ingress-contoso-backendpool-httpsettings')
           }
         }
-      }
-    ]
-  }
-}
-
-@description('The diagnostic settings configuration for the aks regulated cluster regional load balancer.')
-resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: agw
-  name: 'default'
-  properties: {
-    workspaceId: law.id
-    logs: [
-      {
-        category: 'ApplicationGatewayAccessLog'
-        enabled: true
-      }
-      {
-        category: 'ApplicationGatewayPerformanceLog'
-        enabled: true
-      }
-      {
-        category: 'ApplicationGatewayFirewallLog'
-        enabled: true
       }
     ]
   }
