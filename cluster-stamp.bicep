@@ -117,6 +117,12 @@ resource keyVaultReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01'
   scope: subscription()
 }
 
+@description('Built-in Azure RBAC role that is applied to a Key Vault to grant with secrets content read privileges. Granted to both Key Vault and our workload\'s identity.')
+resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '4633458b-17de-408a-b874-0445c86b69e6'
+  scope: subscription()
+}
+
 /*** RESOURCES ***/
 
 @description('The control plane identity used by the cluster.')
@@ -212,6 +218,17 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     properties: {
       value: aksIngressControllerCertificate
     }
+  }
+}
+
+@description('Grant the Azure Application Gateway managed identity with key vault secrets user role permissions; this allows pulling secrets from key vault.')
+resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  scope: kv
+  name: guid(resourceGroup().id, 'mi-appgateway', keyVaultSecretsUserRole.id)
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole.id
+    principalId: miAppGateway.properties.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -505,6 +522,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
   }
   dependsOn: [
     kvMiAppGatewayKeyVaultReader_roleAssignment
+    kvMiAppGatewaySecretsUserRole_roleAssignment
   ]
 }
 
