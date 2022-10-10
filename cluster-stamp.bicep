@@ -96,6 +96,11 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
   resource snetApplicationGateway 'subnets' existing = {
     name: 'snet-applicationgateway'
   }
+
+  // Spoke virutual network's subnet for all private endpoints
+  resource snetPrivatelinkendpoints 'subnets' existing = {
+    name: 'snet-privatelinkendpoints'
+  }
 }
 
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
