@@ -175,4 +175,12 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
       value: appGatewayListenerCertificate
     }
   }
+
+  // The aks regulated in-cluster Tls certificate to establish https connections between your regional load balancer and your ingress controller enabling e2e tls connections
+  resource kvsAppGwIngressInternalAksIngressTls 'secrets' = {
+    name: 'agw-ingress-incluster-aks-ingress-contoso-com-tls'
+    properties: {
+      value: aksIngressControllerCertificate
+    }
+  }
 }
