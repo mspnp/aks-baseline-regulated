@@ -117,3 +117,28 @@ resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Micr
     principalType: 'ServicePrincipal'
   }
 }
+
+@description('The secret storage management resource for the aks regulated cluster.')
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
+  name: 'kv-${clusterName}'
+  location: location
+  properties: {
+    accessPolicies: [
+    ]
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: subscription().tenantId
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Allow'
+      ipRules: []
+      virtualNetworkRules: []
+    }
+    enabledForDeployment: false
+    enabledForDiskEncryption: false
+    enabledForTemplateDeployment: false
+    enableSoftDelete: true
+  }
+}
