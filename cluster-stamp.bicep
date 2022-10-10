@@ -167,4 +167,12 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enabledForTemplateDeployment: false
     enableSoftDelete: true
   }
+
+  // The internet facing Tls certificate to establish https connections between your clients and your regional load balancer
+  resource kvsGatewaySslCert 'secrets' = {
+    name: 'sslcert'
+    properties: {
+      value: appGatewayListenerCertificate
+    }
+  }
 }
