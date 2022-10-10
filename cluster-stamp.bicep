@@ -216,6 +216,26 @@ resource law 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   }
 }
 
+resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: kv
+  name: 'default'
+  properties: {
+    workspaceId: law.id
+    logs: [
+      {
+        category: 'AuditEvent'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
 @description('The regional load balancer resource that ingests all the client requests and forward them back to the aks regulated cluster after passing the configured WAF rules.')
 resource agw 'Microsoft.Network/applicationGateways@2020-11-01' = {
   name: 'agw-${clusterName}'
