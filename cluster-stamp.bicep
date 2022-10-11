@@ -321,6 +321,20 @@ resource omsVmInsights 'Microsoft.OperationsManagement/solutions@2015-11-01-prev
   }
 }
 
+resource omsSecurityInsights 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
+  name: 'SecurityInsights(${law.name})'
+  location: location
+  properties: {
+    workspaceResourceId: law.id
+  }
+  plan: {
+    name: 'SecurityInsights(${law.name})'
+    product: 'OMSGallery/SecurityInsights'
+    promotionCode: ''
+    publisher: 'Microsoft'
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
