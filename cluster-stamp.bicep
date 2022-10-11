@@ -658,6 +658,33 @@ resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
   }
 }
 
+resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
+  name: 'AllAzureAdvisorAlert'
+  location: 'Global'
+  properties: {
+    scopes: [
+      resourceGroup().id
+    ]
+    condition: {
+      allOf: [
+        {
+          field: 'category'
+          equals: 'Recommendation'
+        }
+        {
+          field: 'operationName'
+          equals: 'Microsoft.Advisor/recommendations/available/action'
+        }
+      ]
+    }
+    actions: {
+      actionGroups: []
+    }
+    enabled: true
+    description: 'All azure advisor alerts'
+  }
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
