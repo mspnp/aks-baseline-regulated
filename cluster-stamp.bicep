@@ -769,6 +769,19 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
       }
     }
   }
+
+  resource extDependencyAgentLinux 'extensions' = {
+    name: 'DependencyAgentLinux'
+    properties: {
+      publisher: 'Microsoft.Azure.Monitoring.DependencyAgent'
+      type: 'DependencyAgentLinux'
+      typeHandlerVersion: '9.10'
+      autoUpgradeMinorVersion: true
+    }
+    dependsOn: [
+      extOmsAgentForLinux
+    ]
+  }
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
