@@ -819,6 +819,11 @@ resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
     networkRuleBypassOptions: 'AzureServices'
     zoneRedundancy: 'Disabled'
   }
+
+  resource grl 'replications' = {
+    name: geoRedundancyLocation
+    location: geoRedundancyLocation
+  }
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
