@@ -281,6 +281,18 @@ resource lawForbiddenReponsesOnIngress 'Microsoft.OperationalInsights/workspaces
   }
 }
 
+resource lawNodeRebootRequested 'Microsoft.OperationalInsights/workspaces/savedSearches@2020-08-01' = {
+  parent: law
+  name: 'NodeRebootRequested'
+  properties: {
+    eTag: '*'
+    category: 'Prometheus'
+    displayName: 'Nodes reboot required by kured'
+    query: 'InsightsMetrics | where Namespace == "prometheus" and Name == "kured_reboot_required" | where Val > 0'
+    version: 1
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
