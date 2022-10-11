@@ -307,6 +307,20 @@ resource omsContainerInsights 'Microsoft.OperationsManagement/solutions@2015-11-
   }
 }
 
+resource omsVmInsights 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
+  name: 'VMInsights(${law.name})'
+  location: location
+  properties: {
+    workspaceResourceId: law.id
+  }
+  plan: {
+    name: 'VMInsights(${law.name})'
+    product: 'OMSGallery/VMInsights'
+    promotionCode: ''
+    publisher: 'Microsoft'
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
