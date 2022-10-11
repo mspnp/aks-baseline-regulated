@@ -784,6 +784,43 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
   }
 }
 
+@description('The private container registry for the aks regulated cluster.')
+resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
+  name: 'craks${subRgUniqueString}'
+  location: location
+  sku: {
+    name: 'Premium'
+  }
+  properties: {
+    adminUserEnabled: false
+    networkRuleSet: {
+      defaultAction: 'Deny'
+      virtualNetworkRules: []
+      ipRules: []
+    }
+    policies: {
+      quarantinePolicy: {
+        status: 'disabled'
+      }
+      trustPolicy: {
+        type: 'Notary'
+        status: 'enabled'
+      }
+      retentionPolicy: {
+        days: 15
+        status: 'enabled'
+      }
+    }
+    publicNetworkAccess: 'Disabled'
+    encryption: {
+      status: 'disabled'
+    }
+    dataEndpointEnabled: true
+    networkRuleBypassOptions: 'AzureServices'
+    zoneRedundancy: 'Disabled'
+  }
+}
+
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
   name: 'AllAzureAdvisorAlert'
   location: 'Global'
@@ -815,3 +852,4 @@ resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-0
 
 output agwName string = agw.name
 output keyVaultName string = kv.name
+output quarantineContainerRegistryName string = cr.name
