@@ -78,6 +78,7 @@ param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
+var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
 
 /*** EXISTING RESOURCE GROUP RESOURCES ***/
 
@@ -661,6 +662,96 @@ resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
       }
     ]
   }
+}
+
+@description('The compute for operations jumpboxes; these machines are assigned to cluster operator users')
+resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = {
+  name: 'vmss-jumpboxes'
+  location: location
+  zones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
+  sku: {
+    name: 'Standard_DS1_v2'
+    tier: 'Standard'
+    capacity: 2
+  }
+  properties: {
+    additionalCapabilities: {
+      ultraSSDEnabled: false
+    }
+    overprovision: false
+    singlePlacementGroup: true
+    upgradePolicy: {
+      mode: 'Automatic'
+    }
+    zoneBalance: false
+    virtualMachineProfile: {
+      diagnosticsProfile: {
+        bootDiagnostics: {
+          enabled: true
+        }
+      }
+      osProfile: {
+        computerNamePrefix: 'aksjmp'
+        linuxConfiguration: {
+          disablePasswordAuthentication: true
+          provisionVMAgent: true
+          ssh: {
+            publicKeys: [
+              {
+                path: '/home/${jumpBoxDefaultAdminUserName}/.ssh/authorized_keys'
+                keyData: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCcFvQl2lYPcK1tMB3Tx2R9n8a7w5MJCSef14x0ePRFr9XISWfCVCNKRLM3Al/JSlIoOVKoMsdw5farEgXkPDK5F+SKLss7whg2tohnQNQwQdXit1ZjgOXkis/uft98Cv8jDWPbhwYj+VH/Aif9rx8abfjbvwVWBGeA/OnvfVvXnr1EQfdLJgMTTh+hX/FCXCqsRkQcD91MbMCxpqk8nP6jmsxJBeLrgfOxjH8RHEdSp4fF76YsRFHCi7QOwTE/6U+DpssgQ8MTWRFRat97uTfcgzKe5MOfuZHZ++5WFBgaTr1vhmSbXteGiK7dQXOk2cLxSvKkzeaiju9Jy6hoSl5oMygUVd5fNPQ94QcqTkMxZ9tQ9vPWOHwbdLRD31Ses3IBtDV+S6ehraiXf/L/e0jRUYk8IL/J543gvhOZ0hj2sQqTj9XS2hZkstZtrB2ywrJzV5ByETUU/oF9OsysyFgnaQdyduVqEPHaqXqnJvBngqqas91plyT3tSLMez3iT0s= unused-generated-by-azure'
+              }
+            ]
+          }
+        }
+        customData: jumpBoxCloudInitAsBase64
+        adminUsername: jumpBoxDefaultAdminUserName
+      }
+      storageProfile: {
+        osDisk: {
+          createOption: 'FromImage'
+          caching: 'ReadOnly'
+          diffDiskSettings: {
+            option: 'Local'
+          }
+          osType: 'Linux'
+        }
+        imageReference: {
+          id: jumpBoxImageResourceId
+        }
+      }
+      networkProfile: {
+        networkInterfaceConfigurations: [
+          {
+            name: 'vnet-spoke-BU0001A0005-01-nic01'
+            properties: {
+              primary: true
+              enableIPForwarding: false
+              enableAcceleratedNetworking: false
+              networkSecurityGroup: null
+              ipConfigurations: [
+                {
+                  name: 'default'
+                  properties: {
+                    primary: true
+                    privateIPAddressVersion: 'IPv4'
+                    publicIPAddressConfiguration: null
+                    subnet: {
+                      id: targetVirtualNetwork::snetManagmentOps.id
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+  dependsOn: [
+    law
+    omsVmInsights
+  ]
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
