@@ -293,6 +293,20 @@ resource lawNodeRebootRequested 'Microsoft.OperationalInsights/workspaces/savedS
   }
 }
 
+resource omsContainerInsights 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
+  name: 'ContainerInsights(${law.name})'
+  location: location
+  properties: {
+    workspaceResourceId: law.id
+  }
+  plan: {
+    name: 'ContainerInsights(${law.name})'
+    product: 'OMSGallery/ContainerInsights'
+    promotionCode: ''
+    publisher: 'Microsoft'
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
