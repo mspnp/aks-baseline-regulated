@@ -826,6 +826,31 @@ resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   }
 }
 
+@description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with cr.')
+resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
+  name: 'pe-${cr.name}'
+  location: location
+  properties: {
+    subnet: {
+      id: targetVirtualNetwork::snetPrivatelinkendpoints.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'to-${targetVirtualNetwork.name}'
+        properties: {
+          privateLinkServiceId: cr.id
+          groupIds: [
+            'registry'
+          ]
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    cr::grl
+  ]
+}
+
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
   name: 'AllAzureAdvisorAlert'
   location: 'Global'
