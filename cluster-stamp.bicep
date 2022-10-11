@@ -269,6 +269,18 @@ resource lawAllPrometheus 'Microsoft.OperationalInsights/workspaces/savedSearche
   }
 }
 
+resource lawForbiddenReponsesOnIngress 'Microsoft.OperationalInsights/workspaces/savedSearches@2020-08-01' = {
+  parent: law
+  name: 'ForbiddenReponsesOnIngress'
+  properties: {
+    eTag: '*'
+    category: 'Prometheus'
+    displayName: 'Increase number of forbidden response on the Ingress Controller'
+    query: 'let value = toscalar(InsightsMetrics | where Namespace == "prometheus" and Name == "nginx_ingress_controller_requests" | where parse_json(Tags).status == 403 | summarize Value = avg(Val) by bin(TimeGenerated, 5m) | summarize min = min(Value)); InsightsMetrics | where Namespace == "prometheus" and Name == "nginx_ingress_controller_requests" | where parse_json(Tags).status == 403 | summarize AggregatedValue = avg(Val)-value by bin(TimeGenerated, 5m) | order by TimeGenerated | render barchart'
+    version: 1
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
