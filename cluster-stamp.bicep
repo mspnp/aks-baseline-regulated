@@ -749,9 +749,26 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
     }
   }
   dependsOn: [
-    law
     omsVmInsights
   ]
+
+  resource extOmsAgentForLinux 'extensions' = {
+    name: 'OMSExtension'
+    properties: {
+      publisher: 'Microsoft.EnterpriseCloud.Monitoring'
+      type: 'OmsAgentForLinux'
+      typeHandlerVersion: '1.13'
+      autoUpgradeMinorVersion: true
+      settings: {
+        stopOnMultipleConnections: true
+        azureResourceId: vmssJumpboxes.id
+        workspaceId: reference(law.id, '2020-10-01').customerId
+      }
+      protectedSettings: {
+        workspaceKey: listKeys(law.id, '2020-10-01').primarySharedKey
+      }
+    }
+  }
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
