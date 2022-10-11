@@ -355,6 +355,20 @@ resource miwSecurityInsights 'Microsoft.Insights/workbooks@2022-04-01' = {
   }
 }
 
+resource omsKeyVaultAnalytics 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
+  name: 'KeyVaultAnalytics(${law.name})'
+  location: location
+  properties: {
+    workspaceResourceId: law.id
+  }
+  plan: {
+    name: 'KeyVaultAnalytics(${law.name})'
+    product: 'OMSGallery/KeyVaultAnalytics'
+    promotionCode: ''
+    publisher: 'Microsoft'
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
