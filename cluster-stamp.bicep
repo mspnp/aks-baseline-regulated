@@ -549,3 +549,4 @@ resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
+output keyVaultName string = kv.name
