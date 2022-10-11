@@ -257,6 +257,18 @@ resource law 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   }
 }
 
+resource lawAllPrometheus 'Microsoft.OperationalInsights/workspaces/savedSearches@2020-08-01' = {
+  parent: law
+  name: 'AllPrometheus'
+  properties: {
+    eTag: '*'
+    category: 'Prometheus'
+    displayName: 'All collected Prometheus information'
+    query: 'InsightsMetrics | where Namespace == "prometheus"'
+    version: 1
+  }
+}
+
 resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: kv
   name: 'default'
