@@ -101,6 +101,11 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
   resource snetPrivatelinkendpoints 'subnets' existing = {
     name: 'snet-privatelinkendpoints'
   }
+
+  // spoke virtual network's subnet for managment ops
+  resource snetManagmentOps 'subnets' existing = {
+    name: 'snet-management-ops'
+  }
 }
 
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
