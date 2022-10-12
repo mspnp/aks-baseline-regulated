@@ -421,7 +421,7 @@ resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
   }
 
   resource pdzg 'privateDnsZoneGroups' = {
-    name: 'default'
+    name: 'for-${kv.name}'
     properties: {
       privateDnsZoneConfigs: [
         {
