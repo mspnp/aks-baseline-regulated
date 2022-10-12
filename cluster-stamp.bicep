@@ -156,6 +156,12 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
   resource snetClusterSystemNodePools 'subnets' existing = {
     name: 'snet-cluster-systemnodepool'
   }
+
+  // spoke virtual network's subnet for cluster in-scope node pools
+  resource snetClusterInScopeNodePools 'subnets' existing = {
+    name: 'snet-cluster-inscopenodepools'
+  }
+
 }
 
 resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
