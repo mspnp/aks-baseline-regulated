@@ -832,6 +832,31 @@ resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   }
 }
 
+resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: cr
+  name: 'default'
+  properties: {
+    workspaceId: law.id
+    metrics: [
+      {
+        timeGrain: 'PT1M'
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+    logs: [
+      {
+        category: 'ContainerRegistryRepositoryEvents'
+        enabled: true
+      }
+      {
+        category: 'ContainerRegistryLoginEvents'
+        enabled: true
+      }
+    ]
+  }
+}
+
 @description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with cr.')
 resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
   name: 'pe-${cr.name}'
