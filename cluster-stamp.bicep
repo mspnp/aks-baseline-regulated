@@ -839,6 +839,20 @@ resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
   dependsOn: [
     cr::grl
   ]
+
+  resource pdzg 'privateDnsZoneGroups' = {
+    name: 'for-${cr.name}'
+    properties: {
+      privateDnsZoneConfigs: [
+        {
+          name: 'privatelink-azurecr-io'
+          properties: {
+            privateDnsZoneId: pdzCr.id
+          }
+        }
+      ]
+    }
+  }
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
