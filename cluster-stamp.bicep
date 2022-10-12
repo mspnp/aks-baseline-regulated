@@ -1268,6 +1268,16 @@ resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-0
   }
 }
 
+module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureClusterIdentityHasRbacToSelfManagedResources.bicep' = {
+  name: 'ensureClusterIdentityHasRbacToSelfManagedResources'
+  scope: targetResourceGroup
+  params: {
+    miClusterControlPlanePrincipalId: miClusterControlPlane.properties.principalId
+    clusterControlPlaneIdentityName: miClusterControlPlane.name
+    targetVirtualNetworkName: targetVirtualNetwork.name
+  }
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
