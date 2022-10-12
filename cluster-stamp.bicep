@@ -855,6 +855,43 @@ resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
   }
 }
 
+@description('The scheduled query that returns images being imported from repositories different than quarantine/')
+resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRules@2022-06-15' = {
+  name: 'Image Imported into ACR from ${cr.name} source other than approved Quarantine'
+  location: location
+  properties: {
+    description: 'The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.'
+    actions: {
+      actionGroups: []
+    }
+    criteria: {
+      allOf: [
+        {
+          operator: 'GreaterThan'
+          query: 'ContainerRegistryRepositoryEvents\r\n| where OperationName == "importImage" and Repository startswith "live/" and MediaType !startswith strcat(_ResourceId, "/quarantine")'
+          threshold: 0
+          timeAggregation: 'Count'
+          dimensions: []
+          failingPeriods: {
+            minFailingPeriodsToAlert: 1
+            numberOfEvaluationPeriods: 1
+          }
+          resourceIdColumn: ''
+        }
+      ]
+    }
+    enabled: true
+    evaluationFrequency: 'PT10M'
+    scopes: [
+      cr.id
+    ]
+    severity: 3
+    windowSize: 'PT10M'
+    muteActionsDuration: null
+    overrideQueryTimeRange: null
+  }
+}
+
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
   name: 'AllAzureAdvisorAlert'
   location: 'Global'
