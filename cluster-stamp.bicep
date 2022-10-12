@@ -109,6 +109,10 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
   }
 }
 
+resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  name: 'privatelink.vaultcore.azure.net'
+}
+
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
 
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
@@ -392,24 +396,6 @@ resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
         enabled: true
       }
     ]
-  }
-}
-
-@description('The kv private dns zone required by Private Link support.')
-resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: 'privatelink.vaultcore.azure.net'
-  location: 'global'
-
-  // Enabling Azure Key Vault Private Link on the spoke vnet.
-  resource vnetlnk 'virtualNetworkLinks' = {
-    name: 'to_${targetVirtualNetwork.name}'
-    location: 'global'
-    properties: {
-      virtualNetwork: {
-        id: targetVirtualNetwork.id
-      }
-      registrationEnabled: false
-    }
   }
 }
 
