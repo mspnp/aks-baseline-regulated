@@ -819,6 +819,17 @@ resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
     name: geoRedundancyLocation
     location: geoRedundancyLocation
   }
+
+  resource ap 'agentPools@2019-06-01-preview' = {
+    name: 'acragent'
+    location: location
+    properties: {
+      count: 1
+      os: 'Linux'
+      tier: 'S1'
+      virtualNetworkSubnetResourceId: targetVirtualNetwork::snetManagmentCrAgents.id
+    }
+  }
 }
 
 @description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with cr.')
