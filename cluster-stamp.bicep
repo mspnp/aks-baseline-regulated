@@ -113,6 +113,10 @@ resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: 'privatelink.vaultcore.azure.net'
 }
 
+resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  name: 'privatelink.azurecr.io'
+}
+
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
 
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
