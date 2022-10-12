@@ -107,6 +107,11 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
   resource snetManagmentOps 'subnets' existing = {
     name: 'snet-management-ops'
   }
+
+  // spoke virtual network's subnet for managment cr agent pools
+  resource snetManagmentCrAgents 'subnets' existing = {
+    name: 'snet-management-acragents'
+  }
 }
 
 resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
