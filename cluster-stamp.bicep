@@ -931,6 +931,9 @@ resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRul
     muteActionsDuration: null
     overrideQueryTimeRange: null
   }
+  dependsOn: [
+    cr_diagnosticSettings
+  ]
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
