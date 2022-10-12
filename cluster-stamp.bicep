@@ -79,6 +79,45 @@ param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
 var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
+var crName = 'craks${subRgUniqueString}'
+
+/*** EXISTING TENANT RESOURCES ***/
+
+@description('Built-in \'Kubernetes cluster pod security restricted standards for Linux-based workloads\' Azure Policy for Kubernetes initiative definition')
+var psdAKSLinuxRestrictiveId = tenantResourceId('Microsoft.Authorization/policySetDefinitions', '42b8ef37-b724-4e24-bbc8-7a7708edfe00')
+
+@description('Built-in \'Kubernetes clusters should be accessible only over HTTPS\' Azure Policy for Kubernetes policy definition')
+var pdEnforceHttpsIngressId = tenantResourceId('Microsoft.Authorization/policyDefinitions', '1a5b4dca-0b6f-4cf5-907c-56316bc1bf3d')
+
+@description('Built-in \'Kubernetes clusters should use internal load balancers\' Azure Policy for Kubernetes policy definition')
+var pdEnforceInternalLoadBalancersId = tenantResourceId('Microsoft.Authorization/policyDefinitions', '3fc4dc25-5baf-40d8-9b05-7fe74c1bc64e')
+
+@description('Built-in \'Kubernetes cluster services should only use allowed external IPs\' Azure Policy for Kubernetes policy definition')
+var pdAllowedExternalIPsId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'd46c275d-1680-448d-b2ec-e495a3b6cc89')
+
+@description('Built-in \'[Deprecated]: Kubernetes cluster containers should only listen on allowed ports\' Azure Policy policy definition')
+var pdApprovedContainerPortsOnly = tenantResourceId('Microsoft.Authorization/policyDefinitions', '440b515e-a580-421e-abeb-b159a61ddcbc')
+
+@description('Built-in \'Kubernetes cluster services should listen only on allowed ports\' Azure Policy policy definition')
+var pdApprovedServicePortsOnly = tenantResourceId('Microsoft.Authorization/policyDefinitions', '233a2a17-77ca-4fb1-9b6b-69223d272a44')
+
+@description('Built-in \'Kubernetes cluster pods should use specified labels\' Azure Policy policy definition')
+var pdMustUseSpecifiedLabels = tenantResourceId('Microsoft.Authorization/policyDefinitions', '46592696-4c7b-4bf3-9e45-6c2763bdc0a6')
+
+@description('Built-in \'Kubernetes clusters should disable automounting API credentials\' Azure Policy policy definition')
+var pdMustNotAutomountApiCreds = tenantResourceId('Microsoft.Authorization/policyDefinitions','423dd1ba-798e-40e4-9c4d-b6902674b423')
+
+@description('Built-in \'Kubernetes cluster containers should run with a read only root file systemv\' Azure Policy for Kubernetes policy definition')
+var pdRoRootFilesystemId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'df49d893-a74c-421d-bc95-c663042e5b80')
+
+@description('Built-in \'Kubernetes clusters should not use the default namespace\' Azure Policy for Kubernetes policy definition')
+var pdDisallowNamespaceUsageId = tenantResourceId('Microsoft.Authorization/policyDefinitions', '9f061a12-e40d-4183-a00e-171812443373')
+
+@description('Built-in \'AKS container CPU and memory resource limits should not exceed the specified limits\' Azure Policy for Kubernetes policy definition')
+var pdEnforceResourceLimitsId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'e345eecc-fa47-480f-9e88-67dcc122b164')
+
+@description('Built-in \'AKS containers should only use allowed images\' Azure Policy for Kubernetes policy definition')
+var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'febd0533-8e55-448f-b837-bd0e06f16469')
 
 /*** EXISTING RESOURCE GROUP RESOURCES ***/
 
@@ -781,7 +820,7 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
 
 @description('The private container registry for the aks regulated cluster.')
 resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
-  name: 'craks${subRgUniqueString}'
+  name: crName
   location: location
   sku: {
     name: 'Premium'
@@ -934,6 +973,272 @@ resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRul
   dependsOn: [
     cr_diagnosticSettings
   ]
+}
+
+resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
+  name: guid(psdAKSLinuxRestrictiveId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(psdAKSLinuxRestrictiveId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: psdAKSLinuxRestrictiveId
+    parameters: {
+      effect: {
+        value: 'audit'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+        ]
+      }
+    }
+  }
+}
+
+resource paEnforceHttpsIngress 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdEnforceHttpsIngressId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdEnforceHttpsIngressId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdEnforceHttpsIngressId
+    parameters: {
+      effect: {
+        value: 'deny'
+      }
+      excludedNamespaces: {
+        value: []
+      }
+    }
+  }
+}
+
+resource paEnforceInternalLoadBalancers 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdEnforceInternalLoadBalancersId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdEnforceInternalLoadBalancersId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdEnforceInternalLoadBalancersId
+    parameters: {
+      effect: {
+        value: 'deny'
+      }
+      excludedNamespaces: {
+        value: []
+      }
+    }
+  }
+}
+
+resource paMustNotAutomountApiCreds 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdMustNotAutomountApiCreds, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdMustNotAutomountApiCreds, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdMustNotAutomountApiCreds
+    parameters: {
+      effect: {
+        value: 'deny'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+          'flux-system'
+          'falco-system'
+          'osm-system'
+          'ingress-nginx'
+          'cluster-baseline-settings'
+        ]
+      }
+    }
+  }
+}
+
+resource paMustUseSpecifiedLabels 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdMustUseSpecifiedLabels, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdMustUseSpecifiedLabels, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdMustUseSpecifiedLabels
+    parameters: {
+      effect: {
+        value: 'audit'
+      }
+      labelsList: {
+        value: [
+          'pci-scope'
+        ]
+      }
+    }
+  }
+}
+
+resource paMustUseTheseExternalIps 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdAllowedExternalIPsId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdAllowedExternalIPsId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdAllowedExternalIPsId
+    parameters: {
+      effect: {
+        value: 'deny'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+        ]
+      }
+      allowedExternalIPs: {
+        value: []
+      }
+    }
+  }
+}
+
+resource paApprovedContainerPortsOnly 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdApprovedContainerPortsOnly, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}-a0005] ${reference(pdApprovedContainerPortsOnly, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdApprovedContainerPortsOnly
+    parameters: {
+      effect: {
+        value: 'audit'
+      }
+      excludedNamespaces: {
+        value: []
+      }
+      namespaces: {
+        value: [
+          'a0005-i'
+          'a0005-o'
+        ]
+      }
+      allowedContainerPortsList: {
+        value: [
+          '8080'
+          '15000'
+          '15003'
+          '15010'
+        ]
+      }
+    }
+  }
+}
+
+resource paApprovedServicePortsOnly 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdApprovedServicePortsOnly, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdApprovedServicePortsOnly, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdApprovedServicePortsOnly
+    parameters: {
+      effect: {
+        value: 'audit'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+          'osm-system'
+        ]
+      }
+      allowedServicePortsList: {
+        value: [
+          '443'
+          '80'
+          '8080'
+        ]
+      }
+    }
+  }
+}
+
+resource paRoRootFilesystem 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdRoRootFilesystemId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdRoRootFilesystemId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdRoRootFilesystemId
+    parameters: {
+      effect: {
+        value: 'audit'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+        ]
+      }
+    }
+  }
+}
+
+resource paBlockDefaultNamespace 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdDisallowNamespaceUsageId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdDisallowNamespaceUsageId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdDisallowNamespaceUsageId
+    parameters: {
+      effect: {
+        value: 'deny'
+      }
+      excludedNamespaces: {
+        value: []
+      }
+    }
+  }
+}
+
+resource paEnforceResourceLimits 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
+  name: guid(pdEnforceResourceLimitsId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdEnforceResourceLimitsId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdEnforceResourceLimitsId
+    parameters: {
+      effect: {
+        value: 'audit'
+      }
+      cpuLimit: {
+        value: '1500m'
+      }
+      memoryLimit: {
+        value: '2Gi'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+        ]
+      }
+    }
+  }
+}
+
+resource paEnforceImageSource 'Microsoft.Authorization/policyAssignments@2020-03-01' = {
+  name: guid(pdEnforceImageSourceId, resourceGroup().name, clusterName)
+  properties: {
+    displayName: trim(take('[${clusterName}] ${reference(pdEnforceImageSourceId, '2020-09-01').displayName}', 125))
+    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    policyDefinitionId: pdEnforceImageSourceId
+    parameters: {
+      allowedContainerImagesRegex: {
+        value: '${crName}\\.azurecr\\.io\\/live\\/.+$|mcr\\.microsoft\\.com\\/oss\\/(openservicemesh\\/init:|envoyproxy\\/envoy:).+$'
+      }
+      effect: {
+        value: 'deny'
+      }
+      excludedNamespaces: {
+        value: [
+          'kube-system'
+          'gatekeeper-system'
+        ]
+      }
+    }
+  }
 }
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
