@@ -1978,6 +1978,49 @@ resource maDiskUsageHighCI5 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   ]
 }
 
+resource maNodesInNotReadyStatusCI3 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Nodes in not ready status for ${clusterName} CI-3'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'status'
+              operator: 'Include'
+              values: [
+                'NotReady'
+              ]
+            }
+          ]
+          metricName: 'nodesCount'
+          metricNamespace: 'Insights.Container/nodes'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '0'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'Node status monitoring.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
 
 /*** OUTPUTS ***/
 
