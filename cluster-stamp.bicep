@@ -1642,6 +1642,50 @@ resource sqrPodFailed 'Microsoft.Insights/scheduledQueryRules@2021-08-01' = {
   ]
 }
 
+resource maNodeCpuUtilizationHighCI1 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Node CPU utilization high for ${clusterName} CI-1'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'host'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'cpuUsagePercentage'
+          metricNamespace: 'Insights.Container/nodes'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '80'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'Node CPU utilization across the cluster.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
