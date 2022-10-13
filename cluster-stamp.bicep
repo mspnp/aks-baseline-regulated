@@ -1832,6 +1832,58 @@ resource maContainerCpuUtilizationHighCI9 'Microsoft.Insights/metricAlerts@2018-
   ]
 }
 
+resource maContainerWorkingSetMemoryUsageHighCI10 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Container working set memory usage high for ${clusterName} CI-10'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'controllerName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'kubernetes namespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'memoryWorkingSetExceededPercentage'
+          metricNamespace: 'Insights.Container/containers'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '90'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors container working set memory utilization.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
