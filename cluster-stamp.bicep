@@ -2124,6 +2124,58 @@ resource maPersistentVolumeUsageHighCI18 'Microsoft.Insights/metricAlerts@2018-0
   ]
 }
 
+resource maPodsNotInReadyStateCI8 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Pods not in ready state for ${clusterName} CI-8'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'controllerName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'kubernetes namespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'PodReadyPercentage'
+          metricNamespace: 'Insights.Container/pods'
+          name: 'Metric1'
+          operator: 'LessThan'
+          threshold: '80'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors for excessive pods not in the ready state.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
