@@ -1558,6 +1558,46 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
   }
 }
 
+resource sqrPodFailed 'Microsoft.Insights/scheduledQueryRules@2021-08-01' = {
+  name: 'PodFailedScheduledQuery'
+  location: location
+  properties: {
+    description: 'Example from: https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-alerts'
+    actions: {
+      actionGroups: []
+    }
+    criteria: {
+      allOf: [
+        {
+          metricMeasureColumn: 'FailedCount'
+          operator: 'GreaterThan'
+          query: 'let trendBinSize = 1m;\r\nKubePodInventory\r\n| distinct ClusterName, TimeGenerated\r\n| summarize ClusterSnapshotCount = count() by bin(TimeGenerated, trendBinSize), ClusterName\r\n| join hint.strategy=broadcast (\r\n    KubePodInventory\r\n    | distinct ClusterName, Computer, PodUid, TimeGenerated, PodStatus\r\n    | summarize TotalCount = count(),\r\n        PendingCount = sumif(1, PodStatus =~ "Pending"),\r\n        RunningCount = sumif(1, PodStatus =~ "Running"),\r\n        SucceededCount = sumif(1, PodStatus =~ "Succeeded"),\r\n        FailedCount = sumif(1, PodStatus =~ "Failed")\r\n        by ClusterName, bin(TimeGenerated, trendBinSize)\r\n    )\r\n    on ClusterName, TimeGenerated \r\n| extend UnknownCount = TotalCount - PendingCount - RunningCount - SucceededCount - FailedCount\r\n| project TimeGenerated,\r\n    ClusterName,\r\n    TotalCount = todouble(TotalCount) / ClusterSnapshotCount,\r\n    PendingCount = todouble(PendingCount) / ClusterSnapshotCount,\r\n    RunningCount = todouble(RunningCount) / ClusterSnapshotCount,\r\n    SucceededCount = todouble(SucceededCount) / ClusterSnapshotCount,\r\n    FailedCount = todouble(FailedCount) / ClusterSnapshotCount,\r\n    UnknownCount = todouble(UnknownCount) / ClusterSnapshotCount\r\n'
+          threshold: 3
+          timeAggregation: 'Average'
+          dimensions: []
+          failingPeriods: {
+            minFailingPeriodsToAlert: 1
+            numberOfEvaluationPeriods: 1
+          }
+          resourceIdColumn: ''
+        }
+      ]
+    }
+    enabled: true
+    evaluationFrequency: 'PT5M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    windowSize: 'PT5M'
+    muteActionsDuration: null
+    overrideQueryTimeRange: 'P2D'
+  }
+  dependsOn: [
+    law
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
