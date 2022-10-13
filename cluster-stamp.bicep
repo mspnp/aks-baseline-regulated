@@ -2175,6 +2175,56 @@ resource maPodsNotInReadyStateCI8 'Microsoft.Insights/metricAlerts@2018-03-01' =
   ]
 }
 
+resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Restarting container count for ${clusterName} CI-7'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'kubernetes namespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'controllerName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'restartingContainerCount'
+          metricNamespace: 'Insights.Container/pods'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '0'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors number of containers restarting across the cluster.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'Microsoft.ContainerService/managedClusters'
+    windowSize: 'PT1M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
 
 /*** OUTPUTS ***/
 
