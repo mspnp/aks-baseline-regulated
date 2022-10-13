@@ -1553,6 +1553,34 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
   ]
 }
 
+resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'default'
+  properties: {
+    workspaceId: law.id
+    logs: [
+      {
+        category: 'cluster-autoscaler'
+        enabled: true
+      }
+      {
+        category: 'kube-controller-manager'
+        enabled: true
+      }
+      {
+        category: 'kube-audit-admin'
+        enabled: true
+      }
+      {
+        category: 'guard'
+        enabled: true
+      }
+    ]
+  }
+  dependsOn: [
+    mc
+  ]
+}
+
 @description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
 resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: cr
