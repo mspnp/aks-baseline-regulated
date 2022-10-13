@@ -1730,6 +1730,57 @@ resource maNodeCpuUtilizationHighCI2 'Microsoft.Insights/metricAlerts@2018-03-01
   ]
 }
 
+resource maJobsCompletedMoreThan6hAgoCI11 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Jobs completed more than 6 hours ago for ${clusterName} CI-11'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'controllerName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'kubernetes namespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'completedJobsCount'
+          metricNamespace: 'Insights.Container/pods'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '0'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors completed jobs (more than 6 hours ago).'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT1M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
