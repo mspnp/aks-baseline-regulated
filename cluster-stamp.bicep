@@ -2073,6 +2073,57 @@ resource maContainersGettingOomKilledCI6 'Microsoft.Insights/metricAlerts@2018-0
   ]
 }
 
+resource maPersistentVolumeUsageHighCI18 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Persistent volume usage high for ${clusterName} CI-18'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'podName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'kubernetesNamespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'pvUsageExceededPercentage'
+          metricNamespace: 'Insights.Container/persistentvolumes'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '80'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors persistent volume utilization.'
+    enabled: false
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
