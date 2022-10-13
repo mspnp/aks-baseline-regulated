@@ -203,6 +203,12 @@ resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-0
   scope: subscription()
 }
 
+@description('Built-in Azure RBAC role that is applied to a Container Registry to grant with pull privileges. Granted to AKS kubelet cluster\'s identity.')
+resource containerRegistryPullRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+  scope: subscription()
+}
+
 /*** RESOURCES ***/
 
 @description('The control plane identity used by the cluster.')
