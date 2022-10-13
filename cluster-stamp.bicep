@@ -1927,6 +1927,58 @@ resource maPodsInFailedStateCI4 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   ]
 }
 
+resource maDiskUsageHighCI5 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Disk usage high for ${clusterName} CI-5'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'host'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'device'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'DiskUsedPercentage'
+          metricNamespace: 'Insights.Container/nodes'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '80'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors disk usage for all nodes and storage devices.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
