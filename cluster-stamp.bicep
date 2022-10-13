@@ -1547,6 +1547,17 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
   ]
 }
 
+@description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
+resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: cr
+  name: guid(resourceGroup().id, mc.id, containerRegistryPullRole.id)
+  properties: {
+    roleDefinitionId: containerRegistryPullRole.id
+    principalId: mc.properties.identityProfile.kubeletidentity.objectId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
