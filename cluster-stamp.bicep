@@ -1781,6 +1781,57 @@ resource maJobsCompletedMoreThan6hAgoCI11 'Microsoft.Insights/metricAlerts@2018-
   ]
 }
 
+resource maContainerCpuUtilizationHighCI9 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Container CPU usage high for ${clusterName} CI-9'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'controllerName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'kubernetes namespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'cpuExceededPercentage'
+          metricNamespace: 'Insights.Container/containers'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '90'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors container CPU utilization.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT5M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
