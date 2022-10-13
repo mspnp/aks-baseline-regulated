@@ -45,17 +45,17 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 
    ```bash
    # [This takes about 20 minutes to run.]
-   az deployment group create -g rg-bu0001a0005 -f cluster-stamp.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE_BASE64} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
+   az deployment group create -g rg-bu0001a0005 -f cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE_BASE64} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
 
    # Or if you updated and wish to use the parameters file …
-   #az deployment group create -g rg-bu0001a0005 -f cluster-stamp.json -p "@azuredeploy.parameters.prod.json"
+   #az deployment group create -g rg-bu0001a0005 -f cluster-stamp.bicep -p "@azuredeploy.parameters.prod.json"
    ```
 
 1. Update cluster deployment with managed identity assignments.
 
-   **cluster-stamp.v2.json** is a _tiny_ evolution of the **cluster-stamp.json** ARM template you literally just deployed in the step above. Because we are using Azure AD Pod Identity v1 as a Microsoft-managed add-on, the mechanism to associate identities with the cluster is via ARM template instead of via Kubernetes manifest deployments (as you would do with the vanilla open source solution). However, due to a current limitation of the add-on, managed identities for Pod Managed Identities CANNOT be associated to the cluster when the cluster is first being created, only as an update to an existing cluster. So this deployment will re-deploy with the Pod Managed Identity association as the _only change_. Pod Managed Identity v2 is in development and it will support assignment at cluster-creation time. This implementation will evolve to use Azure AD Pod Identity v2 when available and we'll remove this step and add the assignment directly in `cluster-stamp.json`.
+   **cluster-stamp.v2.json** is a _tiny_ evolution of the **cluster-stamp.bicep** ARM template you literally just deployed in the step above. Because we are using Azure AD Pod Identity v1 as a Microsoft-managed add-on, the mechanism to associate identities with the cluster is via ARM template instead of via Kubernetes manifest deployments (as you would do with the vanilla open source solution). However, due to a current limitation of the add-on, managed identities for Pod Managed Identities CANNOT be associated to the cluster when the cluster is first being created, only as an update to an existing cluster. So this deployment will re-deploy with the Pod Managed Identity association as the _only change_. Pod Managed Identity v2 is in development and it will support assignment at cluster-creation time. This implementation will evolve to use Azure AD Pod Identity v2 when available and we'll remove this step and add the assignment directly in `cluster-stamp.bicep`.
 
-   > :eyes: If you're curious to see what changed in the cluster stamp, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.json&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.v2.json).
+   > :eyes: If you're curious to see what changed in the cluster stamp, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.bicep&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/cluster-stamp.v2.json).
 
    ```bash
    # [This takes about five minutes to run.]
