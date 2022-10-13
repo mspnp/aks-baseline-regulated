@@ -1300,6 +1300,247 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
   }
 }
 
+resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
+  name: clusterName
+  location: location
+  tags: {
+    'Data classification': 'Confidential'
+    'Business unit': 'BU0001'
+    'Business criticality': 'Business unit-critical'
+  }
+  properties: {
+    kubernetesVersion: kubernetesVersion
+    dnsPrefix: uniqueString(subscription().subscriptionId, resourceGroup().id, clusterName)
+    agentPoolProfiles: [
+      {
+        name: 'npsystem'
+        count: 3
+        vmSize: 'Standard_DS2_v2'
+        osDiskSizeGB: 80
+        osDiskType: 'Ephemeral'
+        osType: 'Linux'
+        minCount: 3
+        maxCount: 4
+        vnetSubnetID: targetVirtualNetwork::snetClusterSystemNodePools.id
+        enableAutoScaling: true
+        type: 'VirtualMachineScaleSets'
+        mode: 'System'
+        scaleSetPriority: 'Regular'
+        scaleSetEvictionPolicy: 'Delete'
+        orchestratorVersion: kubernetesVersion
+        enableNodePublicIP: false
+        maxPods: 30
+        availabilityZones: [
+          '1'
+          '2'
+          '3'
+        ]
+        upgradeSettings: {
+          maxSurge: '33%'
+        }
+        tags: {
+          'pci-scope': 'out-of-scope'
+          'Data classification': 'Confidential'
+          'Business unit': 'BU0001'
+          'Business criticality': 'Business unit-critical'
+        }
+      }
+      {
+        name: 'npinscope01'
+        count: 2
+        vmSize: 'Standard_DS3_v2'
+        osDiskSizeGB: 120
+        osDiskType: 'Ephemeral'
+        osType: 'Linux'
+        minCount: 2
+        maxCount: 5
+        vnetSubnetID: targetVirtualNetwork::snetClusterInScopeNodePools.id
+        enableAutoScaling: true
+        type: 'VirtualMachineScaleSets'
+        mode: 'User'
+        scaleSetPriority: 'Regular'
+        scaleSetEvictionPolicy: 'Delete'
+        orchestratorVersion: kubernetesVersion
+        enableNodePublicIP: false
+        maxPods: 30
+        availabilityZones: [
+          '1'
+          '2'
+          '3'
+        ]
+        upgradeSettings: {
+          maxSurge: '33%'
+        }
+        nodeLabels: {
+          'pci-scope': 'in-scope'
+        }
+        tags: {
+          'pci-scope': 'in-scope'
+          'Data classification': 'Confidential'
+          'Business unit': 'BU0001'
+          'Business criticality': 'Business unit-critical'
+        }
+      }
+      {
+        name: 'npooscope01'
+        count: 2
+        vmSize: 'Standard_DS3_v2'
+        osDiskSizeGB: 120
+        osDiskType: 'Ephemeral'
+        osType: 'Linux'
+        minCount: 2
+        maxCount: 5
+        vnetSubnetID: targetVirtualNetwork::snetClusterOutScopeNodePools.id
+        enableAutoScaling: true
+        type: 'VirtualMachineScaleSets'
+        mode: 'User'
+        scaleSetPriority: 'Regular'
+        scaleSetEvictionPolicy: 'Delete'
+        orchestratorVersion: kubernetesVersion
+        enableNodePublicIP: false
+        maxPods: 30
+        availabilityZones: [
+          '1'
+          '2'
+          '3'
+        ]
+        upgradeSettings: {
+          maxSurge: '33%'
+        }
+        nodeLabels: {
+          'pci-scope': 'out-of-scope'
+        }
+        tags: {
+          'pci-scope': 'out-of-scope'
+          'Data classification': 'Confidential'
+          'Business unit': 'BU0001'
+          'Business criticality': 'Business unit-critical'
+        }
+      }
+    ]
+    servicePrincipalProfile: {
+      clientId: 'msi'
+    }
+    addonProfiles: {
+      httpApplicationRouting: {
+        enabled: false
+      }
+      omsagent: {
+        enabled: true
+        config: {
+          logAnalyticsWorkspaceResourceId: law.id
+        }
+      }
+      aciConnectorLinux: {
+        enabled: false
+      }
+      azurepolicy: {
+        enabled: true
+        config: {
+          version: 'v2'
+        }
+      }
+      openServiceMesh: {
+        enabled: true
+        config: {
+        }
+      }
+      azureKeyvaultSecretsProvider: {
+        enabled: true
+        config: {
+          enableSecretRotation: 'false'
+        }
+      }
+    }
+    nodeResourceGroup: 'rg-${clusterName}-nodepools'
+    enableRBAC: true
+    enablePodSecurityPolicy: false
+    maxAgentPools: 3
+    networkProfile: {
+      networkPlugin: 'azure'
+      networkPolicy: 'azure'
+      outboundType: 'userDefinedRouting'
+      loadBalancerSku: 'standard'
+      loadBalancerProfile: json('null')
+      serviceCidr: '172.16.0.0/16'
+      dnsServiceIP: '172.16.0.10'
+      dockerBridgeCidr: '172.18.0.1/16'
+    }
+    aadProfile: {
+      managed: true
+      enableAzureRBAC: false
+      adminGroupObjectIDs: [
+        clusterAdminAadGroupObjectId
+      ]
+      tenantID: k8sControlPlaneAuthorizationTenantId
+    }
+    autoScalerProfile: {
+      'balance-similar-node-groups': 'false'
+      expander: 'random'
+      'max-empty-bulk-delete': '10'
+      'max-graceful-termination-sec': '600'
+      'max-node-provision-time': '15m'
+      'max-total-unready-percentage': '45'
+      'new-pod-scale-up-delay': '0s'
+      'ok-total-unready-count': '3'
+      'scale-down-delay-after-add': '10m'
+      'scale-down-delay-after-delete': '20s'
+      'scale-down-delay-after-failure': '3m'
+      'scale-down-unneeded-time': '10m'
+      'scale-down-unready-time': '20m'
+      'scale-down-utilization-threshold': '0.5'
+      'scan-interval': '10s'
+      'skip-nodes-with-local-storage': 'true'
+      'skip-nodes-with-system-pods': 'true'
+    }
+    apiServerAccessProfile: {
+      enablePrivateCluster: true
+      privateDNSZone: pdzMc.id
+      enablePrivateClusterPublicFQDN: false
+    }
+    podIdentityProfile: {
+      enabled: true
+    }
+    disableLocalAccounts: true
+    securityProfile: {
+      azureDefender: {
+        enabled: true
+        logAnalyticsWorkspaceResourceId: law.id
+      }
+    }
+  }
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${miClusterControlPlane.id}': {
+      }
+    }
+  }
+  sku: {
+    name: 'Basic'
+    tier: 'Paid'
+  }
+  dependsOn: [
+    omsContainerInsights
+    ensureClusterIdentityHasRbacToSelfManagedResources
+
+    paAksLinuxRestrictive
+    paEnforceHttpsIngress
+    paEnforceInternalLoadBalancers
+    paMustNotAutomountApiCreds
+    paMustUseSpecifiedLabels
+    paMustUseTheseExternalIps
+    paApprovedContainerPortsOnly
+    paApprovedServicePortsOnly
+    paRoRootFilesystem
+    paBlockDefaultNamespace
+    paEnforceResourceLimits
+    paEnforceImageSource
+    vmssJumpboxes
+    miIngressController
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
