@@ -1664,7 +1664,7 @@ resource maNodeCpuUtilizationHighCI1 'Microsoft.Insights/metricAlerts@2018-03-01
           metricNamespace: 'Insights.Container/nodes'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '80'
+          threshold: 80
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -1708,7 +1708,7 @@ resource maNodeCpuUtilizationHighCI2 'Microsoft.Insights/metricAlerts@2018-03-01
           metricNamespace: 'Insights.Container/nodes'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '80'
+          threshold: 80
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -1759,7 +1759,7 @@ resource maJobsCompletedMoreThan6hAgoCI11 'Microsoft.Insights/metricAlerts@2018-
           metricNamespace: 'Insights.Container/pods'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '0'
+          threshold: 0
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -1810,7 +1810,7 @@ resource maContainerCpuUtilizationHighCI9 'Microsoft.Insights/metricAlerts@2018-
           metricNamespace: 'Insights.Container/containers'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '90'
+          threshold: 90
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -1861,7 +1861,7 @@ resource maContainerWorkingSetMemoryUsageHighCI10 'Microsoft.Insights/metricAler
           metricNamespace: 'Insights.Container/containers'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '90'
+          threshold: 90
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -1905,7 +1905,7 @@ resource maPodsInFailedStateCI4 'Microsoft.Insights/metricAlerts@2018-03-01' = {
           metricNamespace: 'Insights.Container/pods'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '0'
+          threshold: 0
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -1956,7 +1956,7 @@ resource maDiskUsageHighCI5 'Microsoft.Insights/metricAlerts@2018-03-01' = {
           metricNamespace: 'Insights.Container/nodes'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '80'
+          threshold: 80
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -2000,7 +2000,7 @@ resource maNodesInNotReadyStatusCI3 'Microsoft.Insights/metricAlerts@2018-03-01'
           metricNamespace: 'Insights.Container/nodes'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '0'
+          threshold: 0
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -2051,7 +2051,7 @@ resource maContainersGettingOomKilledCI6 'Microsoft.Insights/metricAlerts@2018-0
           metricNamespace: 'Insights.Container/pods'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '0'
+          threshold: 0
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -2102,7 +2102,7 @@ resource maPersistentVolumeUsageHighCI18 'Microsoft.Insights/metricAlerts@2018-0
           metricNamespace: 'Insights.Container/persistentvolumes'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '80'
+          threshold: 80
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -2153,7 +2153,7 @@ resource maPodsNotInReadyStateCI8 'Microsoft.Insights/metricAlerts@2018-03-01' =
           metricNamespace: 'Insights.Container/pods'
           name: 'Metric1'
           operator: 'LessThan'
-          threshold: '80'
+          threshold: 80
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
@@ -2204,7 +2204,7 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
           metricNamespace: 'Insights.Container/pods'
           name: 'Metric1'
           operator: 'GreaterThan'
-          threshold: '0'
+          threshold: 0
           timeAggregation: 'Average'
           skipMetricValidation: true
         }
