@@ -2022,6 +2022,57 @@ resource maNodesInNotReadyStatusCI3 'Microsoft.Insights/metricAlerts@2018-03-01'
   ]
 }
 
+resource maContainersGettingOomKilledCI6 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'Containers getting OOM killed for ${clusterName} CI-6'
+  location: 'global'
+  properties: {
+    actions: []
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          dimensions: [
+            {
+              name: 'kubernetes namespace'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'controllerName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          metricName: 'oomKilledContainerCount'
+          metricNamespace: 'Insights.Container/pods'
+          name: 'Metric1'
+          operator: 'GreaterThan'
+          threshold: '0'
+          timeAggregation: 'Average'
+          skipMetricValidation: true
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+    description: 'This alert monitors number of containers killed due to out of memory (OOM) error.'
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    scopes: [
+      mc.id
+    ]
+    severity: 3
+    targetResourceType: 'microsoft.containerservice/managedclusters'
+    windowSize: 'PT1M'
+  }
+  dependsOn: [
+    omsContainerInsights
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
