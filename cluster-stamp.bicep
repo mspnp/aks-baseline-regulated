@@ -164,6 +164,11 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
     name: 'snet-cluster-inscopenodepools'
   }
 
+    // spoke virtual network's subnet for cluster out-scope node pools
+    resource snetClusterOutScopeNodePools 'subnets' existing = {
+      name: 'snet-cluster-outofscopenodepools'
+    }
+
 }
 
 resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
