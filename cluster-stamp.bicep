@@ -76,6 +76,8 @@ param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
 
 /*** VARIABLES ***/
 
+var kubernetesVersion = '1.23.3'
+
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
 var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
