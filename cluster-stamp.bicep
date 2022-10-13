@@ -1564,6 +1564,16 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
   }
 }
 
+@description('Grant Oms agent managed identity with publisher metrics role permissions; this allows the Oms agent\'s identity to publish metrics in container insights.')
+resource sMiOmsMonitoringMetricPublisherRoleRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(mc.id, monitoringMetricsPublisherRole.id)
+  properties: {
+    roleDefinitionId: monitoringMetricsPublisherRole.id
+    principalId: mc.properties.addonProfiles.omsagent.identity.objectId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 resource sqrPodFailed 'Microsoft.Insights/scheduledQueryRules@2021-08-01' = {
   name: 'PodFailedScheduledQuery'
   location: location
