@@ -1198,7 +1198,7 @@ resource paApprovedServicePortsOnly 'Microsoft.Authorization/policyAssignments@2
   }
 }
 
-@decscription('Applying the 'Kubernetes cluster containers should run with a read only root file system' policy to the resource group.')
+@description('Applying the \'Kubernetes cluster containers should run with a read only root file system\' policy to the resource group.')
 resource paRoRootFilesystem 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
   name: guid(pdRoRootFilesystemId, resourceGroup().name, clusterName)
   properties: {
