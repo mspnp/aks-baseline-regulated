@@ -124,14 +124,14 @@ var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDef
 /*** EXISTING RESOURCE GROUP RESOURCES ***/
 
 @description('Spoke resource group')
-resource targetResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   scope: subscription()
   name: '${split(targetVnetResourceId,'/')[4]}'
 }
 
 @description('The Spoke virtual network')
 resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
-  scope: targetResourceGroup
+  scope: spokeResourceGroup
   name: '${last(split(targetVnetResourceId,'/'))}'
 
   // Spoke virutual network's subnet for application gateway
@@ -565,7 +565,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
         name: 'agw-frontend-ip-configuration'
         properties: {
           publicIPAddress: {
-            id: resourceId(subscription().subscriptionId, targetResourceGroup.name, 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0005-00')
+            id: resourceId(subscription().subscriptionId, spokeResourceGroup.name, 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0005-00')
           }
         }
       }
@@ -1306,7 +1306,7 @@ resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-0
 
 module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureClusterIdentityHasRbacToSelfManagedResources.bicep' = {
   name: 'ensureClusterIdentityHasRbacToSelfManagedResources'
-  scope: targetResourceGroup
+  scope: spokeResourceGroup
   params: {
     miClusterControlPlanePrincipalId: miClusterControlPlane.properties.principalId
     clusterControlPlaneIdentityName: miClusterControlPlane.name
