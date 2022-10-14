@@ -223,19 +223,19 @@ resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities
   location: location
 }
 
-@description('The in-cluster ingress controller identity used by pod identity agent to acquire access tokens to read ssl certs from Azure KeyVault.')
+@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
 resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-${clusterName}-ingresscontroller'
   location: location
 }
 
-@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read ssl certs and secrets from Azure KeyVault.')
+@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
 resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-appgateway'
   location: location
 }
 
-@description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Idenity.')
+@description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Identity.')
 resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: miIngressController
   name: guid(resourceGroup().id, miClusterControlPlane.name, managedIdentityOperatorRole.id)
@@ -246,7 +246,7 @@ resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Micr
   }
 }
 
-@description('The secret storage management resource for the aks regulated cluster.')
+@description('The secret storage management resource for the AKS regulated cluster.')
 resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: 'kv-${clusterName}'
   location: location
@@ -296,7 +296,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enableSoftDelete: true
   }
 
-  // The internet facing Tls certificate to establish https connections between your clients and your regional load balancer
+  // The internet facing TLS certificate to establish HTTPS connections between your clients and your regional load balancer
   resource kvsGatewaySslCert 'secrets' = {
     name: 'sslcert'
     properties: {
@@ -304,7 +304,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
   }
 
-  // The aks regulated in-cluster Tls certificate to establish https connections between your regional load balancer and your ingress controller enabling e2e tls connections
+  // The in-cluster TLS certificate to establish HTTPS connections between your regional load balancer and your ingress controller, enabling end-to-end TLS connections.
   resource kvsAppGwIngressInternalAksIngressTls 'secrets' = {
     name: 'agw-ingress-incluster-aks-ingress-contoso-com-tls'
     properties: {
@@ -313,7 +313,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
-@description('Grant the Azure Application Gateway managed identity with key vault secrets user role permissions; this allows pulling secrets from key vault.')
+@description('Grant the Azure Application Gateway managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
 resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   scope: kv
   name: guid(resourceGroup().id, 'mi-appgateway', keyVaultSecretsUserRole.id)
@@ -324,7 +324,7 @@ resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/r
   }
 }
 
-@description('Grant the Azure Application Gateway managed identity with key vault reader role permissions; this allows pulling frontend and backend certificates.')
+@description('Grant the Azure Application Gateway managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
 resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   scope: kv
   name: guid(resourceGroup().id, 'mi-appgateway', keyVaultReaderRole.id)
@@ -335,7 +335,7 @@ resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/ro
   }
 }
 
-@description('The aks regulated cluster log analytics workspace.')
+@description('The AKS cluster and related resources log analytics workspace.')
 resource law 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   name: 'law-${clusterName}'
   location: location
@@ -481,7 +481,7 @@ resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   }
 }
 
-@description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with kv.')
+@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Key Vault.')
 resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
   name: 'pe-${kv.name}'
   location: location
@@ -637,7 +637,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
         properties: {
           backendAddresses: [
             {
-              ipAddress: '10.240.4.4'
+              ipAddress: '10.240.4.4' // This is the IP address that our ingress controller will request
             }
           ]
         }
@@ -930,7 +930,7 @@ resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   }
 }
 
-@description('The network interface in the spoke vnet that enables connecting privately the aks regulated cluster with cr.')
+@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Container Registry.')
 resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
   name: 'pe-${cr.name}'
   location: location
@@ -1077,11 +1077,11 @@ resource paMustNotAutomountApiCreds 'Microsoft.Authorization/policyAssignments@2
         value: [
           'kube-system'
           'gatekeeper-system'
-          'flux-system'
-          'falco-system'
-          'osm-system'
-          'ingress-nginx'
-          'cluster-baseline-settings'
+          'flux-system'  // Required by Flux
+          'falco-system'  // Required by Falco
+          'osm-system'  // Required by OSM
+          'ingress-nginx'  // Required by NGINX
+          'cluster-baseline-settings'  // Required by Key Vault CSI & Kured
         ]
       }
     }
@@ -1124,7 +1124,7 @@ resource paMustUseTheseExternalIps 'Microsoft.Authorization/policyAssignments@20
         ]
       }
       allowedExternalIPs: {
-        value: []
+        value: []  // No external IPs allowed (LoadBalancer Service types do not apply to this policy)
       }
     }
   }
@@ -1151,10 +1151,10 @@ resource paApprovedContainerPortsOnly 'Microsoft.Authorization/policyAssignments
       }
       allowedContainerPortsList: {
         value: [
-          '8080'
-          '15000'
-          '15003'
-          '15010'
+          '8080'   // ASP.net service listens on this
+          '15000'  // envoy proxy for service mesh
+          '15003'  // envoy proxy for service mesh
+          '15010'  // envoy proxy for service mesh
         ]
       }
     }
@@ -1180,15 +1180,16 @@ resource paApprovedServicePortsOnly 'Microsoft.Authorization/policyAssignments@2
       }
       allowedServicePortsList: {
         value: [
-          '443'
-          '80'
-          '8080'
+          '443'   // ingress-controller
+          '80'    // flux source-controller and microservice workload
+          '8080'  // web-frontend workload
         ]
       }
     }
   }
 }
 
+@decscription('Applying the 'Kubernetes cluster containers should run with a read only root file system' policy to the resource group.')
 resource paRoRootFilesystem 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
   name: guid(pdRoRootFilesystemId, resourceGroup().name, clusterName)
   properties: {
@@ -1199,6 +1200,7 @@ resource paRoRootFilesystem 'Microsoft.Authorization/policyAssignments@2020-09-0
       effect: {
         value: 'audit'
       }
+      // Not all workloads support this. E.g. ASP.NET requires a non-readonly root file system to handle request buffering when there is memory pressure.
       excludedNamespaces: {
         value: [
           'kube-system'
@@ -1524,6 +1526,9 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
     omsContainerInsights
     ensureClusterIdentityHasRbacToSelfManagedResources
 
+    // You want policies created before cluster because they take some time to be made available and we want them
+    // to apply to your cluster as soon as possible. Nothing in this cluster "technically" depends on these existing,
+    // just trying to get coverage as soon as possible.
     paAksLinuxRestrictive
     paEnforceHttpsIngress
     paEnforceInternalLoadBalancers
@@ -1536,7 +1541,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
     paBlockDefaultNamespace
     paEnforceResourceLimits
     paEnforceImageSource
-    vmssJumpboxes
+    vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
     miIngressController
   ]
 }
@@ -1580,7 +1585,7 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
   }
 }
 
-@description('Grant Oms agent managed identity with publisher metrics role permissions; this allows the Oms agent\'s identity to publish metrics in container insights.')
+@description('Grant OMS agent managed identity with publisher metrics role permissions; this allows the OMS agent\'s identity to publish metrics in Container Insights.')
 resource sMiOmsMonitoringMetricPublisherRoleRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(mc.id, monitoringMetricsPublisherRole.id)
   properties: {
