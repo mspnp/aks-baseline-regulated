@@ -64,7 +64,7 @@ param location string = 'eastus2'
 ])
 @description('For Azure resources that support native geo-redunancy, provide the location the redundant service will have its secondary. Should be different than the location parameter and ideally should be a paired region - https://learn.microsoft.com/azure/best-practices-availability-paired-regions. This region does not need to support availability zones.')
 @minLength(4)
-param geoRedundancyLocation string
+param geoRedundancyLocation string = 'centralus'
 
 @description('The Azure resource ID of a VM image that will be used for the jump box.')
 @minLength(70)
