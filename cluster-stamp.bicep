@@ -172,14 +172,17 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
 }
 
 resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: spokeResourceGroup
   name: 'privatelink.vaultcore.azure.net'
 }
 
 resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: spokeResourceGroup
   name: 'privatelink.azurecr.io'
 }
 
 resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: spokeResourceGroup
   name: 'privatelink.${location}.azmk8s.io'
 }
 
