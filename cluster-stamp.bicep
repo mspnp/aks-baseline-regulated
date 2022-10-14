@@ -1022,7 +1022,7 @@ resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-0
   name: guid(psdAKSLinuxRestrictiveId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(psdAKSLinuxRestrictiveId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: psdAKSLinuxRestrictiveId
     parameters: {
       effect: {
