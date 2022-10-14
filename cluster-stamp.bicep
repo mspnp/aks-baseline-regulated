@@ -260,34 +260,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: 'kv-${clusterName}'
   location: location
   properties: {
-    accessPolicies: [
-      {
-        tenantId: miAppGateway.properties.tenantId
-        objectId: miAppGateway.properties.principalId
-        permissions: {
-          secrets: [
-            'get'
-          ]
-          certificates: [
-            'get'
-          ]
-          keys: []
-        }
-      }
-      {
-        tenantId: miIngressController.properties.tenantId
-        objectId: miIngressController.properties.principalId
-        permissions: {
-          secrets: [
-            'get'
-          ]
-          certificates: [
-            'get'
-          ]
-          keys: []
-        }
-      }
-    ]
+    accessPolicies: []
     sku: {
       family: 'A'
       name: 'standard'
@@ -325,7 +298,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
 @description('Grant the Azure Application Gateway managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
 resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   scope: kv
-  name: guid(resourceGroup().id, 'mi-appgateway', keyVaultSecretsUserRole.id)
+  name: guid(resourceGroup().id, miAppGateway.name, keyVaultSecretsUserRole.id)
   properties: {
     roleDefinitionId: keyVaultSecretsUserRole.id
     principalId: miAppGateway.properties.principalId
@@ -336,10 +309,32 @@ resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/r
 @description('Grant the Azure Application Gateway managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
 resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   scope: kv
-  name: guid(resourceGroup().id, 'mi-appgateway', keyVaultReaderRole.id)
+  name: guid(resourceGroup().id, miAppGateway.name, keyVaultReaderRole.id)
   properties: {
     roleDefinitionId: keyVaultReaderRole.id
     principalId: miAppGateway.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+@description('Grant the Ingress Controller managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
+resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  scope: kv
+  name: guid(resourceGroup().id, miIngressController.name, keyVaultSecretsUserRole.id)
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole.id
+    principalId: miIngressController.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+@description('Grant the Ingress Controller managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
+resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  scope: kv
+  name: guid(resourceGroup().id, miIngressController.name, keyVaultReaderRole.id)
+  properties: {
+    roleDefinitionId: keyVaultReaderRole.id
+    principalId: miIngressController.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
@@ -1555,8 +1550,12 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
     paBlockDefaultNamespace
     paEnforceResourceLimits
     paEnforceImageSource
+
     vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
+
     miIngressController
+    kvMiIngressControllerSecretsUserRole_roleAssignment
+    kvMiIngressControllerKeyVaultReader_roleAssignment
   ]
 }
 
