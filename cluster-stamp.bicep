@@ -72,7 +72,7 @@ param jumpBoxImageResourceId string
 
 @description('A cloud init file (starting with #cloud-config) as a base 64 encoded string used to perform image customization on the jump box VMs. Used for user-management in this context.')
 @minLength(100)
-param jumpBoxCloudInitAsBase64 string = '10.200.0.0/26'
+param jumpBoxCloudInitAsBase64 string
 
 /*** VARIABLES ***/
 
