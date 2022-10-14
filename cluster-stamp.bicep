@@ -81,7 +81,7 @@ var kubernetesVersion = '1.23.3'
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
 var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
-var crName = 'craks${subRgUniqueString}'
+var acrName = 'acraks${subRgUniqueString}'
 
 /*** EXISTING TENANT RESOURCES ***/
 
@@ -149,7 +149,7 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
     name: 'snet-management-ops'
   }
 
-  // spoke virtual network's subnet for managment cr agent pools
+  // spoke virtual network's subnet for managment acr agent pools
   resource snetManagmentCrAgents 'subnets' existing = {
     name: 'snet-management-acragents'
   }
@@ -862,8 +862,8 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
 }
 
 @description('The private container registry for the aks regulated cluster.')
-resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
-  name: crName
+resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
+  name: acrName
   location: location
   sku: {
     name: 'Premium'
@@ -915,7 +915,7 @@ resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
 }
 
 resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: cr
+  scope: acr
   name: 'default'
   properties: {
     workspaceId: law.id
@@ -941,7 +941,7 @@ resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 
 @description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Container Registry.')
 resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
-  name: 'pe-${cr.name}'
+  name: 'pe-${acr.name}'
   location: location
   properties: {
     subnet: {
@@ -951,7 +951,7 @@ resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
       {
         name: 'to-${vnetSpoke.name}'
         properties: {
-          privateLinkServiceId: cr.id
+          privateLinkServiceId: acr.id
           groupIds: [
             'registry'
           ]
@@ -960,11 +960,11 @@ resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
     ]
   }
   dependsOn: [
-    cr::grl
+    acr::grl
   ]
 
   resource pdzg 'privateDnsZoneGroups' = {
-    name: 'for-${cr.name}'
+    name: 'for-${acr.name}'
     properties: {
       privateDnsZoneConfigs: [
         {
@@ -980,7 +980,7 @@ resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
 
 @description('The scheduled query that returns images being imported from repositories different than quarantine/')
 resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRules@2022-06-15' = {
-  name: 'Image Imported into ACR from ${cr.name} source other than approved Quarantine'
+  name: 'Image Imported into ACR from ${acr.name} source other than approved Quarantine'
   location: location
   properties: {
     description: 'The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.'
@@ -1006,7 +1006,7 @@ resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRul
     enabled: true
     evaluationFrequency: 'PT10M'
     scopes: [
-      cr.id
+      acr.id
     ]
     severity: 3
     windowSize: 'PT10M'
@@ -1271,7 +1271,7 @@ resource paEnforceImageSource 'Microsoft.Authorization/policyAssignments@2020-03
     policyDefinitionId: pdEnforceImageSourceId
     parameters: {
       allowedContainerImagesRegex: {
-        value: '${crName}\\.azurecr\\.io\\/live\\/.+$|mcr\\.microsoft\\.com\\/oss\\/(openservicemesh\\/init:|envoyproxy\\/envoy:).+$'
+        value: '${acrName}\\.azurecr\\.io\\/live\\/.+$|mcr\\.microsoft\\.com\\/oss\\/(openservicemesh\\/init:|envoyproxy\\/envoy:).+$'
       }
       effect: {
         value: 'deny'
@@ -1590,7 +1590,7 @@ resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 
 @description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
 resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: cr
+  scope: acr
   name: guid(resourceGroup().id, mc.id, containerRegistryPullRole.id)
   properties: {
     roleDefinitionId: containerRegistryPullRole.id
@@ -2237,4 +2237,4 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
 
 output agwName string = agw.name
 output keyVaultName string = kv.name
-output quarantineContainerRegistryName string = cr.name
+output quarantineContainerRegistryName string = acr.name
