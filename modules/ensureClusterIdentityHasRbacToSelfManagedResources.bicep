@@ -14,7 +14,7 @@ param clusterControlPlaneIdentityName string
 
 @description('The regional network spoke VNet Resource name that the cluster is being joined to, so it can be used to discover subnets during role assignments.')
 @minLength(1)
-param targetVirtualNetworkName string
+param vnetSpokeName string
 
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
 
@@ -34,8 +34,8 @@ resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
     name: 'privatelink.azurecr.io'
 }
 
-resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
-  name: targetVirtualNetworkName
+resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+  name: vnetSpokeName
 
   resource snetClusterSystemNodePools 'subnets' existing = {
     name: 'snet-cluster-systemnodepool'
@@ -57,8 +57,8 @@ resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' exi
 /*** RESOURCES ***/
 
 resource vnetMiClusterControlPlaneDnsZoneContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: targetVirtualNetwork
-  name: guid(targetVirtualNetwork.id, dnsZoneContributorRole.id, clusterControlPlaneIdentityName)
+  scope: vnetSpoke
+  name: guid(vnetSpoke.id, dnsZoneContributorRole.id, clusterControlPlaneIdentityName)
   properties: {
     roleDefinitionId: dnsZoneContributorRole.id
     description: 'Allows cluster identity to attach custom DNS zone with Private Link information to this virtual network.'
@@ -68,8 +68,8 @@ resource vnetMiClusterControlPlaneDnsZoneContributorRole_roleAssignment 'Microso
 }
 
 resource snetSystemNodePoolSubnetMiClusterControlPlaneNetworkContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: targetVirtualNetwork::snetClusterSystemNodePools
-  name: guid(targetVirtualNetwork::snetClusterSystemNodePools.id, networkContributorRole.id, clusterControlPlaneIdentityName)
+  scope: vnetSpoke::snetClusterSystemNodePools
+  name: guid(vnetSpoke::snetClusterSystemNodePools.id, networkContributorRole.id, clusterControlPlaneIdentityName)
   properties: {
     roleDefinitionId: networkContributorRole.id
     description: 'Allows cluster identity to join the nodepool vmss resources to this subnet.'
@@ -79,8 +79,8 @@ resource snetSystemNodePoolSubnetMiClusterControlPlaneNetworkContributorRole_rol
 }
 
 resource snetInScopeNodePoolSubnetsnetSystemNodePoolSubnetMiClusterControlPlaneNetworkContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: targetVirtualNetwork::snetClusterInScopeNodePools
-  name: guid(targetVirtualNetwork::snetClusterInScopeNodePools.id, networkContributorRole.id, clusterControlPlaneIdentityName)
+  scope: vnetSpoke::snetClusterInScopeNodePools
+  name: guid(vnetSpoke::snetClusterInScopeNodePools.id, networkContributorRole.id, clusterControlPlaneIdentityName)
   properties: {
     roleDefinitionId: networkContributorRole.id
     description: 'Allows cluster identity to join the nodepool vmss resources to this subnet.'
@@ -90,8 +90,8 @@ resource snetInScopeNodePoolSubnetsnetSystemNodePoolSubnetMiClusterControlPlaneN
 }
 
 resource snetOutOfScopeNodePoolSubnetMiClusterControlPlaneNetworkContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: targetVirtualNetwork::snetClusterOutofScopeNodePools
-  name: guid(targetVirtualNetwork::snetClusterOutofScopeNodePools.id, networkContributorRole.id, clusterControlPlaneIdentityName)
+  scope: vnetSpoke::snetClusterOutofScopeNodePools
+  name: guid(vnetSpoke::snetClusterOutofScopeNodePools.id, networkContributorRole.id, clusterControlPlaneIdentityName)
   properties: {
     roleDefinitionId: networkContributorRole.id
     description: 'Allows cluster identity to join the nodepool vmss resources to this subnet.'
@@ -101,8 +101,8 @@ resource snetOutOfScopeNodePoolSubnetMiClusterControlPlaneNetworkContributorRole
 }
 
 resource snetIngressServicesSubnetMiClusterControlPlaneNetworkContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: targetVirtualNetwork::snetClusterIngressServices
-  name: guid(targetVirtualNetwork::snetClusterIngressServices.id, networkContributorRole.id, clusterControlPlaneIdentityName)
+  scope: vnetSpoke::snetClusterIngressServices
+  name: guid(vnetSpoke::snetClusterIngressServices.id, networkContributorRole.id, clusterControlPlaneIdentityName)
   properties: {
     roleDefinitionId: networkContributorRole.id
     description: 'Allows cluster identity to join load balancers (ingress resources) to this subnet.'

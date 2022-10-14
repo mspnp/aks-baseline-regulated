@@ -130,7 +130,7 @@ resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' exis
 }
 
 @description('The Spoke virtual network')
-resource targetVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: spokeResourceGroup
   name: '${last(split(targetVnetResourceId,'/'))}'
 
@@ -487,11 +487,11 @@ resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
   location: location
   properties: {
     subnet: {
-      id: targetVirtualNetwork::snetPrivatelinkendpoints.id
+      id: vnetSpoke::snetPrivatelinkendpoints.id
     }
     privateLinkServiceConnections: [
       {
-        name: 'to-${targetVirtualNetwork.name}'
+        name: 'to-${vnetSpoke.name}'
         properties: {
           privateLinkServiceId: kv.id
           groupIds: [
@@ -555,7 +555,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
         name: 'agw-ip-configuration'
         properties: {
           subnet: {
-            id: targetVirtualNetwork::snetApplicationGateway.id
+            id: vnetSpoke::snetApplicationGateway.id
           }
         }
       }
@@ -805,7 +805,7 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
                     privateIPAddressVersion: 'IPv4'
                     publicIPAddressConfiguration: null
                     subnet: {
-                      id: targetVirtualNetwork::snetManagmentOps.id
+                      id: vnetSpoke::snetManagmentOps.id
                     }
                   }
                 }
@@ -900,7 +900,7 @@ resource cr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
       count: 1
       os: 'Linux'
       tier: 'S1'
-      virtualNetworkSubnetResourceId: targetVirtualNetwork::snetManagmentCrAgents.id
+      virtualNetworkSubnetResourceId: vnetSpoke::snetManagmentCrAgents.id
     }
   }
 }
@@ -936,11 +936,11 @@ resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
   location: location
   properties: {
     subnet: {
-      id: targetVirtualNetwork::snetPrivatelinkendpoints.id
+      id: vnetSpoke::snetPrivatelinkendpoints.id
     }
     privateLinkServiceConnections: [
       {
-        name: 'to-${targetVirtualNetwork.name}'
+        name: 'to-${vnetSpoke.name}'
         properties: {
           privateLinkServiceId: cr.id
           groupIds: [
@@ -1310,7 +1310,7 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
   params: {
     miClusterControlPlanePrincipalId: miClusterControlPlane.properties.principalId
     clusterControlPlaneIdentityName: miClusterControlPlane.name
-    targetVirtualNetworkName: targetVirtualNetwork.name
+    vnetSpokeName: vnetSpoke.name
   }
 }
 
@@ -1335,7 +1335,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         osType: 'Linux'
         minCount: 3
         maxCount: 4
-        vnetSubnetID: targetVirtualNetwork::snetClusterSystemNodePools.id
+        vnetSubnetID: vnetSpoke::snetClusterSystemNodePools.id
         enableAutoScaling: true
         type: 'VirtualMachineScaleSets'
         mode: 'System'
@@ -1364,7 +1364,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         osType: 'Linux'
         minCount: 2
         maxCount: 5
-        vnetSubnetID: targetVirtualNetwork::snetClusterInScopeNodePools.id
+        vnetSubnetID: vnetSpoke::snetClusterInScopeNodePools.id
         enableAutoScaling: true
         type: 'VirtualMachineScaleSets'
         mode: 'User'
@@ -1396,7 +1396,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         osType: 'Linux'
         minCount: 2
         maxCount: 5
-        vnetSubnetID: targetVirtualNetwork::snetClusterOutScopeNodePools.id
+        vnetSubnetID: vnetSpoke::snetClusterOutScopeNodePools.id
         enableAutoScaling: true
         type: 'VirtualMachineScaleSets'
         mode: 'User'
