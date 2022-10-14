@@ -220,7 +220,7 @@ resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions
 
 /*** RESOURCES ***/
 
-@description('The control plane identity used by the cluster.')
+@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
 resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-${clusterName}-controlplane'
   location: location
