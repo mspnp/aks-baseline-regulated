@@ -1042,7 +1042,7 @@ resource paEnforceHttpsIngress 'Microsoft.Authorization/policyAssignments@2020-0
   name: guid(pdEnforceHttpsIngressId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdEnforceHttpsIngressId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdEnforceHttpsIngressId
     parameters: {
       effect: {
@@ -1059,7 +1059,7 @@ resource paEnforceInternalLoadBalancers 'Microsoft.Authorization/policyAssignmen
   name: guid(pdEnforceInternalLoadBalancersId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdEnforceInternalLoadBalancersId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdEnforceInternalLoadBalancersId
     parameters: {
       effect: {
@@ -1076,7 +1076,7 @@ resource paMustNotAutomountApiCreds 'Microsoft.Authorization/policyAssignments@2
   name: guid(pdMustNotAutomountApiCreds, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdMustNotAutomountApiCreds, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdMustNotAutomountApiCreds
     parameters: {
       effect: {
@@ -1101,7 +1101,7 @@ resource paMustUseSpecifiedLabels 'Microsoft.Authorization/policyAssignments@202
   name: guid(pdMustUseSpecifiedLabels, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdMustUseSpecifiedLabels, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdMustUseSpecifiedLabels
     parameters: {
       effect: {
@@ -1120,7 +1120,7 @@ resource paMustUseTheseExternalIps 'Microsoft.Authorization/policyAssignments@20
   name: guid(pdAllowedExternalIPsId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdAllowedExternalIPsId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdAllowedExternalIPsId
     parameters: {
       effect: {
@@ -1143,7 +1143,7 @@ resource paApprovedContainerPortsOnly 'Microsoft.Authorization/policyAssignments
   name: guid(pdApprovedContainerPortsOnly, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}-a0005] ${reference(pdApprovedContainerPortsOnly, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdApprovedContainerPortsOnly
     parameters: {
       effect: {
@@ -1174,7 +1174,7 @@ resource paApprovedServicePortsOnly 'Microsoft.Authorization/policyAssignments@2
   name: guid(pdApprovedServicePortsOnly, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdApprovedServicePortsOnly, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdApprovedServicePortsOnly
     parameters: {
       effect: {
@@ -1203,7 +1203,7 @@ resource paRoRootFilesystem 'Microsoft.Authorization/policyAssignments@2020-09-0
   name: guid(pdRoRootFilesystemId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdRoRootFilesystemId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdRoRootFilesystemId
     parameters: {
       effect: {
@@ -1224,7 +1224,7 @@ resource paBlockDefaultNamespace 'Microsoft.Authorization/policyAssignments@2020
   name: guid(pdDisallowNamespaceUsageId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdDisallowNamespaceUsageId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdDisallowNamespaceUsageId
     parameters: {
       effect: {
@@ -1241,7 +1241,7 @@ resource paEnforceResourceLimits 'Microsoft.Authorization/policyAssignments@2020
   name: guid(pdEnforceResourceLimitsId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdEnforceResourceLimitsId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdEnforceResourceLimitsId
     parameters: {
       effect: {
@@ -1267,7 +1267,7 @@ resource paEnforceImageSource 'Microsoft.Authorization/policyAssignments@2020-03
   name: guid(pdEnforceImageSourceId, resourceGroup().name, clusterName)
   properties: {
     displayName: trim(take('[${clusterName}] ${reference(pdEnforceImageSourceId, '2020-09-01').displayName}', 125))
-    scope: subscriptionResourceId('Microsoft.Resources/resourceGroups', resourceGroup().name)
+    scope: resourceGroup()
     policyDefinitionId: pdEnforceImageSourceId
     parameters: {
       allowedContainerImagesRegex: {
