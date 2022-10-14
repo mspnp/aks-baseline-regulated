@@ -186,6 +186,12 @@ resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: 'privatelink.${location}.azmk8s.io'
 }
 
+@description('Used as primary entry point for workload. Expected to be assigned to an Azure Application Gateway.')
+resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' existing = {
+  scope: spokeResourceGroup
+  name: 'pip-BU0001A0005-00'
+}
+
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
 
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
@@ -568,7 +574,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
         name: 'agw-frontend-ip-configuration'
         properties: {
           publicIPAddress: {
-            id: resourceId(subscription().subscriptionId, spokeResourceGroup.name, 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0005-00')
+            id: pipPrimaryCluster.id
           }
         }
       }
