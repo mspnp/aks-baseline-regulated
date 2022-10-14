@@ -1357,6 +1357,11 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         upgradeSettings: {
           maxSurge: '33%'
         }
+        /* This can be used to prevent unexpected workloads from landing on system node pool. All add-ons support this taint., 
+        "nodeTaints": [ 
+          "CriticalAddonsOnly=true:NoSchedule" 
+        ]
+        */
         tags: {
           'pci-scope': 'out-of-scope'
           'Data classification': 'Confidential'
