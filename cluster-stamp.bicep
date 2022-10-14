@@ -346,7 +346,7 @@ resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/ro
 
 @description('The AKS cluster and related resources log analytics workspace.')
 resource law 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
-  name: 'law-${clusterName}'
+  name: 'la-${clusterName}'
   location: location
   properties: {
     sku: {
