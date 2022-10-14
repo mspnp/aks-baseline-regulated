@@ -315,7 +315,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
 
   // The in-cluster TLS certificate to establish HTTPS connections between your regional load balancer and your ingress controller, enabling end-to-end TLS connections.
   resource kvsAppGwIngressInternalAksIngressTls 'secrets' = {
-    name: 'agw-ingress-incluster-aks-ingress-contoso-com-tls'
+    name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
     properties: {
       value: aksIngressControllerCertificate
     }
