@@ -164,10 +164,10 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
     name: 'snet-cluster-inscopenodepools'
   }
 
-    // spoke virtual network's subnet for cluster out-scope node pools
-    resource snetClusterOutScopeNodePools 'subnets' existing = {
-      name: 'snet-cluster-outofscopenodepools'
-    }
+  // spoke virtual network's subnet for cluster out-scope node pools
+  resource snetClusterOutScopeNodePools 'subnets' existing = {
+    name: 'snet-cluster-outofscopenodepools'
+  }
 
 }
 
