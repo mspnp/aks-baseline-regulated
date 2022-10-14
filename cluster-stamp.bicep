@@ -37,7 +37,7 @@ param aksIngressControllerCertificate string
 ])
 @description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
 @minLength(4)
-param location string
+param location string = 'eastus2'
 
 @allowed([
   'australiasoutheast'
