@@ -1558,6 +1558,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
 }
 
 resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: mc
   name: 'default'
   properties: {
     workspaceId: la.id
@@ -1580,9 +1581,6 @@ resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
       }
     ]
   }
-  dependsOn: [
-    mc
-  ]
 }
 
 @description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
