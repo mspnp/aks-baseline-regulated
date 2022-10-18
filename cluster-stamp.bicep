@@ -76,7 +76,7 @@ param jumpBoxCloudInitAsBase64 string
 
 /*** VARIABLES ***/
 
-var kubernetesVersion = '1.23.3'
+var kubernetesVersion = '1.23.12'
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
