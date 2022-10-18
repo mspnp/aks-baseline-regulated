@@ -16,6 +16,27 @@ param clusterControlPlaneIdentityName string
 @minLength(1)
 param vnetSpokeName string
 
+@allowed([
+  'australiaeast'
+  'canadacentral'
+  'centralus'
+  'eastus'
+  'eastus2'
+  'westus2'
+  'francecentral'
+  'germanywestcentral'
+  'northeurope'
+  'southafricanorth'
+  'southcentralus'
+  'uksouth'
+  'westeurope'
+  'japaneast'
+  'southeastasia'
+])
+@description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
+@minLength(4)
+param location string
+
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
 
 resource networkContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
@@ -30,8 +51,8 @@ resource dnsZoneContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04
 
 /*** EXISTING SPOKE RESOURCES ***/
 
-resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
-    name: 'privatelink.azurecr.io'
+resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  name: 'privatelink.${location}.azmk8s.io'
 }
 
 resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
@@ -111,9 +132,9 @@ resource snetIngressServicesSubnetMiClusterControlPlaneNetworkContributorRole_ro
   }
 }
 
-resource pdzCrPrivatelinkAzmk8sIoMiClusterControlPlaneDnsZoneContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: pdzCr
-  name: guid(pdzCr.id, dnsZoneContributorRole.id, clusterControlPlaneIdentityName)
+resource pdzMcPrivatelinkAzmk8sIoMiClusterControlPlaneDnsZoneContributorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  scope: pdzMc
+  name: guid(pdzMc.id, dnsZoneContributorRole.id, clusterControlPlaneIdentityName)
   properties: {
     roleDefinitionId: dnsZoneContributorRole.id
     description: 'Allows cluster identity to manage zone Entries for cluster\'s Private Link configuration.'
