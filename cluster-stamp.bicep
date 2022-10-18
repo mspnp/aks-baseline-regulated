@@ -303,7 +303,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
 }
 
 @description('Grant the Azure Application Gateway managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
-resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
   name: guid(resourceGroup().id, miAppGateway.name, keyVaultSecretsUserRole.id)
   properties: {
@@ -314,7 +314,7 @@ resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/r
 }
 
 @description('Grant the Azure Application Gateway managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
-resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
   name: guid(resourceGroup().id, miAppGateway.name, keyVaultReaderRole.id)
   properties: {
@@ -325,7 +325,7 @@ resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/ro
 }
 
 @description('Grant the Ingress Controller managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
-resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
   name: guid(resourceGroup().id, miIngressController.name, keyVaultSecretsUserRole.id)
   properties: {
@@ -336,7 +336,7 @@ resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authoriz
 }
 
 @description('Grant the Ingress Controller managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
-resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
   name: guid(resourceGroup().id, miIngressController.name, keyVaultReaderRole.id)
   properties: {
