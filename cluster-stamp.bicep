@@ -1514,9 +1514,11 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
     }
     disableLocalAccounts: true
     securityProfile: {
-      azureDefender: {
-        enabled: true
+      defender: {
         logAnalyticsWorkspaceResourceId: la.id
+        securityMonitoring: {
+          enabled: true
+        }
       }
     }
   }
