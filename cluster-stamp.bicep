@@ -842,10 +842,10 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
       settings: {
         stopOnMultipleConnections: true
         azureResourceId: vmssJumpboxes.id
-        workspaceId: reference(la.id, '2020-10-01').customerId
+        workspaceId: la.properties.customerId
       }
       protectedSettings: {
-        workspaceKey: listKeys(la.id, '2020-10-01').primarySharedKey
+        workspaceKey: la.listKeys().primarySharedKey
       }
     }
   }
