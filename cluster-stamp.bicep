@@ -260,23 +260,30 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: 'kv-${clusterName}'
   location: location
   properties: {
-    accessPolicies: []
+    accessPolicies: [] // Azure RBAC is used instead
     sku: {
       family: 'A'
       name: 'standard'
     }
     tenantId: subscription().tenantId
     networkAcls: {
-      bypass: 'AzureServices'
-      defaultAction: 'Allow'
+      bypass: 'AzureServices' // Required for AppGW communication
+      defaultAction: 'Deny'
       ipRules: []
       virtualNetworkRules: []
     }
+    enableRbacAuthorization: true
     enabledForDeployment: false
     enabledForDiskEncryption: false
     enabledForTemplateDeployment: false
     enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+    createMode: 'default'
   }
+  dependsOn: [
+    miAppGateway
+    miIngressController
+  ]
 
   // The internet facing TLS certificate to establish HTTPS connections between your clients and your regional load balancer
   resource kvsGatewaySslCert 'secrets' = {
