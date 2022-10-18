@@ -699,6 +699,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       {
         name: 'agw-routing-rules'
         properties: {
+          priority: 1
           ruleType: 'Basic'
           httpListener: {
             id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'agw-${clusterName}','listener-https')
