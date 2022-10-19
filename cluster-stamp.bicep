@@ -1501,6 +1501,9 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
       'skip-nodes-with-local-storage': 'true'
       'skip-nodes-with-system-pods': 'true'
     }
+    // autoUpgradeProfile: {
+    //   upgradeChannel: 'none'
+    // }
     apiServerAccessProfile: {
       enablePrivateCluster: true
       privateDNSZone: pdzMc.id
