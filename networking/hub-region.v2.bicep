@@ -892,7 +892,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'az-login'
               description: 'Allow jumpboxes to perform az login.'
               sourceIpGroups: [
-                aks_ipgroup.id
+                aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -909,7 +909,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'az-management-api'
               description: 'Allow jumpboxes to communicate with Azure management APIs.'
               sourceIpGroups: [
-                aks_ipgroup.id
+                aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -926,7 +926,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'az-cli-extensions'
               description: 'Allow jumpboxes query az cli status and download extensions'
               sourceIpGroups: [
-                aks_ipgroup.id
+                aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -946,7 +946,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'github'
               description: 'Allow pulling things down from GitHub. [Only a requirement of this walkthrough because we deploy some manifests that you clone from your repo.]'
               sourceIpGroups: [
-                aks_ipgroup.id
+                aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -964,7 +964,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'azure-monitor-addon'
               description: 'Required for Azure Monitor Extension on Jumpbox.'
               sourceIpGroups: [
-                aks_ipgroup.id
+                aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
