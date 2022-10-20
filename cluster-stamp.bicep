@@ -1345,7 +1345,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         orchestratorVersion: kubernetesVersion
         enableNodePublicIP: false
         maxPods: 30
-        availabilityZones: pickZones('Microsoft.ContainerService', 'managedClusters', location, 3)
+        availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
         upgradeSettings: {
           maxSurge: '33%'
         }
@@ -1379,7 +1379,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         orchestratorVersion: kubernetesVersion
         enableNodePublicIP: false
         maxPods: 30
-        availabilityZones: pickZones('Microsoft.ContainerService', 'managedClusters', location, 3)
+        availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
         upgradeSettings: {
           maxSurge: '33%'
         }
@@ -1411,7 +1411,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         orchestratorVersion: kubernetesVersion
         enableNodePublicIP: false
         maxPods: 30
-        availabilityZones: pickZones('Microsoft.ContainerService', 'managedClusters', location, 3)
+        availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
         upgradeSettings: {
           maxSurge: '33%'
         }
