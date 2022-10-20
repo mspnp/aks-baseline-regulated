@@ -862,7 +862,7 @@ resource aksPrivateDnsZones_virtualNetworkLink_toClusterVNet 'Microsoft.Network/
     location: 'global'
     properties: {
         virtualNetwork: {
-            id: clusterVNet.id
+            id: hubVnetResourceId
         }
         registrationEnabled: false
     }
