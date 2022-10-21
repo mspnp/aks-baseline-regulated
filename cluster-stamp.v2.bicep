@@ -897,7 +897,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
     }
     dataEndpointEnabled: true
     networkRuleBypassOptions: 'AzureServices'
-    zoneRedundancy: 'Disabled'
+    zoneRedundancy: 'Enabled'
   }
 
   resource grl 'replications' = {
