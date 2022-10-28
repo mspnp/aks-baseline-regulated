@@ -1315,7 +1315,7 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
   }
 }
 
-resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
+resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
   name: clusterName
   location: location
   tags: {
