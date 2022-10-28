@@ -1508,11 +1508,17 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
       privateDNSZone: pdzMc.id
       enablePrivateClusterPublicFQDN: false
     }
+    oidcIssuerProfile: {
+      enabled: true
+    }
     podIdentityProfile: {
       enabled: false
     }
     disableLocalAccounts: true
     securityProfile: {
+      workloadIdentity: {
+        enabled: true
+      }
       defender: {
         logAnalyticsWorkspaceResourceId: la.id
         securityMonitoring: {

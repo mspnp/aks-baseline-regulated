@@ -241,6 +241,18 @@ resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions
 
 /*** RESOURCES ***/
 
+resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
+  name: 'ingress-controller'
+  parent: miIngressController
+  properties: {
+    audiences: [
+      'api://AzureADTokenExchange'
+    ]
+    issuer: mc.properties.oidcIssuerProfile.issuerURL
+    subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
+  }
+}
+
 @description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Identity.')
 resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: miIngressController
@@ -1505,11 +1517,17 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
       privateDNSZone: pdzMc.id
       enablePrivateClusterPublicFQDN: false
     }
+    oidcIssuerProfile: {
+      enabled: true
+    }
     podIdentityProfile: {
       enabled: false
     }
     disableLocalAccounts: true
     securityProfile: {
+      workloadIdentity: {
+        enabled: true
+      }
       defender: {
         logAnalyticsWorkspaceResourceId: la.id
         securityMonitoring: {
