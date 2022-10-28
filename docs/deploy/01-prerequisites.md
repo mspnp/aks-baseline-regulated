@@ -31,15 +31,15 @@ Throughout this walkthrough, take note of the following symbol.
 
 1. While the following feature(s) are still in _preview_, please enable them in your target subscription.
 
-   * Follow the instructions to [enable Azure AD Pod Identity](https://learn.microsoft.com/azure/aks/use-azure-ad-pod-identity#before-you-begin). You do not need to install the preview CLI extension or follow other instructions on this page.
+   1. [Register the Workload Identity preview feature = `EnableWorkloadIdentityPreview`](https://learn.microsoft.com/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag)
 
    ```bash
-   az feature register --namespace "Microsoft.ContainerService" -n "EnablePodIdentityPreview"
+   az feature register --namespace "Microsoft.ContainerService" -n "EnableWorkloadIdentityPreview"
 
    # Keep running until all say "Registered." (This may take up to 20 minutes.)
-   az feature list -o table --query "[?name=='Microsoft.ContainerService/EnablePodIdentityPreview'].{Name:name,State:properties.state}"
+   az feature list -o table --query "[?name=='Microsoft.ContainerService/EnableWorkloadIdentityPreview'].{Name:name,State:properties.state}"
 
-   # When all say "Registered" then re-register the AKS resource provider
+   # When all say "Registered" then re-register the AKS and related resource providers	   
    az provider register --namespace Microsoft.ContainerService
    ```
 
