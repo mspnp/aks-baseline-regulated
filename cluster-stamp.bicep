@@ -1351,7 +1351,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
         }
         // This can be used to prevent unexpected workloads from landing on system node pool. All add-ons support this taint.
         // nodeTaints: [
-        //   "CriticalAddonsOnly=true:NoSchedule" 
+        //   'CriticalAddonsOnly=true:NoSchedule'
         // ]
         tags: {
           'pci-scope': 'out-of-scope'
