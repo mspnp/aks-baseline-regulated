@@ -192,6 +192,21 @@ resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' exis
   name: 'pip-BU0001A0005-00'
 }
 
+@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
+resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'mi-${clusterName}-controlplane'
+}
+
+@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
+resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'mi-${clusterName}-ingresscontroller'
+}
+
+@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
+resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'mi-appgateway'
+}
+
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
 
 @description('Built-in Azure RBAC role that must be applied to the kublet Managed Identity allowing it to further assign adding managed identities to the cluster\'s underlying VMSS.')
@@ -225,24 +240,6 @@ resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions
 }
 
 /*** RESOURCES ***/
-
-@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
-resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-${clusterName}-controlplane'
-  location: location
-}
-
-@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
-resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-${clusterName}-ingresscontroller'
-  location: location
-}
-
-@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
-resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-appgateway'
-  location: location
-}
 
 @description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Identity.')
 resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
