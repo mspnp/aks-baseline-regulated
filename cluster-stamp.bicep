@@ -1509,7 +1509,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
       enablePrivateClusterPublicFQDN: false
     }
     podIdentityProfile: {
-      enabled: true
+      enabled: false
     }
     disableLocalAccounts: true
     securityProfile: {
@@ -1554,7 +1554,6 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
 
     vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
 
-    miIngressController
     kvMiIngressControllerSecretsUserRole_roleAssignment
     kvMiIngressControllerKeyVaultReader_roleAssignment
   ]

@@ -1506,18 +1506,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
       enablePrivateClusterPublicFQDN: false
     }
     podIdentityProfile: {
-      enabled: true
-      userAssignedIdentities: [
-        {
-          name: 'podmi-ingress-controller'
-          namespace: 'ingress-nginx'
-          identity: {
-            resourceId: miIngressController.id
-            clientId: miIngressController.properties.clientId
-            objectId: miIngressController.properties.principalId
-          }
-        }
-      ]
+      enabled: false
     }
     disableLocalAccounts: true
     securityProfile: {
