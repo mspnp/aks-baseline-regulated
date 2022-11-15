@@ -71,7 +71,7 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
 
 ### Steps
 
-1. Give your user temporary permissions to import certificates into Key Vault.
+1. Obtain the Azure Key Vault details and give the current user permissions and network access to import certificates.
 
    ```bash
    KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
@@ -83,7 +83,7 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
    CURRENT_IP_ADDRESS=$(curl -s -4 https://ifconfig.io)
    echo CURRENT_IP_ADDRESS: $CURRENT_IP_ADDRESS
    az keyvault network-rule add -n $KEYVAULT_NAME --ip-address ${CURRENT_IP_ADDRESS}
-   ````
+   ```
 
 1. Import the AKS ingress controller's certificate.
 
@@ -93,10 +93,10 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
    az keyvault certificate import -f ingress-internal-aks-ingress-contoso-com-tls.pem -n ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
    ```
 
-1. Remove the temporary import certificates permissions for current user and Azure Key Vault firewall rule.
+1. Remove Azure Key Vault import certificates permissions and network access for current user.
 
-   > The Azure Key Vault RBAC assignment for your user and network allowance was temporary to allow you to upload the certificate for this walkthrough. In actual deployments, you would manage access policies like these via your ARM templates using [Azure RBAC for Key Vault data plane](https://learn.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies).
-
+   > The Azure Key Vault RBAC assignment for your user and network allowance was temporary to allow you to upload the certificate for this walkthrough. In actual deployments, you would manage these any RBAC policies via your ARM templates using [Azure RBAC for Key Vault data plane](https://learn.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies) and only network-allowed traffic would access your Key Vault.
+   
    ```bash
    az keyvault network-rule remove -n $KEYVAULT_NAME --ip-address ${CURRENT_IP_ADDRESS}
    az role assignment delete --ids $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
