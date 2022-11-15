@@ -2236,3 +2236,4 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
 output agwName string = agw.name
 output keyVaultName string = kv.name
 output quarantineContainerRegistryName string = acr.name
+output containerRegistryName string = acr.name
