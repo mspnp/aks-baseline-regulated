@@ -77,7 +77,13 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
    KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
    TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT=$(az role assignment create --role a4417e6f-fecd-4de8-b567-7b0420556985 --assignee-principal-type user --assignee-object-id $(az ad signed-in-user show --query 'id' -o tsv) --scope $(az keyvault show --name $KEYVAULT_NAME --query 'id' -o tsv) --query 'id' -o tsv)
    echo TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT: $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
-   ```
+
+   # If you are behind a proxy or some other egress that does not provide a consistent IP, you'll need to manually adjust the
+   # Azure Key Vault firewall to allow this traffic.
+   CURRENT_IP_ADDRESS=$(curl -s -4 https://ifconfig.io)
+   echo CURRENT_IP_ADDRESS: $CURRENT_IP_ADDRESS
+   az keyvault network-rule add -n $KEYVAULT_NAME --ip-address ${CURRENT_IP_ADDRESS}
+   ````
 
 1. Import the AKS ingress controller's certificate.
 
@@ -87,11 +93,12 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
    az keyvault certificate import -f ingress-internal-aks-ingress-contoso-com-tls.pem -n ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
    ```
 
-1. Remove the temporary import certificates permissions for current user.
+1. Remove the temporary import certificates permissions for current user and Azure Key Vault firewall rule.
 
-   > The Azure Key Vault Policy for your user was a temporary policy to allow you to import the certificate for this walkthrough. In actual deployments, you would manage access policies like these via your ARM templates using [Azure RBAC for Key Vault data plane](https://learn.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies).
+   > The Azure Key Vault RBAC assignment for your user and network allowance was temporary to allow you to upload the certificate for this walkthrough. In actual deployments, you would manage access policies like these via your ARM templates using [Azure RBAC for Key Vault data plane](https://learn.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies).
 
    ```bash
+   az keyvault network-rule remove -n $KEYVAULT_NAME --ip-address ${CURRENT_IP_ADDRESS}
    az role assignment delete --ids $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
    ```
 
