@@ -2237,3 +2237,4 @@ output agwName string = agw.name
 output keyVaultName string = kv.name
 output quarantineContainerRegistryName string = acr.name
 output containerRegistryName string = acr.name
+output aksClusterName string = clusterName
