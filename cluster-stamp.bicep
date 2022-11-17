@@ -39,33 +39,6 @@ param aksIngressControllerCertificate string
 @minLength(4)
 param location string = 'eastus2'
 
-@allowed([
-  'australiasoutheast'
-  'canadaeast'
-  'eastus2'
-  'westus'
-  'centralus'
-  'westcentralus'
-  'francesouth'
-  'germanynorth'
-  'westeurope'
-  'ukwest'
-  'northeurope'
-  'japanwest'
-  'southafricawest'
-  'northcentralus'
-  'eastasia'
-  'eastus'
-  'westus2'
-  'francecentral'
-  'uksouth'
-  'japaneast'
-  'southeastasia'
-])
-@description('For Azure resources that support native geo-redunancy, provide the location the redundant service will have its secondary. Should be different than the location parameter and ideally should be a paired region - https://learn.microsoft.com/azure/best-practices-availability-paired-regions. This region does not need to support availability zones.')
-@minLength(4)
-param geoRedundancyLocation string = 'centralus'
-
 @description('The Azure resource ID of a VM image that will be used for the jump box.')
 @minLength(70)
 param jumpBoxImageResourceId string
@@ -176,11 +149,6 @@ resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: 'privatelink.vaultcore.azure.net'
 }
 
-resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
-  scope: spokeResourceGroup
-  name: 'privatelink.azurecr.io'
-}
-
 resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: spokeResourceGroup
   name: 'privatelink.${location}.azmk8s.io'
@@ -190,6 +158,18 @@ resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
 resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' existing = {
   scope: spokeResourceGroup
   name: 'pip-BU0001A0005-00'
+}
+
+// Azure Container Registry
+resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
+  scope: resourceGroup()
+  name: 'acraks${subRgUniqueString}'
+}
+
+// Log Analytics Workspace
+resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
+  scope: resourceGroup()
+  name: 'la-${clusterName}'
 }
 
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
@@ -355,20 +335,6 @@ resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authoriza
     roleDefinitionId: keyVaultReaderRole.id
     principalId: miIngressController.properties.principalId
     principalType: 'ServicePrincipal'
-  }
-}
-
-@description('The AKS cluster and related resources log analytics workspace.')
-resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
-  name: 'la-${clusterName}'
-  location: location
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-    retentionInDays: 90
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
   }
 }
 
@@ -874,163 +840,6 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
       extOmsAgentForLinux
     ]
   }
-}
-
-@description('The private container registry for the aks regulated cluster.')
-resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
-  name: acrName
-  location: location
-  sku: {
-    name: 'Premium'
-  }
-  properties: {
-    adminUserEnabled: false
-    networkRuleSet: {
-      defaultAction: 'Deny'
-      virtualNetworkRules: []
-      ipRules: []
-    }
-    policies: {
-      quarantinePolicy: {
-        status: 'disabled'
-      }
-      trustPolicy: {
-        type: 'Notary'
-        status: 'enabled'
-      }
-      retentionPolicy: {
-        days: 15
-        status: 'enabled'
-      }
-    }
-    publicNetworkAccess: 'Disabled'
-    encryption: {
-      status: 'disabled'
-    }
-    dataEndpointEnabled: true
-    networkRuleBypassOptions: 'AzureServices'
-    zoneRedundancy: 'Enabled'
-  }
-
-  resource grl 'replications' = {
-    name: geoRedundancyLocation
-    location: geoRedundancyLocation
-  }
-
-  resource ap 'agentPools@2019-06-01-preview' = {
-    name: 'acragent'
-    location: location
-    properties: {
-      count: 1
-      os: 'Linux'
-      tier: 'S1'
-      virtualNetworkSubnetResourceId: vnetSpoke::snetManagmentCrAgents.id
-    }
-  }
-}
-
-resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: acr
-  name: 'default'
-  properties: {
-    workspaceId: la.id
-    metrics: [
-      {
-        timeGrain: 'PT1M'
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-    logs: [
-      {
-        category: 'ContainerRegistryRepositoryEvents'
-        enabled: true
-      }
-      {
-        category: 'ContainerRegistryLoginEvents'
-        enabled: true
-      }
-    ]
-  }
-}
-
-@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Container Registry.')
-resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
-  name: 'pe-${acr.name}'
-  location: location
-  properties: {
-    subnet: {
-      id: vnetSpoke::snetPrivatelinkendpoints.id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'to-${vnetSpoke.name}'
-        properties: {
-          privateLinkServiceId: acr.id
-          groupIds: [
-            'registry'
-          ]
-        }
-      }
-    ]
-  }
-  dependsOn: [
-    acr::grl
-  ]
-
-  resource pdzg 'privateDnsZoneGroups' = {
-    name: 'for-${acr.name}'
-    properties: {
-      privateDnsZoneConfigs: [
-        {
-          name: 'privatelink-azurecr-io'
-          properties: {
-            privateDnsZoneId: pdzCr.id
-          }
-        }
-      ]
-    }
-  }
-}
-
-@description('The scheduled query that returns images being imported from repositories different than quarantine/')
-resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRules@2022-06-15' = {
-  name: 'Image Imported into ACR from ${acr.name} source other than approved Quarantine'
-  location: location
-  properties: {
-    description: 'The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.'
-    actions: {
-      actionGroups: []
-    }
-    criteria: {
-      allOf: [
-        {
-          operator: 'GreaterThan'
-          query: 'ContainerRegistryRepositoryEvents\r\n| where OperationName == "importImage" and Repository startswith "live/" and MediaType !startswith strcat(_ResourceId, "/quarantine")'
-          threshold: 0
-          timeAggregation: 'Count'
-          dimensions: []
-          failingPeriods: {
-            minFailingPeriodsToAlert: 1
-            numberOfEvaluationPeriods: 1
-          }
-          resourceIdColumn: ''
-        }
-      ]
-    }
-    enabled: true
-    evaluationFrequency: 'PT10M'
-    scopes: [
-      acr.id
-    ]
-    severity: 3
-    windowSize: 'PT10M'
-    muteActionsDuration: null
-    overrideQueryTimeRange: null
-  }
-  dependsOn: [
-    cr_diagnosticSettings
-  ]
 }
 
 resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
@@ -2252,7 +2061,5 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
 
 output agwName string = agw.name
 output keyVaultName string = kv.name
-output quarantineContainerRegistryName string = acr.name
-output containerRegistryName string = acr.name
 output aksClusterName string = clusterName
 output miIngressControllerClientId string = miIngressController.properties.clientId
