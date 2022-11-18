@@ -45,4 +45,4 @@ For a more exhaustive WAF test and validation experience, try the [Azure Web App
 
 ### Next step
 
-:arrow_forward: [Access resource logs & Microsoft Defender for Cloud data](./13-validation-logs.md)
+:arrow_forward: [Access resource logs & Microsoft Defender for Cloud data](./15-validation-logs.md)
