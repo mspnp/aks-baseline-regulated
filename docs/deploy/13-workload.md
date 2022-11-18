@@ -145,4 +145,4 @@ Likewise, this reference implementation does not get into workload architecture 
 
 ### Next step
 
-:arrow_forward: [End-to-End Validation](./13-validation.md)
+:arrow_forward: [End-to-End Validation](./14-validation.md)

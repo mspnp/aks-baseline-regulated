@@ -237,4 +237,4 @@ It's worth noting, some customers with regulated workloads are bringing ISV or o
 
 ### Next step
 
-:arrow_forward: [Deploy your workload](./12-workload.md)
+:arrow_forward: [Deploy your workload](./13-workload.md)

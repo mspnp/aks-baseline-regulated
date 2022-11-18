@@ -1,6 +1,6 @@
 # Prepare to bootstrap the cluster
 
-Now that [the AKS cluster](./09-aks-cluster.md) has been deployed, the next step is to talk a bit about container image security, starting with the images you'll be using to bootstrap this cluster.
+Now that [the ACR](./09-acr-stamp.md) has been deployed, the next step is to talk a bit about container image security, starting with the images you'll be using to bootstrap this cluster.
 
 ## Expected results
 
@@ -46,7 +46,7 @@ Using a security agent that is container-aware and can operate from within the c
    # Get your Quarantine Azure Container Registry service name
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
-   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
+   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n acr-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
    
    # [Combined this takes about eight minutes.]
    az acr import --source ghcr.io/fluxcd/kustomize-controller:v0.8.1 -t quarantine/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME_QUARANTINE && \
@@ -82,7 +82,7 @@ Using a security agent that is container-aware and can operate from within the c
 
    ```bash
    # Get your Azure Container Registry service name
-   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n acr-stamp --query properties.outputs.containerRegistryName.value -o tsv)
    
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/fluxcd/kustomize-controller:v0.8.1 -r $ACR_NAME_QUARANTINE -t live/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME && \
@@ -104,4 +104,4 @@ Using a security agent that is container-aware and can operate from within the c
 
 ### Next step
 
-:arrow_forward: [Place the cluster under GitOps management](./11-gitops.md)
+:arrow_forward: [Deploy the AKS cluster](./11-aks-cluster.md)

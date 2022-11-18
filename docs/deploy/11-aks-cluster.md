@@ -1,6 +1,6 @@
 # Deploy the Regulated Industries AKS Cluster
 
-Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://learn.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
+Now that the [ACR was deployed](./09-acr-stamp.md) and [ACR was populated](10-pre-bootstrap.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://learn.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
 
 ## Expected results
 
@@ -98,4 +98,4 @@ This deployment creates an SLA-backed Azure Container Registry for your cluster'
 
 ### Next step
 
-:arrow_forward: [Prepare to bootstrap the cluster](./10-pre-bootstrap.md)
+:arrow_forward: [Place the cluster under GitOps management](./12-gitops.md)
