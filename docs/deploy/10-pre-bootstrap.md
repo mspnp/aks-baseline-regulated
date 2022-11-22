@@ -1,6 +1,6 @@
 # Prepare to bootstrap the cluster
 
-Now that [the ACR](./09-acr-stamp.md) has been deployed, the next step is to talk a bit about container image security, starting with the images you'll be using to bootstrap this cluster.
+Now that [the ACR](./09-pre-cluster-stamp.md) has been deployed, the next step is to talk a bit about container image security, starting with the images you'll be using to bootstrap this cluster.
 
 ## Expected results
 
@@ -46,7 +46,7 @@ Using a security agent that is container-aware and can operate from within the c
    # Get your Quarantine Azure Container Registry service name
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
-   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n acr-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
+   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
    
    # [Combined this takes about eight minutes.]
    az acr import --source ghcr.io/fluxcd/kustomize-controller:v0.8.1 -t quarantine/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME_QUARANTINE && \
@@ -82,7 +82,7 @@ Using a security agent that is container-aware and can operate from within the c
 
    ```bash
    # Get your Azure Container Registry service name
-   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n acr-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
    
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/fluxcd/kustomize-controller:v0.8.1 -r $ACR_NAME_QUARANTINE -t live/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME && \
@@ -100,6 +100,52 @@ Using a security agent that is container-aware and can operate from within the c
 
    ```bash
    az acr import --source docker.io/library/busybox:1.33.0 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME
+   ```
+
+### Flux preparation
+
+It is going to use Flux AKS extension, that makes bootstrapping more "real time" with cluster deployment. We need to prepare the repo to bootstrap the images correctly.
+
+## Steps
+
+1. Navigate to the correct folder 
+
+   ```bash
+   cd cluster-manifests
+   ```
+
+1. Update kustomization files to use images from your container registry.
+
+   ```bash
+   sed -i "s/REPLACE_ME_WITH_YOUR_ACRNAME/${ACR_NAME}/g" */kustomization.yaml
+
+   git commit -a -m "Update bootstrap deployments to use images from my ACR instead of public container registries."
+   ```
+
+1. Update Key Vault placeholders in your CSI Secret Store provider.
+
+   You'll be using the [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.  
+   At this point we have the Azure Key Vault deployed and it is before deploying Flux configuration.
+
+   ```bash
+   KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
+   echo KEYVAULT_NAME: KEYVAULT_NAME
+
+   INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.ingressClientid.value -o tsv)
+   echo INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01: $INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01
+   
+   sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/akv-tls-provider.yaml
+
+   sed -i -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/deployment.yaml
+   
+   git commit -a -m "Update SecretProviderClass to reference my ingress wildcard certificate."
+   ```
+
+1. Push those three commits to your repo.
+
+   ```bash
+   git push
+   cd ..
    ```
 
 ### Next step

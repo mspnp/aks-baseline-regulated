@@ -1,6 +1,6 @@
 # Deploy the Regulated Industries AKS Cluster
 
-Now that the [ACR was deployed](./09-acr-stamp.md) and [ACR was populated](10-pre-bootstrap.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://learn.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
+Now that the [ACR was deployed](./09-pre-cluster-stamp.md) and [ACR was populated](10-pre-bootstrap.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://learn.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
 
 ## Expected results
 
@@ -44,8 +44,14 @@ Now that the [ACR was deployed](./09-acr-stamp.md) and [ACR was populated](10-pr
    > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](../../azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
 
    ```bash
+   GITOPS_REPOURL=$(git config --get remote.origin.url)
+   echo GITOPS_REPOURL: $GITOPS_REPOURL
+
+   GITOPS_CURRENT_BRANCH_NAME=$(git branch --show-current)
+   echo GITOPS_CURRENT_BRANCH_NAME: $GITOPS_CURRENT_BRANCH_NAME
+
    # [This takes about 20 minutes to run.]
-   az deployment group create -g rg-bu0001a0005 -f cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE_BASE64} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
+   az deployment group create -g rg-bu0001a0005 -f cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE_BASE64} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64} gitOpsBootstrappingRepoHttpsUrl=${GITOPS_REPOURL} gitOpsBootstrappingRepoBranch=${GITOPS_CURRENT_BRANCH_NAME}
 
    # Or if you updated and wish to use the parameters file …
    #az deployment group create -g rg-bu0001a0005 -f cluster-stamp.bicep -p "@azuredeploy.parameters.prod.json"
@@ -60,7 +66,7 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
 1. Obtain the Azure Key Vault details and give the current user permissions and network access to import certificates.
 
    ```bash
-   KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
+   KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
    TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT=$(az role assignment create --role a4417e6f-fecd-4de8-b567-7b0420556985 --assignee-principal-type user --assignee-object-id $(az ad signed-in-user show --query 'id' -o tsv) --scope $(az keyvault show --name $KEYVAULT_NAME --query 'id' -o tsv) --query 'id' -o tsv)
    echo TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT: $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
 
@@ -98,4 +104,4 @@ This deployment creates an SLA-backed Azure Container Registry for your cluster'
 
 ### Next step
 
-:arrow_forward: [Place the cluster under GitOps management](./12-gitops.md)
+:arrow_forward: [Jump box access and Flux are validation](./12-jumpbox-addon-validation.md)

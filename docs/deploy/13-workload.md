@@ -1,6 +1,6 @@
 # Deploy the Workload
 
-This point in the steps marks a significant transition in roles and purpose. At this point, you have a [AKS cluster that is deployed in an architecture that will help your compliance needs](./09-aks-cluster.md) and is [bootstrapped with core tooling](./11-gitops.md) you feel are requirements for your solution, all managed via Flux. You've got a cluster without any business workloads.
+This point in the steps marks a significant transition in roles and purpose. At this point, you have a [AKS cluster that is deployed in an architecture that will help your compliance needs](./11-aks-cluster.md) and is [bootstrapped with core tooling](./12-jumpbox-addon-validation.md) you feel are requirements for your solution, all managed via Flux. You've got a cluster without any business workloads.
 
 The next few steps will walk through considerations that are specific to the first workload in the cluster. Workloads are a mix of potential infrastructure changes (e.g. Azure Application Gateway routes, Azure resources for the workload itself -- such as CosmosDB for state storage and Azure Cache for Redis for cache.), privileged cluster changes (i.e. creating target namespace, creating and assigning any specific cluster or namespace roles, etc.), deciding on how that "last mile" deployment of these workloads will be handled (e.g. using the `snet-management-agents` subnet adjacent to this cluster), and workload teams which are responsible for creating the container image(s), building deployment manifests, etc. Many regulations have a clear separation of duties requirements, be sure in your case you have documented and understood change management process. How you partition this work will not be described here because there isn't a one-size-fits-most solution. Allocate time to plan, document, and educate on these concerns.
 
@@ -58,10 +58,11 @@ While typically workload deployment happens via deployment pipelines, to keep th
    > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-221).
 
    ```bash
-   cd ../workload
+   ```bash
+   GITHUB_ACCOUNT_NAME=YOUR-GITHUB-ACCOUNT-NAME-GOES-HERE
 
-   # Get the workload ACR endpoint changes you committed above.
-   git pull
+   git clone https://github.com/$GITHUB_ACCOUNT_NAME/aks-baseline-regulated.git
+   cd aks-baseline-regulated/workload
 
    # Deploy "in-scope" components.  These will live in the a0005-i namespace and will be
    # scheduled on the aks-npinscope01 node pool - dedicated to just those workloads.

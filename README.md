@@ -105,33 +105,29 @@ Because the AKS server is a "private cluster" the control plane is not exposed t
 Deploy the Azure resources that make up the primary runtime components of this architecture; the AKS cluster itself, jump box, Azure Container Registry, Azure Application Gateway, and Azure Key Vault.
 
 * [ ] [Deploy the target network spoke](./docs/deploy/08-cluster-networking.md) that the cluster will be homed to.
-* [ ] [Deploy the AKS cluster](./docs/deploy/09-aks-cluster.md) and supporting services.
-
-#### and then bootstrap it
-
-Bootstrapping your cluster should be seen as a direct _immediate follow_ of deploying any cluster. This takes the raw AKS cluster and enrolls it in GitOps which will adds workload-agnostic baseline functionality (such as security agents).
-
-* [ ] [Quarantine & import all bootstrap images](./docs/deploy/10-pre-bootstrap.md) to Azure Container Registry.
-* [ ] [Place the cluster under GitOps management](./docs/deploy/11-gitops.md).
+* [ ] [Deploy Resouces needed for cluster](./docs/deploy/09-pre-cluster-stamp.md). It includes Azure Container Registry, Azure Key Vault, and some Identities which are needed to customize files which will use Flux extension on deploy.
+* [ ] [Prepare for cluster deploy](./docs/deploy/10-pre-bootstrap.md). The ACR is populated, Quarantine & import all bootstrap images,  and some files are customized.
+* [ ] [Deploy the AKS cluster](./docs/deploy/11-aks-cluster.md) and supporting services.
+* [ ] [Jump box access and Flux are validated](./docs/deploy/12-jumpbox-addon-validation.md).
 
 ### 5. Deploy your workload
 
 A simple workload made up of four interconnected services is manually deployed across two namespaces to illustrate concepts such as nodepool placement, zero-trust network policies, and external infrastructure protections offered by the applied NSGs and Azure Firewall rules.
 
-* [ ] [Deploy the workload](./docs/deploy/12-workload.md).
+* [ ] [Deploy the workload](./docs/deploy/13-workload.md).
 
 ### 6. :checkered_flag: Validation
 
 Now that the cluster and the sample workload is deployed; now it's time to look at how the cluster is functioning.
 
-* [ ] [Perform end-to-end deployment validation](./docs/deploy/13-validation.md).
-* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/13-validation-logs.md)
+* [ ] [Perform end-to-end deployment validation](./docs/deploy/14-validation.md).
+* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/15-validation-logs.md)
 
 ### 7. :broom: Clean up resources
 
 Most of the Azure resources deployed in the prior steps will have ongoing billing impact unless removed.
 
-* [ ] [Cleanup all resources](./docs/deploy/14-cleanup.md)
+* [ ] [Cleanup all resources](./docs/deploy/16-cleanup.md)
 
 ## Separation of duties
 

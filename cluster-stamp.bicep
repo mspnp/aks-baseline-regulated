@@ -47,6 +47,14 @@ param jumpBoxImageResourceId string
 @minLength(100)
 param jumpBoxCloudInitAsBase64 string
 
+@description('Your cluster will be bootstrapped from this git repo.')
+@minLength(9)
+param gitOpsBootstrappingRepoHttpsUrl string = 'https://github.com/mspnp/aks-baseline'
+
+@description('You cluster will be bootstrapped from this branch in the identified git repo.')
+@minLength(1)
+param gitOpsBootstrappingRepoBranch string = 'main'
+
 /*** VARIABLES ***/
 
 var kubernetesVersion = '1.23.12'
@@ -55,6 +63,7 @@ var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resou
 var clusterName = 'aks-${subRgUniqueString}'
 var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
 var acrName = 'acraks${subRgUniqueString}'
+var kvName = 'kv-${clusterName}'
 
 /*** EXISTING TENANT RESOURCES ***/
 
@@ -141,7 +150,6 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   resource snetClusterOutScopeNodePools 'subnets' existing = {
     name: 'snet-cluster-outofscopenodepools'
   }
-
 }
 
 resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
@@ -160,13 +168,34 @@ resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' exis
   name: 'pip-BU0001A0005-00'
 }
 
-// Azure Container Registry
+@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
+resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'mi-${clusterName}-controlplane'
+}
+
+@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
+resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'mi-${clusterName}-ingresscontroller'
+}
+
+@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
+resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'mi-appgateway'
+}
+
+@description('Azure Container Registry.')
 resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
   scope: resourceGroup()
   name: 'acraks${subRgUniqueString}'
 }
 
-// Log Analytics Workspace
+@description('The secret storage management resource for the AKS regulated cluster.')
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  scope: resourceGroup()
+  name: kvName
+}
+
+@description('Log Analytics Workspace.')
 resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
   scope: resourceGroup()
   name: 'la-${clusterName}'
@@ -206,34 +235,16 @@ resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions
 
 /*** RESOURCES ***/
 
-@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
-resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-${clusterName}-controlplane'
-  location: location
-}
-
-@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
-resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-${clusterName}-ingresscontroller'
-  location: location
-
-  // Workload identity service account federation
-  resource federatedCreds 'federatedIdentityCredentials@2022-01-31-preview' = {
-    name: 'ingress-controller'
-    properties: {
-      audiences: [
-        'api://AzureADTokenExchange'
-      ]
-      issuer: mc.properties.oidcIssuerProfile.issuerURL
-      subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
-    }
+resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
+  name: 'ingress-controller'
+  parent: miIngressController
+  properties: {
+    audiences: [
+      'api://AzureADTokenExchange'
+    ]
+    issuer: mc.properties.oidcIssuerProfile.issuerURL
+    subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
   }
-}
-
-@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
-resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-appgateway'
-  location: location
 }
 
 @description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Identity.')
@@ -247,51 +258,26 @@ resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Micr
   }
 }
 
-@description('The secret storage management resource for the AKS regulated cluster.')
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
-  name: 'kv-${clusterName}'
-  location: location
+resource kvsGatewaySslCert 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+  parent: kv
+  name: 'sslcert'
   properties: {
-    accessPolicies: [] // Azure RBAC is used instead
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
-    tenantId: subscription().tenantId
-    networkAcls: {
-      bypass: 'AzureServices' // Required for AppGW communication
-      defaultAction: 'Deny'
-      ipRules: []
-      virtualNetworkRules: []
-    }
-    enableRbacAuthorization: true
-    enabledForDeployment: false
-    enabledForDiskEncryption: false
-    enabledForTemplateDeployment: false
-    enableSoftDelete: true
-    softDeleteRetentionInDays: 7
-    createMode: 'default'
+    value: appGatewayListenerCertificate
   }
   dependsOn: [
     miAppGateway
+  ]
+}
+
+resource kvsAppGwIngressInternalAksIngressTls 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+  parent: kv
+  name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
+  properties: {
+    value: aksIngressControllerCertificate
+  }
+  dependsOn: [
     miIngressController
   ]
-
-  // The internet facing TLS certificate to establish HTTPS connections between your clients and your regional load balancer
-  resource kvsGatewaySslCert 'secrets' = {
-    name: 'sslcert'
-    properties: {
-      value: appGatewayListenerCertificate
-    }
-  }
-
-  // The in-cluster TLS certificate to establish HTTPS connections between your regional load balancer and your ingress controller, enabling end-to-end TLS connections.
-  resource kvsAppGwIngressInternalAksIngressTls 'secrets' = {
-    name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
-    properties: {
-      value: aksIngressControllerCertificate
-    }
-  }
 }
 
 @description('Grant the Azure Application Gateway managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
@@ -535,7 +521,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       {
         name: 'root-cert-wildcard-aks-ingress-contoso'
         properties: {
-          keyVaultSecretId: kv::kvsAppGwIngressInternalAksIngressTls.properties.secretUri
+          keyVaultSecretId: kvsAppGwIngressInternalAksIngressTls.properties.secretUri
         }
       }
     ]
@@ -586,7 +572,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       {
         name: 'agw-${clusterName}-ssl-certificate'
         properties: {
-          keyVaultSecretId:  kv::kvsGatewaySslCert.properties.secretUri
+          keyVaultSecretId:  kvsGatewaySslCert.properties.secretUri
         }
       }
     ]
@@ -842,6 +828,7 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
   }
 }
 
+
 resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
   name: guid(psdAKSLinuxRestrictiveId, resourceGroup().name, clusterName)
   properties: {
@@ -1070,6 +1057,7 @@ resource paEnforceResourceLimits 'Microsoft.Authorization/policyAssignments@2020
         value: [
           'kube-system'
           'gatekeeper-system'
+          'flux-system' /* Flux add-on, not all containers have limits defined by Microsoft */
         ]
       }
     }
@@ -1092,6 +1080,7 @@ resource paEnforceImageSource 'Microsoft.Authorization/policyAssignments@2020-03
         value: [
           'kube-system'
           'gatekeeper-system'
+          'flux-system'
         ]
       }
     }
@@ -1321,9 +1310,6 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
       'skip-nodes-with-local-storage': 'true'
       'skip-nodes-with-system-pods': 'true'
     }
-    // autoUpgradeProfile: {
-    //   upgradeChannel: 'none'
-    // }
     apiServerAccessProfile: {
       enablePrivateCluster: true
       privateDNSZone: pdzMc.id
@@ -1417,6 +1403,7 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
   scope: acr
   name: guid(resourceGroup().id, mc.id, containerRegistryPullRole.id)
   properties: {
+    description: 'Allows AKS to pull container images from this ACR instance.'
     roleDefinitionId: containerRegistryPullRole.id
     principalId: mc.properties.identityProfile.kubeletidentity.objectId
     principalType: 'ServicePrincipal'
@@ -2057,9 +2044,78 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
   ]
 }
 
+// Ensures that flux add-on (extension) is installed.
+resource mcFlux_extension 'Microsoft.KubernetesConfiguration/extensions@2021-09-01' = {
+  scope: mc
+  name: 'flux'
+  properties: {
+    extensionType: 'microsoft.flux'
+    autoUpgradeMinorVersion: true
+    releaseTrain: 'Stable'
+    scope: {
+      cluster: {
+        releaseNamespace: 'flux-system'
+      }
+    }
+    configurationSettings: {
+      'helm-controller.enabled': 'false'
+      'source-controller.enabled': 'true'
+      'kustomize-controller.enabled': 'true'
+      'notification-controller.enabled': 'false'
+      'image-automation-controller.enabled': 'false'
+      'image-reflector-controller.enabled': 'false'
+    }
+    configurationProtectedSettings: {}
+  }
+  dependsOn: [
+    crMiKubeletContainerRegistryPullRole_roleAssignment
+  ]
+}
+
+// Bootstraps your cluster using content from your repo.
+resource mc_fluxConfiguration 'Microsoft.KubernetesConfiguration/fluxConfigurations@2022-03-01' = {
+  scope: mc
+  name: 'bootstrap'
+  properties: {
+    scope: 'cluster'
+    namespace: 'flux-system'
+    sourceKind: 'GitRepository'
+    gitRepository: {
+      url: gitOpsBootstrappingRepoHttpsUrl
+      timeoutInSeconds: 180
+      syncIntervalInSeconds: 300
+      repositoryRef: {
+        branch: gitOpsBootstrappingRepoBranch
+        tag: null
+        semver: null
+        commit: null
+      }
+      sshKnownHosts: ''
+      httpsUser: null
+      httpsCACert: null
+      localAuthRef: null
+    }
+    kustomizations: {
+      unified: {
+        path: './cluster-manifests'
+        dependsOn: []
+        timeoutInSeconds: 300
+        syncIntervalInSeconds: 300
+        retryIntervalInSeconds: 300
+        prune: true
+        force: false
+      }
+    }
+  }
+  dependsOn: [
+    mcFlux_extension
+    crMiKubeletContainerRegistryPullRole_roleAssignment
+  ]
+}
+
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
-output keyVaultName string = kv.name
 output aksClusterName string = clusterName
 output miIngressControllerClientId string = miIngressController.properties.clientId
