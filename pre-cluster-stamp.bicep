@@ -71,7 +71,7 @@ resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' exis
 @description('The Spoke virtual network')
 resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: spokeResourceGroup
-  name: '${last(split(targetVnetResourceId,'/'))}'
+  name: '${last(split(targetVnetResourceId, '/'))}'
 
   // Spoke virutual network's subnet for all private endpoints
   resource snetPrivatelinkendpoints 'subnets' existing = {
@@ -261,7 +261,54 @@ resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRul
   ]
 }
 
+@description('The secret storage management resource for the AKS regulated cluster.')
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
+  name: 'kv-${clusterName}'
+  location: location
+  properties: {
+    accessPolicies: [] // Azure RBAC is used instead
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: subscription().tenantId
+    networkAcls: {
+      bypass: 'AzureServices' // Required for AppGW communication
+      defaultAction: 'Deny'
+      ipRules: []
+      virtualNetworkRules: []
+    }
+    enableRbacAuthorization: true
+    enabledForDeployment: false
+    enabledForDiskEncryption: false
+    enabledForTemplateDeployment: false
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+    createMode: 'default'
+  }
+}
+
+@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
+resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-${clusterName}-ingresscontroller'
+  location: location
+}
+
+@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
+resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-${clusterName}-controlplane'
+  location: location
+}
+
+@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
+resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-appgateway'
+  location: location
+}
+
 /*** OUTPUTS ***/
 
 output quarantineContainerRegistryName string = acr.name
 output containerRegistryName string = acr.name
+output keyVaultName string = kv.name
+output ingressClientid string = miIngressController.properties.clientId

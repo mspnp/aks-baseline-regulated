@@ -1,6 +1,6 @@
 # Prep for cluster bootstrapping
 
-Now that the [hub-spoke network is provisioned](./04-networking.md), the next step in the [AKS baseline reference implementation](./) is preparing what your AKS cluster should be bootstrapped with.
+Now that the [hub-spoke network is provisioned](./04-networking.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](./) is preparing what your AKS cluster should be bootstrapped with.
 
 ## Expected results
 
@@ -12,6 +12,10 @@ Container registries often have a lifecycle that extends beyond the scope of a s
 
 The role of this pre-existing ACR instance is made more prominant when we think about cluster bootstrapping. That is the process that happens after Azure resource deployment of the cluster, but before your first workload lands in the cluster. The cluster will be bootstrapped _immedately and automatically_ after resource deployment, which means you'll need ACR in place to act as your official OCI artifact repository for required images and Helm charts used in that bootstrapping process.
 
+Azure Key vault often have a lifecycle that extends beyond the scope of a single cluster. It is used to keep secrets safe. We are going to deploy one which is going to be use later on by the cluster to keep ingress certificate.
+
+Azure user identities are going to be also deployed. The ingress controller client id will be needed to customize [CSI files](https://learn.microsoft.com/azure/aks/csi-secrets-store-identity-access#use-azure-ad-workload-identity-preview) on workload identity scenario.
+
 ## Steps
 
 1. Get the AKS cluster spoke virtual network resource ID.
@@ -22,14 +26,15 @@ The role of this pre-existing ACR instance is made more prominant when we think 
    export RESOURCEID_VNET_CLUSTERSPOKE=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-01 --query properties.outputs.clusterVnetResourceId.value -o tsv)
    echo RESOURCEID_VNET_CLUSTERSPOKE: $RESOURCEID_VNET_CLUSTERSPOKE
    ```
+
 1. Deploy the container registry template.
 
    ```bash
    # [This takes about eight minutes.]
-   az deployment group create -g rg-bu0001a0005 -f acr-stamp.bicep -p geoRedundancyLocation=northcentralus targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} location=eastus2
+   az deployment group create -g rg-bu0001a0005 -f pre-cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} location=eastus2
    ```
 
 ### Next step
 
-:arrow_forward: [Populate ACR](./10-pre-bootstrap.md)
+:arrow_forward: [Populate ACR and Customize files to allows Flux Bootstrap](./10-pre-bootstrap.md)
 
