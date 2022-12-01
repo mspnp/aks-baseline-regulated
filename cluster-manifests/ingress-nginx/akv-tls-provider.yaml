@@ -13,7 +13,9 @@ spec:
     - objectName: ingress-internal-aks-ingress-contoso-com-tls
       key: tls.crt
   parameters:
-    usePodIdentity: "true"
+    clientID: INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01
+    usePodIdentity: "false"
+    useVMManagedIdentity: "false"
     keyvaultName: KEYVAULT_NAME
     objects: |
       array:

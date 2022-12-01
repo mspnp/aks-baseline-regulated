@@ -39,6 +39,12 @@ In the AKS Baseline, the cluster is [bootstrapped using the Flux AKS extension](
    git commit -a -m "Update Flux to pull from my fork instead of the upstream Microsoft repo."
    ```
 
+1. Obtain the Client Id for the Ingress Controller User assigned identity .
+
+   ```bash
+   INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp.v2 --query properties.outputs.miIngressControllerClientId.value -o tsv)
+   ```
+
 1. Update Key Vault placeholders in your CSI Secret Store provider.
 
    You'll be using the [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.
@@ -46,7 +52,7 @@ In the AKS Baseline, the cluster is [bootstrapped using the Flux AKS extension](
    ```bash
    KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
 
-   sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" ingress-nginx/akv-tls-provider.yaml
+   sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/akv-tls-provider.yaml
 
    git commit -a -m "Update SecretProviderClass to reference my ingress wildcard certificate."
    ```

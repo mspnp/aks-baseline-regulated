@@ -2252,3 +2252,4 @@ output keyVaultName string = kv.name
 output quarantineContainerRegistryName string = acr.name
 output containerRegistryName string = acr.name
 output aksClusterName string = clusterName
+output miIngressControllerClientId string = miIngressController.properties.clientId
