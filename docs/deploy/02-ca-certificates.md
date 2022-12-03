@@ -46,7 +46,7 @@ To support end-to-end TLS encryption, the following TLS certificates are procure
    :bulb: No matter if you used a certificate from your organization or you generated one from above, you'll need the public certificate (as `.crt` or `.cer`) to be Base64 encoded for proper storage in Key Vault later.
 
    ```bash
-   INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
+   AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
    ```
 
 ### Next step
