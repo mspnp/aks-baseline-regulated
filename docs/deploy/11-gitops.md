@@ -42,7 +42,7 @@ In the AKS Baseline, the cluster is [bootstrapped using the Flux AKS extension](
 1. Obtain the Client Id for the Ingress Controller User assigned identity .
 
    ```bash
-   INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp.v2 --query properties.outputs.miIngressControllerClientId.value -o tsv)
+   INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.miIngressControllerClientId.value -o tsv)
    ```
 
 1. Update Key Vault placeholders in your CSI Secret Store provider.
