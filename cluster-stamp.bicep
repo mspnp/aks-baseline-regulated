@@ -2118,4 +2118,3 @@ resource mc_fluxConfiguration 'Microsoft.KubernetesConfiguration/fluxConfigurati
 
 output agwName string = agw.name
 output aksClusterName string = clusterName
-output miIngressControllerClientId string = miIngressController.properties.clientId
