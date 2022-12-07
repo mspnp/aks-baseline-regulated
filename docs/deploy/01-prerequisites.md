@@ -39,7 +39,7 @@ Throughout this walkthrough, take note of the following symbol.
    # Keep running until all say "Registered." (This may take up to 20 minutes.)
    az feature list -o table --query "[?name=='Microsoft.ContainerService/EnableWorkloadIdentityPreview'].{Name:name,State:properties.state}"
 
-   # When all say "Registered" then re-register the AKS and related resource providers	   
+   # When all say "Registered" then re-register the AKS and related resource providers
    az provider register --namespace Microsoft.ContainerService
    ```
 
