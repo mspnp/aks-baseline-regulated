@@ -22,4 +22,4 @@ spec:
         - |
           objectName: ingress-internal-aks-ingress-contoso-com-tls
           objectType: secret
-    tenantId: KEYVAULT_TENANT
+    tenantID: KEYVAULT_TENANT
