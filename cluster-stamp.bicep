@@ -236,24 +236,24 @@ resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities
 resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-${clusterName}-ingresscontroller'
   location: location
+
+  // Workload identity service account federation
+  resource federatedCreds 'federatedIdentityCredentials@2022-01-31-preview' = {
+    name: 'ingress-controller'
+    properties: {
+      audiences: [
+        'api://AzureADTokenExchange'
+      ]
+      issuer: mc.properties.oidcIssuerProfile.issuerURL
+      subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
+    }
+  }
 }
 
 @description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
 resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-appgateway'
   location: location
-}
-
-resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
-  name: 'ingress-controller'
-  parent: miIngressController
-  properties: {
-    audiences: [
-      'api://AzureADTokenExchange'
-    ]
-    issuer: mc.properties.oidcIssuerProfile.issuerURL
-    subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
-  }
 }
 
 @description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Identity.')
