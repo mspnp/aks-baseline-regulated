@@ -236,6 +236,18 @@ resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities
 resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-${clusterName}-ingresscontroller'
   location: location
+
+  // Workload identity service account federation
+  resource federatedCreds 'federatedIdentityCredentials@2022-01-31-preview' = {
+    name: 'ingress-controller'
+    properties: {
+      audiences: [
+        'api://AzureADTokenExchange'
+      ]
+      issuer: mc.properties.oidcIssuerProfile.issuerURL
+      subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
+    }
+  }
 }
 
 @description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
@@ -1315,7 +1327,7 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
   }
 }
 
-resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
+resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
   name: clusterName
   location: location
   tags: {
@@ -1351,7 +1363,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
         }
         // This can be used to prevent unexpected workloads from landing on system node pool. All add-ons support this taint.
         // nodeTaints: [
-        //   "CriticalAddonsOnly=true:NoSchedule" 
+        //   'CriticalAddonsOnly=true:NoSchedule'
         // ]
         tags: {
           'pci-scope': 'out-of-scope'
@@ -1508,11 +1520,17 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
       privateDNSZone: pdzMc.id
       enablePrivateClusterPublicFQDN: false
     }
-    podIdentityProfile: {
+    oidcIssuerProfile: {
       enabled: true
+    }
+    podIdentityProfile: {
+      enabled: false
     }
     disableLocalAccounts: true
     securityProfile: {
+      workloadIdentity: {
+        enabled: true
+      }
       defender: {
         logAnalyticsWorkspaceResourceId: la.id
         securityMonitoring: {
@@ -1554,7 +1572,6 @@ resource mc 'Microsoft.ContainerService/managedClusters@2021-05-01' = {
 
     vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
 
-    miIngressController
     kvMiIngressControllerSecretsUserRole_roleAssignment
     kvMiIngressControllerKeyVaultReader_roleAssignment
   ]
@@ -2238,3 +2255,4 @@ output keyVaultName string = kv.name
 output quarantineContainerRegistryName string = acr.name
 output containerRegistryName string = acr.name
 output aksClusterName string = clusterName
+output miIngressControllerClientId string = miIngressController.properties.clientId

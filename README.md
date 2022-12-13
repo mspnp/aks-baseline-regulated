@@ -40,7 +40,7 @@ Finally, this implementation uses a small, custom application as an example work
   * Azure CNI
   * [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
   * Private Cluster (Kubernetes API Server)
-  * [Azure AD Pod Identity](https://learn.microsoft.com/azure/aks/use-azure-ad-pod-identity)
+  * [Azure Workload Identity](https://github.com/Azure/azure-workload-identity)
 * Azure Virtual Networks (hub-spoke)
   * Azure Firewall managed egress
   * Hub-proxied DNS
