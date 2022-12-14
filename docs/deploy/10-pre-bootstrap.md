@@ -129,7 +129,7 @@ It is going to use Flux AKS extension, that makes bootstrapping more "real time"
 
    ```bash
    KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
-   echo KEYVAULT_NAME: KEYVAULT_NAME
+   echo KEYVAULT_NAME: $KEYVAULT_NAME
 
    INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.ingressClientid.value -o tsv)
    echo INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01: $INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01
