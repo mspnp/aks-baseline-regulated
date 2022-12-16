@@ -34,7 +34,7 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
 
 ### Deploy the spoke
 
-1. Create the AKS jump box image builder network spoke.
+1. Create the AKS jump box image builder and JumpBox network spoke.
 
    ```bash
    RESOURCEID_VNET_HUB=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-region.v0 --query properties.outputs.hubVnetId.value -o tsv)
@@ -52,8 +52,10 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
    ```bash
    RESOURCEID_SUBNET_AIB=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-00 --query properties.outputs.imageBuilderSubnetResourceId.value -o tsv)
 
+   RESOURCEID_SUBNET_JUMPBOX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-00 --query properties.outputs.jumpboxSubnetResourceId.value -o tsv)
+
    # [This takes about five minutes to run.]
-   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-region.v1.bicep -p location=eastus2 aksImageBuilderSubnetResourceId="${RESOURCEID_SUBNET_AIB}"
+   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-region.v1.bicep -p location=eastus2 aksImageBuilderSubnetResourceId="${RESOURCEID_SUBNET_AIB}" aksJumpboxSubnetResourceId="${RESOURCEID_SUBNET_JUMPBOX}"
    ```
 
 ### Build and deploy the jump box image

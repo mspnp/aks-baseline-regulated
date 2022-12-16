@@ -29,6 +29,9 @@ param location string
 @description('Flow Logs are enabled by default, if for some reason they cause conflicts with flow log policies already in place in your subscription, you can disable them by passing "false" to this parameter.')
 param deployFlowLogResources bool = true
 
+@description('The organization\'s application ID')
+var orgAppId = 'BU0001A0005'
+
 /*** EXISTING RESOURCES ***/
 
 @description('The resource group name containing virtual network in which the regional Azure Firewall is deployed.')
@@ -82,7 +85,7 @@ resource afRouteTable 'Microsoft.Network/routeTables@2021-05-01' = {
 
 @description('NSG on the jumpbox image builder subnet.')
 resource nsgJumpboxImgbuilderSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-BU0001A0005-00-imageBuilder'
+    name: 'nsg-vnet-spoke-${orgAppId}-00-imageBuilder'
     location: location
     properties: {
         securityRules: [
@@ -220,6 +223,160 @@ resource nsgJumpboxImgbuilderSubnet_diagnosticSettings 'Microsoft.Insights/diagn
     }
 }
 
+@description('NSG on the jumpbox image builder subnet.')
+resource nsgJumpboxSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+    name: 'nsg-vnet-spoke-${orgAppId}-01-jumpbox'
+    location: location
+    properties: {
+        securityRules: [
+            {
+                name: 'AllowAzureLoadBalancer60001InBound'
+                properties: {
+                    description: 'Allows heath probe traffic to AIB Proxy VM on 60001 (SSH)'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'AzureLoadBalancer'
+                    destinationPortRange: '60001'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 100
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'AllowVNet60001InBound'
+                properties: {
+                    description: 'Allows traffic from AIB Service PrivateLink to AIB Proxy VM'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '60001'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 110
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'AllowVNet22InBound'
+                properties: {
+                    description: 'Allows Packer VM to receive SSH traffic from AIB Proxy VM'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '22'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 120
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'DenyAllInBound'
+                properties: {
+                    description: 'Deny remaining traffic.'
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 1000
+                    direction: 'Inbound'
+                }
+            }
+            {
+                name: 'Allow443ToInternetOutBound'
+                properties: {
+                    description: 'Allow VMs to communicate to Azure management APIs, Azure Storage, and perform install tasks.'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'Internet'
+                    access: 'Allow'
+                    priority: 100
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'Allow80ToInternetOutBound'
+                properties: {
+                    description: 'Allow Packer VM to use apt-get to upgrade packages'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '80'
+                    destinationAddressPrefix: 'Internet'
+                    access: 'Allow'
+                    priority: 102
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'AllowSshToVNetOutBound'
+                properties: {
+                    description: 'Allow Proxy VM to communicate to Packer VM'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '22'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 110
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'AllowHttpsToVNetOutBound'
+                properties: {
+                    description: 'Allow Proxy VM to communicate to Packer VM'
+                    protocol: 'Tcp'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: 'VirtualNetwork'
+                    destinationPortRange: '443'
+                    destinationAddressPrefix: 'VirtualNetwork'
+                    access: 'Allow'
+                    priority: 120
+                    direction: 'Outbound'
+                }
+            }
+            {
+                name: 'DenyAllOutBound'
+                properties: {
+                    description: 'Deny all remaining outbound traffic'
+                    protocol: '*'
+                    sourcePortRange: '*'
+                    sourceAddressPrefix: '*'
+                    destinationPortRange: '*'
+                    destinationAddressPrefix: '*'
+                    access: 'Deny'
+                    priority: 1000
+                    direction: 'Outbound'
+                }
+            }
+        ]
+    }
+}
+
+resource nsgJumpboxSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: nsgJumpboxSubnet
+    properties: {
+        workspaceId: hubLaWorkspace.id
+        logs: [
+            {
+                category: 'NetworkSecurityGroupEvent'
+                enabled: true
+            }
+            {
+                category: 'NetworkSecurityGroupRuleCounter'
+                enabled: true
+            }
+        ]
+    }
+}
+
 @description('This vnet is used exclusively for jumpbox image builds.')
 resource imageBuilderVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
     name: 'vnet-spoke-BU0001A0005-00'
@@ -287,6 +444,73 @@ resource imageBuilderVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSetti
     }
 }
 
+@description('This vnet is used exclusively for jumpbox vm.')
+resource jumpBoxVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
+    name: 'vnet-spoke-BU0001A0005-01'
+    location: location
+    properties: {
+        addressSpace: {
+            addressPrefixes: [
+                '10.242.0.0/28'
+            ]
+        }
+        subnets: [
+            {
+                name: 'snet-jumpbox'
+                properties: {
+                    addressPrefix: '10.242.0.0/28'
+                    routeTable: {
+                        id: afRouteTable.id
+                    }
+                    networkSecurityGroup: {
+                        id: nsgJumpboxSubnet.id
+                    }
+                    privateEndpointNetworkPolicies: 'Enabled'
+                    privateLinkServiceNetworkPolicies: 'Disabled'
+                }
+            }
+        ]
+        dhcpOptions: {
+            dnsServers: [
+                hubFirewall.properties.ipConfigurations[0].properties.privateIPAddress
+            ]
+        }
+    }
+
+    resource snetJumpBox 'subnets' existing = {
+        name: 'snet-jumpbox'
+    }
+}
+
+@description('Peer to regional hub.')
+resource jumpboxVNetPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
+    name: 'spoke-to-${last(split(hubVnetResourceId, '/'))}'
+    parent: jumpBoxVNet
+    properties: {
+        remoteVirtualNetwork: {
+            id: hubVnetResourceId
+        }
+        allowForwardedTraffic: false
+        allowVirtualNetworkAccess: true
+        allowGatewayTransit: false
+        useRemoteGateways: false
+    }
+}
+
+resource jumpBoxVNet_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+    name: 'toHub'
+    scope: jumpBoxVNet
+    properties: {
+      workspaceId: hubLaWorkspace.id
+      metrics: [
+        {
+          category: 'AllMetrics'
+          enabled: true
+        }
+      ]
+    }
+}
+
 @description('Flow Logs deployment')
 module flowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLogResources) {
     name: 'connect-spoke-bu0001A0005-00-flowlogs'
@@ -299,8 +523,21 @@ module flowlogsDeployment 'modules/flowlogsDeployment.bicep' = if (deployFlowLog
     }
 }
 
-module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
+module hubToJjumpboxVNetPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
     name: 'hub-to-jumpboxVNet-peering'
+    scope: rgHubs
+    params: {
+      hubVNetResourceId: hubVnetResourceId
+      spokesVNetName: jumpBoxVNet.name
+      rgSpokes: resourceGroup().name
+    }
+    dependsOn: [
+        jumpboxVNetPeering
+    ]
+}
+
+module hubToImageBuilderVNetPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
+    name: 'hub-to-imageBuilderVNet-peering'
     scope: rgHubs
     params: {
       hubVNetResourceId: hubVnetResourceId
@@ -315,3 +552,4 @@ module hubsSpokesPeering 'modules/hubsSpokesPeeringDeployment.bicep' = {
 /*** OUTPUTS ***/
 
 output imageBuilderSubnetResourceId string = imageBuilderVNet::snetImageBuilder.id
+output jumpboxSubnetResourceId string = jumpBoxVNet::snetJumpBox.id

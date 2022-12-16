@@ -52,6 +52,10 @@ param gitOpsBootstrappingRepoHttpsUrl string
 @minLength(1)
 param gitOpsBootstrappingRepoBranch string = 'main'
 
+@description('Subnet resource Id for the AKS jumpbox subnet')
+@minLength(79)
+param aksJumpboxSubnetResourceId string
+
 /*** VARIABLES ***/
 
 var kubernetesVersion = '1.23.12'
@@ -102,6 +106,24 @@ var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDef
 
 /*** EXISTING RESOURCE GROUP RESOURCES ***/
 
+@description('The resource group name containing virtual network in which Jumpbox will be dropped.')
+resource rgJumpBoxVirutalNetwork 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+  scope: subscription()
+  name: split(aksJumpboxSubnetResourceId, '/')[4]
+}
+
+@description('Jumpbox Spoke Virtual Network')
+resource aksJumpBoxSpokeVnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+  scope: rgJumpBoxVirutalNetwork
+  name: split(aksJumpboxSubnetResourceId, '/')[8]
+}
+
+@description('Jumpbox subnet')
+resource aksJumpboxSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+  parent: aksJumpBoxSpokeVnet
+  name: last(split(aksJumpboxSubnetResourceId, '/'))
+}
+
 @description('Spoke resource group')
 resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   scope: subscription()
@@ -121,11 +143,6 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   // Spoke virutual network's subnet for all private endpoints
   resource snetPrivatelinkendpoints 'subnets' existing = {
     name: 'snet-privatelinkendpoints'
-  }
-
-  // spoke virtual network's subnet for managment ops
-  resource snetManagmentOps 'subnets' existing = {
-    name: 'snet-management-ops'
   }
 
   // spoke virtual network's subnet for managment acr agent pools
@@ -677,7 +694,7 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
                     privateIPAddressVersion: 'IPv4'
                     publicIPAddressConfiguration: null
                     subnet: {
-                      id: vnetSpoke::snetManagmentOps.id
+                      id: aksJumpboxSubnet.id
                     }
                   }
                 }
