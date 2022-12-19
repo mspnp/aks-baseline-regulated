@@ -15,9 +15,6 @@ param k8sControlPlaneAuthorizationTenantId string
 @description('The certificate data for app gateway TLS termination. It is base64')
 param appGatewayListenerCertificate string
 
-@description('The base 64 encoded AKS Ingress Controller public certificate (as .crt or .cer) to be stored in Azure Key Vault as secret and referenced by Azure Application Gateway as a trusted root certificate.')
-param aksIngressControllerCertificate string
-
 @allowed([
   'australiaeast'
   'canadacentral'
@@ -152,11 +149,6 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   }
 }
 
-resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
-  scope: spokeResourceGroup
-  name: 'privatelink.vaultcore.azure.net'
-}
-
 resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: spokeResourceGroup
   name: 'privatelink.${location}.azmk8s.io'
@@ -168,19 +160,9 @@ resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' exis
   name: 'pip-BU0001A0005-00'
 }
 
-@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
-resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
-  name: 'mi-${clusterName}-controlplane'
-}
-
 @description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
 resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
   name: 'mi-${clusterName}-ingresscontroller'
-}
-
-@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
-resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
-  name: 'mi-appgateway'
 }
 
 @description('Azure Container Registry.')
@@ -233,6 +215,11 @@ resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions
   scope: subscription()
 }
 
+resource kvsAppGwIngressInternalAksIngressTls 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' existing = {
+  scope: resourceGroup()
+  name: '${kvName}/agw-ingress-internal-aks-ingress-contoso-com-tls'
+}
+
 /*** RESOURCES ***/
 
 resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
@@ -245,6 +232,18 @@ resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentity
     issuer: mc.properties.oidcIssuerProfile.issuerURL
     subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
   }
+}
+
+@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
+resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-${clusterName}-controlplane'
+  location: location
+}
+
+@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
+resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: 'mi-appgateway'
+  location: location
 }
 
 @description('Grant the cluster control plane managed identity with managed identity operator role permissions; this allows to assign compute with the ingress controller managed identity; this is required for Azure Pod Identity.')
@@ -269,17 +268,6 @@ resource kvsGatewaySslCert 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview
   ]
 }
 
-resource kvsAppGwIngressInternalAksIngressTls 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
-  parent: kv
-  name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
-  properties: {
-    value: aksIngressControllerCertificate
-  }
-  dependsOn: [
-    miIngressController
-  ]
-}
-
 @description('Grant the Azure Application Gateway managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
 resource kvMiAppGatewaySecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
@@ -298,28 +286,6 @@ resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/ro
   properties: {
     roleDefinitionId: keyVaultReaderRole.id
     principalId: miAppGateway.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grant the Ingress Controller managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
-resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: kv
-  name: guid(resourceGroup().id, miIngressController.name, keyVaultSecretsUserRole.id)
-  properties: {
-    roleDefinitionId: keyVaultSecretsUserRole.id
-    principalId: miIngressController.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grant the Ingress Controller managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
-resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: kv
-  name: guid(resourceGroup().id, miIngressController.name, keyVaultReaderRole.id)
-  properties: {
-    roleDefinitionId: keyVaultReaderRole.id
-    principalId: miIngressController.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
@@ -433,62 +399,6 @@ resource omsKeyVaultAnalytics 'Microsoft.OperationsManagement/solutions@2015-11-
     product: 'OMSGallery/KeyVaultAnalytics'
     promotionCode: ''
     publisher: 'Microsoft'
-  }
-}
-
-resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: kv
-  name: 'default'
-  properties: {
-    workspaceId: la.id
-    logs: [
-      {
-        category: 'AuditEvent'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
-
-@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Key Vault.')
-resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
-  name: 'pe-${kv.name}'
-  location: location
-  properties: {
-    subnet: {
-      id: vnetSpoke::snetPrivatelinkendpoints.id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'to-${vnetSpoke.name}'
-        properties: {
-          privateLinkServiceId: kv.id
-          groupIds: [
-            'vault'
-          ]
-        }
-      }
-    ]
-  }
-
-  resource pdzg 'privateDnsZoneGroups' = {
-    name: 'for-${kv.name}'
-    properties: {
-      privateDnsZoneConfigs: [
-        {
-          name: 'privatelink-akv-net'
-          properties: {
-            privateDnsZoneId: pdzKv.id
-          }
-        }
-      ]
-    }
   }
 }
 
@@ -679,7 +589,6 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
     ]
   }
   dependsOn: [
-    peKv
     kvMiAppGatewayKeyVaultReader_roleAssignment
     kvMiAppGatewaySecretsUserRole_roleAssignment
   ]
@@ -1366,9 +1275,6 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
     paEnforceImageSource
 
     vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
-
-    kvMiIngressControllerSecretsUserRole_roleAssignment
-    kvMiIngressControllerKeyVaultReader_roleAssignment
   ]
 }
 

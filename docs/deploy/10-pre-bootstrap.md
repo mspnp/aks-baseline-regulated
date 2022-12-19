@@ -49,8 +49,6 @@ Using a security agent that is container-aware and can operate from within the c
    ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
    
    # [Combined this takes about eight minutes.]
-   az acr import --source ghcr.io/fluxcd/kustomize-controller:v0.8.1 -t quarantine/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME_QUARANTINE && \
-   az acr import --source ghcr.io/fluxcd/source-controller:v0.8.1 -t quarantine/fluxcd/source-controller:v0.8.1 -n $ACR_NAME_QUARANTINE       && \
    az acr import --source docker.io/falcosecurity/falco:0.29.1 -t quarantine/falcosecurity/falco:0.29.1 -n $ACR_NAME_QUARANTINE               && \
    az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE                       && \
    az acr import --source docker.io/weaveworks/kured:1.9.2 -t quarantine/weaveworks/kured:1.9.2 -n $ACR_NAME_QUARANTINE                       && \
@@ -85,8 +83,6 @@ Using a security agent that is container-aware and can operate from within the c
    ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
    
    # [Combined this takes about eight minutes.]
-   az acr import --source quarantine/fluxcd/kustomize-controller:v0.8.1 -r $ACR_NAME_QUARANTINE -t live/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME && \
-   az acr import --source quarantine/fluxcd/source-controller:v0.8.1 -r $ACR_NAME_QUARANTINE -t live/fluxcd/source-controller:v0.8.1 -n $ACR_NAME       && \
    az acr import --source quarantine/falcosecurity/falco:0.29.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco:0.29.1 -n $ACR_NAME                 && \
    az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                         && \
    az acr import --source quarantine/weaveworks/kured:1.9.2 -r $ACR_NAME_QUARANTINE -t live/weaveworks/kured:1.9.2 -n $ACR_NAME                         && \
@@ -136,8 +132,6 @@ It is going to use Flux AKS extension, that makes bootstrapping more "real time"
    
    sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/akv-tls-provider.yaml
 
-   sed -i -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/deployment.yaml
-   
    git commit -a -m "Update SecretProviderClass to reference my ingress wildcard certificate."
    ```
 

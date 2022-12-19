@@ -53,12 +53,14 @@ Finally, this implementation uses a small, custom application as an example work
 
 #### In-cluster Open-Source Software components
 
-* [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver)
-* [Falco](https://falco.org)
-* [Flux 2 GitOps Operator](https://fluxcd.io)
-* [Kured](https://learn.microsoft.com/azure/aks/node-updates-kured)
-* [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
-* [Open Service Mesh](https://openservicemesh.io/)
+- [Azure Workload Identity](https://learn.microsoft.com/azure/aks/workload-identity-overview) _[AKS-managed add-on]_
+- [Flux GitOps Operator](https://fluxcd.io) _[AKS-managed extension]_
+- [Falco](https://falco.org)
+- [Kubernetes Reboot Daemon](https://learn.microsoft.com/azure/aks/node-updates-kured)
+- [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) _[AKS-managed add-on]_
+- [Traefik Ingress Controller](https://doc.traefik.io/traefik/v2.5/routing/providers/kubernetes-ingress/)
+- [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
+- [Open Service Mesh](https://openservicemesh.io/)
 
 #### Network topology
 
@@ -106,9 +108,9 @@ Deploy the Azure resources that make up the primary runtime components of this a
 
 * [ ] [Deploy the target network spoke](./docs/deploy/08-cluster-networking.md) that the cluster will be homed to.
 * [ ] [Deploy Resouces needed for cluster](./docs/deploy/09-pre-cluster-stamp.md). It includes Azure Container Registry, Azure Key Vault, and some Identities which are needed to customize files which will use Flux extension on deploy.
-* [ ] [Prepare for cluster deploy](./docs/deploy/10-pre-bootstrap.md). The ACR is populated, Quarantine & import all bootstrap images,  and some files are customized.
+* [ ] [Prep for cluster bootstrapping](./docs/deploy/10-pre-bootstrap.md). The ACR is populated, Quarantine & import all bootstrap images,  and some files are customized.
 * [ ] [Deploy the AKS cluster](./docs/deploy/11-aks-cluster.md) and supporting services.
-* [ ] [Jump box access and Flux are validated](./docs/deploy/12-jumpbox-addon-validation.md).
+* [ ] [Validate cluster access and bootstrapping.](./docs/deploy/12-jumpbox-addon-validation.md).
 
 ### 5. Deploy your workload
 

@@ -54,6 +54,9 @@ param location string = 'eastus2'
 @minLength(4)
 param geoRedundancyLocation string = 'centralus'
 
+@description('The base 64 encoded AKS Ingress Controller public certificate (as .crt or .cer) to be stored in Azure Key Vault as secret and referenced by Azure Application Gateway as a trusted root certificate.')
+param aksIngressControllerCertificate string
+
 /*** VARIABLES ***/
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
@@ -61,6 +64,18 @@ var clusterName = 'aks-${subRgUniqueString}'
 var acrName = 'acraks${subRgUniqueString}'
 
 /*** EXISTING RESOURCES ***/
+
+@description('Built-in Azure RBAC role that is applied to a Key Vault to grant with secrets content read privileges. Granted to both Key Vault and our workload\'s identity.')
+resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '4633458b-17de-408a-b874-0445c86b69e6'
+  scope: subscription()
+}
+
+@description('Built-in Azure RBAC role that is applied a Key Vault to grant with metadata, certificates, keys and secrets read privileges. Granted to App Gateway\'s managed identity.')
+resource keyVaultReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '21090545-7ca7-4776-b22c-e363652d74d2'
+  scope: subscription()
+}
 
 @description('Spoke resource group')
 resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
@@ -87,6 +102,11 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
 resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: spokeResourceGroup
   name: 'privatelink.azurecr.io'
+}
+
+resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: spokeResourceGroup
+  name: 'privatelink.vaultcore.azure.net'
 }
 
 /*** RESOURCES ***/
@@ -294,16 +314,93 @@ resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2
   location: location
 }
 
-@description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
-resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-${clusterName}-controlplane'
-  location: location
+@description('Grant the Ingress Controller managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
+resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: kv
+  name: guid(resourceGroup().id, miIngressController.name, keyVaultSecretsUserRole.id)
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole.id
+    principalId: miIngressController.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
 
-@description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
-resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-appgateway'
+@description('Grant the Ingress Controller managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
+resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: kv
+  name: guid(resourceGroup().id, miIngressController.name, keyVaultReaderRole.id)
+  properties: {
+    roleDefinitionId: keyVaultReaderRole.id
+    principalId: miIngressController.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource kvsAppGwIngressInternalAksIngressTls 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+  parent: kv
+  name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
+  properties: {
+    value: aksIngressControllerCertificate
+  }
+  dependsOn: [
+    miIngressController
+  ]
+}
+
+resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: kv
+  name: 'default'
+  properties: {
+    workspaceId: la.id
+    logs: [
+      {
+        category: 'AuditEvent'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Key Vault.')
+resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
+  name: 'pe-${kv.name}'
   location: location
+  properties: {
+    subnet: {
+      id: vnetSpoke::snetPrivatelinkendpoints.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'to-${vnetSpoke.name}'
+        properties: {
+          privateLinkServiceId: kv.id
+          groupIds: [
+            'vault'
+          ]
+        }
+      }
+    ]
+  }
+
+  resource pdzg 'privateDnsZoneGroups' = {
+    name: 'for-${kv.name}'
+    properties: {
+      privateDnsZoneConfigs: [
+        {
+          name: 'privatelink-akv-net'
+          properties: {
+            privateDnsZoneId: pdzKv.id
+          }
+        }
+      ]
+    }
+  }
 }
 
 /*** OUTPUTS ***/
