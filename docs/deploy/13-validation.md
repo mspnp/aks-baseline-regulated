@@ -1,6 +1,6 @@
 # End-to-End Validation
 
-Now that you have a [simulated regulated workload deployed](./13-workload.md), you can start validating and exploring this reference implementation of the [AKS Baseline Cluster for Regulated Workloads](/).
+Now that you have a [simulated regulated workload deployed](./12-workload.md), you can start validating and exploring this reference implementation of the [AKS Baseline Cluster for Regulated Workloads](/).
 
 ## Validate the workload is deployed
 
@@ -45,4 +45,4 @@ For a more exhaustive WAF test and validation experience, try the [Azure Web App
 
 ### Next step
 
-:arrow_forward: [Access resource logs & Microsoft Defender for Cloud data](./15-validation-logs.md)
+:arrow_forward: [Access resource logs & Microsoft Defender for Cloud data](./14-validation-logs.md)

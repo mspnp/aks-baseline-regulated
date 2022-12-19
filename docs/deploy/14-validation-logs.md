@@ -1,6 +1,6 @@
 # Access resource logs & Microsoft Defender for Cloud data
 
-Your infrastructure and [workload is emitting logs](./14-validation.md), here are a few key logs you may wish to consider being familiar with and/or building [log-based queries](https://learn.microsoft.com/azure/azure-monitor/logs/get-started-queries) around. Below are some a few queries to get you started exploring the captured data.
+Your infrastructure and [workload is emitting logs](./13-validation.md), here are a few key logs you may wish to consider being familiar with and/or building [log-based queries](https://learn.microsoft.com/azure/azure-monitor/logs/get-started-queries) around. Below are some a few queries to get you started exploring the captured data.
 
 You can access these logs all directly from the attached Log Analytics workspace(s), but when you do you'll need to filter to specific resources. For simplicity the steps below direct you to the pre-filtered view offered by the Azure Portal when viewing within the context of each service.
 
@@ -219,4 +219,4 @@ NSG Flow Logs were configured as part of the default install of this reference i
 
 ### Next step
 
-:arrow_forward: [Clean Up Azure Resources](./16-cleanup.md)
+:arrow_forward: [Clean Up Azure Resources](./15-cleanup.md)

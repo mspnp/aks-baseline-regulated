@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default
+spec:
+  limits:
+  # - max:
+  #     cpu: 1000m
+  #     memory: 1Gi
+  #   min:
+  #     cpu: 50m
+  #     memory: 64Mi
+  #   default:
+  #     cpu: 100m
+  #     memory: 64Mi
+  #   defaultRequest:
+  #     cpu: 100m
+  #     memory: 64Mi
+  #   type: Container
+  - max:
+      storage: 0Mi
+    min:
+      storage: 0Mi
+    type: PersistentVolumeClaim

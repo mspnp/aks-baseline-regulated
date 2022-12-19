@@ -1,6 +1,6 @@
 # Deploy the Workload
 
-This point in the steps marks a significant transition in roles and purpose. At this point, you have a [AKS cluster that is deployed in an architecture that will help your compliance needs](./11-aks-cluster.md) and is [bootstrapped with core tooling](./12-jumpbox-addon-validation.md) you feel are requirements for your solution, all managed via Flux. You've got a cluster without any business workloads.
+This point in the steps marks a significant transition in roles and purpose. At this point, you have a [AKS cluster that is deployed in an architecture that will help your compliance needs](./10-aks-cluster.md) and is bootstrapped with core tooling you feel are requirements for your solution, all managed via Flux. You've got a cluster without any business workloads.
 
 The next few steps will walk through considerations that are specific to the first workload in the cluster. Workloads are a mix of potential infrastructure changes (e.g. Azure Application Gateway routes, Azure resources for the workload itself -- such as CosmosDB for state storage and Azure Cache for Redis for cache.), privileged cluster changes (i.e. creating target namespace, creating and assigning any specific cluster or namespace roles, etc.), deciding on how that "last mile" deployment of these workloads will be handled (e.g. using the `snet-management-agents` subnet adjacent to this cluster), and workload teams which are responsible for creating the container image(s), building deployment manifests, etc. Many regulations have a clear separation of duties requirements, be sure in your case you have documented and understood change management process. How you partition this work will not be described here because there isn't a one-size-fits-most solution. Allocate time to plan, document, and educate on these concerns.
 
@@ -146,4 +146,4 @@ Likewise, this reference implementation does not get into workload architecture 
 
 ### Next step
 
-:arrow_forward: [End-to-End Validation](./14-validation.md)
+:arrow_forward: [End-to-End Validation](./13-validation.md)

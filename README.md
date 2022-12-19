@@ -58,7 +58,6 @@ Finally, this implementation uses a small, custom application as an example work
 - [Falco](https://falco.org)
 - [Kubernetes Reboot Daemon](https://learn.microsoft.com/azure/aks/node-updates-kured)
 - [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) _[AKS-managed add-on]_
-- [Traefik Ingress Controller](https://doc.traefik.io/traefik/v2.5/routing/providers/kubernetes-ingress/)
 - [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
 - [Open Service Mesh](https://openservicemesh.io/)
 
@@ -107,29 +106,28 @@ Because the AKS server is a "private cluster" the control plane is not exposed t
 Deploy the Azure resources that make up the primary runtime components of this architecture; the AKS cluster itself, jump box, Azure Container Registry, Azure Application Gateway, and Azure Key Vault.
 
 * [ ] [Deploy the target network spoke](./docs/deploy/08-cluster-networking.md) that the cluster will be homed to.
-* [ ] [Deploy Resouces needed for cluster](./docs/deploy/09-pre-cluster-stamp.md). It includes Azure Container Registry, Azure Key Vault, and some Identities which are needed to customize files which will use Flux extension on deploy.
-* [ ] [Prep for cluster bootstrapping](./docs/deploy/10-pre-bootstrap.md). The ACR is populated, Quarantine & import all bootstrap images,  and some files are customized.
-* [ ] [Deploy the AKS cluster](./docs/deploy/11-aks-cluster.md) and supporting services.
-* [ ] [Validate cluster access and bootstrapping.](./docs/deploy/12-jumpbox-addon-validation.md).
+* [ ] [Prep for cluster bootstrapping](./docs/deploy/09-pre-cluster-stamp.md). It includes Azure Container Registry, Azure Key Vault, and some Identities which are needed to customize files which will use Flux extension on deploy. The ACR is populated, Quarantine & import all bootstrap images,  and some files are customized.
+* [ ] [Deploy the AKS cluster](./docs/deploy/10-aks-cluster.md) and supporting services.
+* [ ] [Validate cluster access and bootstrapping](./docs/deploy/11-validate-cluster-access-and-bootstrapping.md).
 
 ### 5. Deploy your workload
 
 A simple workload made up of four interconnected services is manually deployed across two namespaces to illustrate concepts such as nodepool placement, zero-trust network policies, and external infrastructure protections offered by the applied NSGs and Azure Firewall rules.
 
-* [ ] [Deploy the workload](./docs/deploy/13-workload.md).
+* [ ] [Deploy the workload](./docs/deploy/12-workload.md).
 
 ### 6. :checkered_flag: Validation
 
 Now that the cluster and the sample workload is deployed; now it's time to look at how the cluster is functioning.
 
-* [ ] [Perform end-to-end deployment validation](./docs/deploy/14-validation.md).
-* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/15-validation-logs.md)
+* [ ] [Perform end-to-end deployment validation](./docs/deploy/13-validation.md).
+* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/14-validation-logs.md)
 
 ### 7. :broom: Clean up resources
 
 Most of the Azure resources deployed in the prior steps will have ongoing billing impact unless removed.
 
-* [ ] [Cleanup all resources](./docs/deploy/16-cleanup.md)
+* [ ] [Cleanup all resources](./docs/deploy/15-cleanup.md)
 
 ## Separation of duties
 

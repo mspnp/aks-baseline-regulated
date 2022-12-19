@@ -1,6 +1,6 @@
-# Jump box access and Flux are validation
+# Validate cluster access and boostraping 
 
-Now that [the AKS cluster](./11-aks-cluster.md) has been deployed, and your [bootstrapping images have passed through quarantine](./10-pre-bootstrap.md), the next step is to Jump box access and Flux are validation.
+Now that [the AKS cluster](./10-aks-cluster.md) has been deployed, and your [bootstrapping images have passed through quarantine](./09-pre-cluster-stamp.md), the next step is to validate cluster access and boostraping.
 
 ## Expected results
 
@@ -8,7 +8,7 @@ Now that [the AKS cluster](./11-aks-cluster.md) has been deployed, and your [boo
 
 While the following process likely would be handled via your deployment pipelines, we are going to use this opportunity to demonstrate cluster management access via Azure Bastion, and show that your cluster cannot be directly accessed locally.
 
-### AKS Add-ons are validated
+### AKS access validation
 
 Your cluster was deployed with Azure Policy and Flux extension. You'll execute some commands to show how those add-ons are manifesting itself in your cluster. 
 
@@ -173,4 +173,4 @@ It's worth noting, some customers with regulated workloads are bringing ISV or o
 
 ### Next step
 
-:arrow_forward: [Deploy your workload](./13-workload.md)
+:arrow_forward: [Deploy your workload](./12-workload.md)
