@@ -1,6 +1,6 @@
 # Validate cluster access and boostraping 
 
-Now that [the AKS cluster](./10-aks-cluster.md) has been deployed, and your [bootstrapping images have passed through quarantine](./09-pre-cluster-stamp.md), the next step is to validate cluster access and boostraping.
+Now that [the AKS cluster](./10-aks-cluster.md) has been deployed, and your [bootstrapping images have passed through quarantine](./09-pre-cluster-stamp.md), the next step is to validate cluster access and boostraping. GitOps management solution was configure on your cluster, Flux in this case.
 
 ## Expected results
 

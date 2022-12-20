@@ -16,7 +16,7 @@ Azure Key vault often have a lifecycle that extends beyond the scope of a single
 
 Azure user identities are going to be also deployed. The ingress controller client id will be needed to customize [CSI files](https://learn.microsoft.com/azure/aks/csi-secrets-store-identity-access#use-azure-ad-workload-identity-preview) on workload identity scenario.
 
-   A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure Key Vault that will be used by your workload's ingress controller to expose an HTTPS endpoint to Azure Application Gateway. The managed identity is granted the ability to pull the ingress controller's own TLS certificate from Key Vault.
+A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure Key Vault that will be used by your workload's ingress controller to expose an HTTPS endpoint to Azure Application Gateway. The managed identity is granted the ability to pull the ingress controller's own TLS certificate from Key Vault.
 
 ## Steps
 
@@ -69,7 +69,7 @@ Using a security agent that is container-aware and can operate from within the c
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
    ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
-   
+
    # [Combined this takes about eight minutes.]
    az acr import --source docker.io/falcosecurity/falco:0.29.1 -t quarantine/falcosecurity/falco:0.29.1 -n $ACR_NAME_QUARANTINE               && \
    az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE                       && \
@@ -103,7 +103,7 @@ Using a security agent that is container-aware and can operate from within the c
    ```bash
    # Get your Azure Container Registry service name
    ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
-   
+
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/falcosecurity/falco:0.29.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco:0.29.1 -n $ACR_NAME                 && \
    az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                         && \
@@ -157,18 +157,19 @@ Once web traffic hits Azure Application Gateway, public-facing TLS is terminated
 1. Remove Azure Key Vault import certificates permissions and network access for current user.
 
    > The Azure Key Vault RBAC assignment for your user and network allowance was temporary to allow you to upload the certificate for this walkthrough. In actual deployments, you would manage these any RBAC policies via your ARM templates using [Azure RBAC for Key Vault data plane](https://learn.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies) and only network-allowed traffic would access your Key Vault.
-   
+
    ```bash
    az keyvault network-rule remove -n $KEYVAULT_NAME --ip-address ${CURRENT_IP_ADDRESS}
    az role assignment delete --ids $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
    ```
+
 ### Flux preparation
 
 It is going to use Flux AKS extension, that makes bootstrapping more "real time" with cluster deployment. We need to prepare the repo to bootstrap the images correctly.
 
 ## Steps
 
-1. Navigate to the correct folder 
+1. Navigate to the correct folder
 
    ```bash
    cd cluster-manifests
@@ -185,18 +186,17 @@ It is going to use Flux AKS extension, that makes bootstrapping more "real time"
 1. Update Key Vault placeholders in your CSI Secret Store provider.
 
    You'll be using the [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.  
-   At this point we have the Azure Key Vault deployed and it is before deploying Flux configuration.
 
    ```bash
    INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.ingressClientid.value -o tsv)
    echo INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01: $INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01
-   
+
    sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/akv-tls-provider.yaml
 
    git commit -a -m "Update SecretProviderClass to reference my ingress wildcard certificate."
    ```
 
-1. Push those three commits to your repo.
+1. Push those commits to your repo.
 
    ```bash
    git push

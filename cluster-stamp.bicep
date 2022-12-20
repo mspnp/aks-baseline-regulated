@@ -966,7 +966,7 @@ resource paEnforceResourceLimits 'Microsoft.Authorization/policyAssignments@2020
         value: [
           'kube-system'
           'gatekeeper-system'
-          'flux-system' /* Flux add-on, not all containers have limits defined by Microsoft */
+          'flux-system' /* Flux extension, not all containers have limits defined by Microsoft */
         ]
       }
     }
@@ -1950,7 +1950,7 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
   ]
 }
 
-// Ensures that flux add-on (extension) is installed.
+// Ensures that flux extension is installed.
 resource mcFlux_extension 'Microsoft.KubernetesConfiguration/extensions@2021-09-01' = {
   scope: mc
   name: 'flux'
