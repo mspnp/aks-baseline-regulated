@@ -173,7 +173,7 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
 
 ## GitOps Kubernetes manifest updates
 
-It is going to use Flux AKS extension, that makes bootstrapping more "real time" with cluster deployment. We need to prepare the repo to bootstrap the images correctly.
+Your cluster will be bootstrapped using the Microsoft-provided GitOps extension, and this happens automatically after the cluster is deployed.  This means you need to prepare the source repo that contains the manifest files. The following instructions will update a few .yaml files with values specific to your deployment/environment.
 
 ## Steps
 
