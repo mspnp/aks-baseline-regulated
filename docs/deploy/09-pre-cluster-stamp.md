@@ -154,7 +154,9 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
 
 1. Import the AKS ingress controller's certificate.
 
-   You currently cannot import certificates into Key Vault directly via ARM templates. As such, post deployment of our Azure resources (which includes Key Vault), you need to upload your ingress controller's wildcard certificate to Key Vault. This is the `.pem` file you created on a prior page. Your ingress controller will authenticate to Key Vault (via the Pod Managed Identity created above) and use this certificate as its default TLS certificate, presenting exclusively to your Azure Application Gateway.
+   You currently cannot import certificates into Key Vault directly via ARM templates. As such, post deployment of our bootstrapping resources (which includes Key Vault), you need to upload your ingress controller's wildcard certificate to Key Vault. This is the `.pem` file you created on a prior page. Your ingress controller will authenticate to Key Vault (via its workload identity) and use this certificate as its default TLS certificate, presenting exclusively to your Azure Application Gateway.
+   
+   _As an alternative, this import process could be done with [`deploymentScripts` within the ARM template](https://github.com/Azure/bicep/discussions/8457#discussioncomment-3712980). Use whatever certificate management process your organization and compliance mandates._
 
    ```bash
    az keyvault certificate import -f ingress-internal-aks-ingress-contoso-com-tls.pem -n ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
