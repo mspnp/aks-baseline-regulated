@@ -162,6 +162,7 @@ resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' exis
 
 @description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
 resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  scope: resourceGroup()
   name: 'mi-${clusterName}-ingresscontroller'
 }
 
