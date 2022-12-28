@@ -204,7 +204,7 @@ Your cluster will be bootstrapped using the Microsoft-provided GitOps extension,
    git commit -a -m "Update SecretProviderClass to reference my ingress controller certificate."
    ```
 
-1. Push those commits to your repo.
+1. Push those two commits to your repo.
 
    ```bash
    git push
