@@ -106,7 +106,7 @@ Because the AKS server is a "private cluster" the control plane is not exposed t
 This is the heart of the guidance in this reference implementation; paired with prior network topology guidance. Here you will deploy the Azure resources for your cluster and the adjacent services such as Azure Application Gateway WAF, Azure Monitor, Azure Container Registry, and Azure Key Vault. This is also where you will validate the cluster is bootstrapped.
 
 * [ ] [Deploy the target network spoke](./docs/deploy/08-cluster-networking.md) that the cluster will be homed to.
-* [ ] [Prep for cluster bootstrapping](./docs/deploy/09-pre-cluster-stamp.md). It includes Azure Container Registry, Azure Key Vault, and some Identities which are needed to customize files which will use Flux extension on deploy. The ACR is populated, Quarantine & import all bootstrap images,  and some files are customized.
+* [ ] [Prep for cluster bootstrapping](./docs/deploy/09-pre-cluster-stamp.md) by deploy and populating Azure Container Registry and Azure Key Vault. This includes passing cluster images through quarantine.
 * [ ] [Deploy the AKS cluster](./docs/deploy/10-aks-cluster.md) and supporting services.
 * [ ] [Validate cluster access and bootstrapping](./docs/deploy/11-validate-cluster-access-and-bootstrapping.md).
 
