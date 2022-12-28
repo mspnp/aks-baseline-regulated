@@ -12,7 +12,7 @@ Container registries often have a lifecycle that extends beyond the scope of a s
 
 The role of this pre-existing ACR instance is made more prominant when we think about cluster bootstrapping. That is the process that happens after Azure resource deployment of the cluster, but before your first workload lands in the cluster. The cluster will be bootstrapped _immediately and automatically_ after cluster deployment by the GitOps extension, which means you'll need ACR in place to act as your official OCI artifact repository for required images and Helm charts used in that bootstrapping process.
 
-Azure Key vault often have a lifecycle that extends beyond the scope of a single cluster. It is used to keep secrets safe. We are going to deploy one which is going to be use later on by the cluster to keep ingress certificate.
+Azure Key Vault also often has a lifecycle that extends beyond the scope of a single cluster. It is used to hold certificates needed by various components in the infrastructure and needs to be in place for when the cluster is bootstrapped.
 
 Azure user identities are going to be also deployed. The ingress controller client id will be needed to customize [CSI files](https://learn.microsoft.com/azure/aks/csi-secrets-store-identity-access#use-azure-ad-workload-identity-preview) on workload identity scenario.
 
