@@ -107,7 +107,7 @@ Using a security agent that is container-aware and can operate from within the c
 1. Release bootstrap images from quarantine.
 
    ```bash
-   # Get your Azure Container Registry service name
+   # Get your live Azure Container Registry service name
    ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
