@@ -10,7 +10,7 @@ Container registries often have a lifecycle that extends beyond the scope of a s
 - ACR is populated with images your cluster will need as part of its bootstrapping process.
 - Log Analytics is deployed and ACR platform logging is configured. This workspace will be used by your cluster as well.
 
-The role of this pre-existing ACR instance is made more prominant when we think about cluster bootstrapping. That is the process that happens after Azure resource deployment of the cluster, but before your first workload lands in the cluster. The cluster will be bootstrapped _immedately and automatically_ after resource deployment, which means you'll need ACR in place to act as your official OCI artifact repository for required images and Helm charts used in that bootstrapping process.
+The role of this pre-existing ACR instance is made more prominant when we think about cluster bootstrapping. That is the process that happens after Azure resource deployment of the cluster, but before your first workload lands in the cluster. The cluster will be bootstrapped _immediately and automatically_ after cluster deployment by the GitOps extension, which means you'll need ACR in place to act as your official OCI artifact repository for required images and Helm charts used in that bootstrapping process.
 
 Azure Key vault often have a lifecycle that extends beyond the scope of a single cluster. It is used to keep secrets safe. We are going to deploy one which is going to be use later on by the cluster to keep ingress certificate.
 
