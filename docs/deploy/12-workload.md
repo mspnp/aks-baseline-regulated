@@ -58,7 +58,6 @@ While typically workload deployment happens via deployment pipelines, to keep th
    > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-221).
 
    ```bash
-   ```bash
    GITHUB_ACCOUNT_NAME=YOUR-GITHUB-ACCOUNT-NAME-GOES-HERE
 
    git clone https://github.com/$GITHUB_ACCOUNT_NAME/aks-baseline-regulated.git
