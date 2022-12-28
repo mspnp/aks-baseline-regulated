@@ -683,8 +683,8 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
           priority: 300
           rules: [
             {
-              name: 'github-origin'
-              description: 'Supports pulling gitops configuration from GitHub.'
+              name: 'flux-to-github'
+              description: 'Supports pulling GitOps configuration from GitHub.'
               sourceIpGroups: [
                 aks_ipgroup.id
               ]
