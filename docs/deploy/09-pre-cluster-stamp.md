@@ -177,7 +177,7 @@ Your cluster will be bootstrapped using the Microsoft-provided GitOps extension,
 
 ### Steps
 
-1. Navigate to the correct folder
+1. Navigate to the directory containing the manifest files
 
    ```bash
    cd cluster-manifests
