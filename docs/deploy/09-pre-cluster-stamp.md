@@ -175,7 +175,7 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
 
 Your cluster will be bootstrapped using the Microsoft-provided GitOps extension, and this happens automatically after the cluster is deployed.  This means you need to prepare the source repo that contains the manifest files. The following instructions will update a few .yaml files with values specific to your deployment/environment.
 
-## Steps
+### Steps
 
 1. Navigate to the correct folder
 
