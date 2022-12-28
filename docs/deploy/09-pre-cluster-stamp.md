@@ -48,7 +48,7 @@ Quarantining first- and third-party images is a recommended security practice. T
 
 > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 6.3.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-malware#requirement-632).
 
-## Deployment pipelines
+### Deployment pipelines
 
 Your deployment pipelines are one of the first lines of defense in container image security. Shifting left by introducing build steps like [GitHub Image Scanning](https://github.com/Azure/container-scan) (which leverages common tools like [dockle](https://github.com/goodwithtech/dockle) and [Aquasec trivy](https://github.com/aquasecurity/trivy)) will help ensure that, at build time, your images are linted, CIS benchmarked, and free from known vulnerabilities. You can use any tooling at this step that you trust, including paid, ISV solutions that help provide your desired level of confidence and compliance.
 
