@@ -4,6 +4,8 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 
 ## Expected results
 
+### Container registry
+
 Container registries often have a lifecycle that extends beyond the scope of a single cluster. They can be scoped broadly at organizational or business unit levels, or can be scoped at workload levels, but usually are not directly tied to the lifecycle of any specific cluster instance. For example, you may do blue/green _cluster instance_ deployments, both using the same container registry. Even though clusters came and went, the registry stays intact.
 
 - Azure Container Registry (ACR) is deployed, and exposed as a private endpoint.
