@@ -201,7 +201,7 @@ Your cluster will be bootstrapped using the Microsoft-provided GitOps extension,
 
    sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/akv-tls-provider.yaml
 
-   git commit -a -m "Update SecretProviderClass to reference my ingress wildcard certificate."
+   git commit -a -m "Update SecretProviderClass to reference my ingress controller certificate."
    ```
 
 1. Push those commits to your repo.
