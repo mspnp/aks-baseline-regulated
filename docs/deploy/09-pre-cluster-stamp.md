@@ -22,7 +22,7 @@ Azure Key Vault also often has a lifecycle that extends beyond the scope of a si
 
 An Azure user managed identity is going to be deployed. This identity is the ingress controller's workload identity and will be set up with RBAC access to Key Vault for successful bootstrapping.
 
-A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure Key Vault that will be used by your workload's ingress controller to expose an HTTPS endpoint to Azure Application Gateway. The managed identity is granted the ability to pull the ingress controller's own TLS certificate from Key Vault.
+A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure Key Vault that will be used by your workload's ingress controller to expose an HTTPS endpoint to Azure Application Gateway.
 
 ## Steps
 
