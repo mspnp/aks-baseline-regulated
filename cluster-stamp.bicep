@@ -223,6 +223,7 @@ resource kvsAppGwIngressInternalAksIngressTls 'Microsoft.KeyVault/vaults/secrets
 
 /*** RESOURCES ***/
 
+@description('Workload identity service account federation for the ingress controller\'s identity which is used to acquire access tokens to read TLS certs from Azure Key Vault.')
 resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
   name: 'ingress-controller'
   parent: miIngressController
