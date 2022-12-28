@@ -193,7 +193,7 @@ Your cluster will be bootstrapped using the Microsoft-provided GitOps extension,
 
 1. Update Key Vault placeholders in your CSI Secret Store provider.
 
-   You'll be using the [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.  
+   You'll be using the [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.
 
    ```bash
    INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.ingressClientid.value -o tsv)
