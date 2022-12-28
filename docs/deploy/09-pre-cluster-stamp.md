@@ -171,7 +171,7 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
    az role assignment delete --ids $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
    ```
 
-### Flux preparation
+## GitOps Kubernetes manifest updates
 
 It is going to use Flux AKS extension, that makes bootstrapping more "real time" with cluster deployment. We need to prepare the repo to bootstrap the images correctly.
 
