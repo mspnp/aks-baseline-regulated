@@ -71,7 +71,7 @@ Using a security agent that is container-aware and can operate from within the c
 1. Quarantine public bootstrap security/utility images.
 
    ```bash
-   # Get your Quarantine Azure Container Registry service name
+   # Get your quarantine Azure Container Registry service name
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
    ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
