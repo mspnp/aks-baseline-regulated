@@ -35,7 +35,7 @@ A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure 
    echo RESOURCEID_VNET_CLUSTERSPOKE: $RESOURCEID_VNET_CLUSTERSPOKE
    ```
 
-1. Deploy the container registry template.
+1. Deploy the bootstrapping resources template.
 
    ```bash
    # [This takes about eight minutes.]
