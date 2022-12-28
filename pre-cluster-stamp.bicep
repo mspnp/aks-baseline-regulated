@@ -325,7 +325,7 @@ resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authoriz
   }
 }
 
-@description('Grant the Ingress Controller managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
+@description('Grant the ingress controller\'s managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
 resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
   name: guid(resourceGroup().id, miIngressController.name, keyVaultReaderRole.id)
