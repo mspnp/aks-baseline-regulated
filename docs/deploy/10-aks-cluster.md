@@ -1,4 +1,4 @@
-# Deploy the Regulated Industries AKS Cluster
+# Deploy the regulated industries AKS cluster
 
 Now that the [ACR was deployed and populated](./09-pre-cluster-stamp.md), the next step in the [AKS Baseline for Regulated workloads reference implementation](/) is deploying the AKS cluster, built on it's [security-hardened OS](https://learn.microsoft.com/azure/aks/security-hardened-vm-host-image) and its adjacent Azure resources.
 
