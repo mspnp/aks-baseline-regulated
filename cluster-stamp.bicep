@@ -48,7 +48,7 @@ param jumpBoxCloudInitAsBase64 string
 @minLength(9)
 param gitOpsBootstrappingRepoHttpsUrl string = 'https://github.com/mspnp/aks-baseline'
 
-@description('You cluster will be bootstrapped from this branch in the identified git repo.')
+@description('Your cluster will be bootstrapped from this branch in the identified git repo.')
 @minLength(1)
 param gitOpsBootstrappingRepoBranch string = 'main'
 
