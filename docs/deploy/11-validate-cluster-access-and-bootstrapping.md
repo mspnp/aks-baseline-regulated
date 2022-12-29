@@ -105,9 +105,13 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 
    Validate that the Flux extension has bootstrapped your cluster.
 
-   ```output
+   ```bash
    kubectl get namespaces
-   # You must see namespaces created by flux like a0005-i
+   ```
+   
+   You should see namespaces created as described your manifest files, such as `a0005-i`.
+   
+   ```output
    NAME                        STATUS   AGE
    a0005-i                     Active   79m
    a0005-o                     Active   79m
