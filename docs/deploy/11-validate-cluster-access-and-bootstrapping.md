@@ -6,7 +6,7 @@ Now that your [bootstrapping images have passed through quarantine](./09-pre-clu
 
 ### Jump box access is validated
 
-While the following process likely would be handled via your deployment pipelines, we are going to use this opportunity to demonstrate cluster management access via Azure Bastion, and show that your cluster cannot be directly accessed locally.
+Because the cluster is private, your cluster cannot be directly accessed locally. You'll validate controlled jump box access for direct ops against the cluster if needed.
 
 ### AKS access validation
 
