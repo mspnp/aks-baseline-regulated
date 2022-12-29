@@ -10,7 +10,7 @@ Because the cluster is private, your cluster cannot be directly accessed locally
 
 ### Bootstrapping results validation
 
-Your cluster was deployed with Azure Policy and Flux extension. You'll execute some commands to show how those add-ons are manifesting itself in your cluster. 
+Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'll execute some commands to show how those are manifesting itself in your cluster.
 
 ## Steps
 
