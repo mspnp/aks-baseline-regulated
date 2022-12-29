@@ -101,7 +101,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
    k8sazurevolumetypes                      21m
    ```
 
-1. _From your Azure Bastion connection_, bootstrap Flux Validation.
+1. _From your Azure Bastion connection_, validate bootstrapping.
 
    Validate that Flux has been bootstrapped.
 
