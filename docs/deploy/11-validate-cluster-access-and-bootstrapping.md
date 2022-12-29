@@ -8,7 +8,7 @@ Now that your [bootstrapping images have passed through quarantine](./09-pre-clu
 
 Because the cluster is private, your cluster cannot be directly accessed locally. You'll validate controlled jump box access for direct ops against the cluster if needed.
 
-### AKS access validation
+### Bootstrapping results validation
 
 Your cluster was deployed with Azure Policy and Flux extension. You'll execute some commands to show how those add-ons are manifesting itself in your cluster. 
 
