@@ -5,7 +5,7 @@ Now that the all the [necessary bootstrapping requirements are deployed](./09-pr
 ## Expected results
 
 * The cluster and all adjacent resources are deployed.
-  * This includes core infrastructure Azure Application Gateway.
+  * This includes core infrastructure such as Azure Application Gateway.
   * Private Link configuration
   * Jump box (Azure Bastion) access
 
