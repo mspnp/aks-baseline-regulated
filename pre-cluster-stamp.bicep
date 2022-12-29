@@ -315,7 +315,7 @@ resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2
   location: location
 }
 
-@description('Grant the Ingress Controller managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
+@description('Grant the ingress controller\'s managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
 resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: kv
   name: guid(resourceGroup().id, miIngressController.name, keyVaultSecretsUserRole.id)
