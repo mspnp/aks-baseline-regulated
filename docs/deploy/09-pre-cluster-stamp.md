@@ -18,11 +18,11 @@ The role of this pre-existing ACR instance is made more prominant when we think 
 
 Azure Key Vault also often has a lifecycle that extends beyond the scope of a single cluster. It is used to hold certificates needed by various components in the infrastructure and needs to be in place for when the cluster is bootstrapped.
 
+A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure Key Vault that will be used by your workload's ingress controller to expose an HTTPS endpoint to Azure Application Gateway.
+
 ### Managed identities
 
 An Azure user managed identity is going to be deployed. This identity is the ingress controller's workload identity and will be set up with RBAC access to Key Vault for successful bootstrapping.
-
-A wildcard TLS certificate (`*.aks-ingress.contoso.com`) is imported into Azure Key Vault that will be used by your workload's ingress controller to expose an HTTPS endpoint to Azure Application Gateway.
 
 ## Steps
 

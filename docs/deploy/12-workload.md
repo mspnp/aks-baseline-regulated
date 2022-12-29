@@ -49,7 +49,7 @@ While typically workload deployment happens via deployment pipelines, to keep th
    git push
    ```
 
-1. _From your Azure Bastion connection_, deploy the sample workloads to cluster.
+1.  _From your Azure Bastion connection_, deploy the sample workloads to cluster. 🛑
 
    The sample workload will be deployed across two namespaces. An "in-scope" namespace (`a0005-i`) and an "out-of-scope" (`a0005-o`) namespace to represent a logical separation of components in this solution. The workloads that are in `a0005-i` are assumed to be directly or indirectly handling data that is in regulatory scope. The workloads that are in `a0005-o` are supporting workloads, but they themselves do not handle in-scope regulatory data. While this entire cluster is subject to being in regulatory scope, consider making it clear in your namespacing, labeling, etc. what services actively engage in the handling of critical data, vs those that are in a supportive role and should never handle or be able to handle that data. Ideally you'll want to minimize the workload in your in-scope clusters to just those workloads dealing with the data under regulatory compliance; _running non-scoped workloads in an alternate cluster_. Sometimes that isn't practical, therefor when you co-mingle the workloads, you need to treat almost everything as in scope, but that doesn't mean you can't treat the truly in-scope components with added segregation and care.
 

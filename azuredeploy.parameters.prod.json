@@ -28,6 +28,12 @@
     },
     "jumpBoxCloudInitAsBase64": {
       "value": "YOUR BASE64 ENCODED jumpBoxCloudInit.yml FILE STRING HERE - CLOUDINIT_BASE64"
+    },
+    "gitOpsBootstrappingRepoHttpsUrl": {
+      "value": "[Your cluster will be bootstrapped from this git repo. ]"
+    },
+    "gitOpsBootstrappingRepoBranch": {
+      "value": "[Your cluster will be bootstrapped from this branch in the identified git repo.]"
     }
   }
 }

@@ -176,6 +176,9 @@ resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existin
 resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   scope: resourceGroup()
   name: kvName
+  resource kvsAppGwIngressInternalAksIngressTls 'secrets' existing = {
+    name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
+  }
 }
 
 @description('Log Analytics Workspace.')
@@ -216,25 +219,7 @@ resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions
   scope: subscription()
 }
 
-resource kvsAppGwIngressInternalAksIngressTls 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' existing = {
-  scope: resourceGroup()
-  name: '${kvName}/agw-ingress-internal-aks-ingress-contoso-com-tls'
-}
-
 /*** RESOURCES ***/
-
-@description('Workload identity service account federation for the ingress controller\'s identity which is used to acquire access tokens to read TLS certs from Azure Key Vault.')
-resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
-  name: 'ingress-controller'
-  parent: miIngressController
-  properties: {
-    audiences: [
-      'api://AzureADTokenExchange'
-    ]
-    issuer: mc.properties.oidcIssuerProfile.issuerURL
-    subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
-  }
-}
 
 @description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
 resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
@@ -433,7 +418,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       {
         name: 'root-cert-wildcard-aks-ingress-contoso'
         properties: {
-          keyVaultSecretId: kvsAppGwIngressInternalAksIngressTls.properties.secretUri
+          keyVaultSecretId: kv::kvsAppGwIngressInternalAksIngressTls.properties.secretUri
         }
       }
     ]
@@ -1306,6 +1291,19 @@ resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   }
 }
 
+@description('Workload identity service account federation for the ingress controller\'s identity which is used to acquire access tokens to read TLS certs from Azure Key Vault.')
+resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
+  name: 'ingress-controller'
+  parent: miIngressController
+  properties: {
+    audiences: [
+      'api://AzureADTokenExchange'
+    ]
+    issuer: mc.properties.oidcIssuerProfile.issuerURL
+    subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
+  }
+}
+
 @description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
 resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: acr
@@ -1977,6 +1975,7 @@ resource mcFlux_extension 'Microsoft.KubernetesConfiguration/extensions@2021-09-
   }
   dependsOn: [
     crMiKubeletContainerRegistryPullRole_roleAssignment
+    fic
   ]
 }
 
