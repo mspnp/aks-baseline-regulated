@@ -15,6 +15,7 @@ Now that the all the [necessary bootstrapping requirements are deployed](./09-pr
 
    ```bash
    RESOURCEID_VNET_CLUSTERSPOKE=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-01 --query properties.outputs.clusterVnetResourceId.value -o tsv)
+   echo RESOURCEID_VNET_CLUSTERSPOKE: $RESOURCEID_VNET_CLUSTERSPOKE
    ```
 
 1. Identify your jump box image.
