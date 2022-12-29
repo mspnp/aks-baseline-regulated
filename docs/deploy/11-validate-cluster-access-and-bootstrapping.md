@@ -103,7 +103,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 
 1. _From your Azure Bastion connection_, validate bootstrapping.
 
-   Validate that Flux has been bootstrapped.
+   Validate that the Flux extension has bootstrapped your cluster.
 
    ```output
    kubectl get namespaces
