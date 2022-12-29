@@ -23,6 +23,7 @@ Now that the all the [necessary bootstrapping requirements are deployed](./09-pr
    ```bash
    # If you used a pre-existing image and not the one built by this walk through, replace the command below with the resource id of that image.
    RESOURCEID_IMAGE_JUMPBOX=$(az deployment group show -g rg-bu0001a0005 -n CreateJumpBoxImageTemplate --query 'properties.outputs.distributedImageResourceId.value' -o tsv)
+   echo RESOURCEID_IMAGE_JUMPBOX: $RESOURCEID_IMAGE_JUMPBOX
    ```
 
 1. Convert your jump box cloud-init (users) file to Base64.
