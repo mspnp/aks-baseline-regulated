@@ -55,6 +55,7 @@ param location string = 'eastus2'
 param geoRedundancyLocation string = 'centralus'
 
 @description('The Base64 encoded AKS ingress controller\'s public certificate (as .crt or .cer) to be stored in Azure Key Vault as secret and referenced by Azure Application Gateway as a trusted root certificate.')
+@minLength(35)
 param aksIngressControllerCertificate string
 
 /*** VARIABLES ***/
