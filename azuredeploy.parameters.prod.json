@@ -5,9 +5,6 @@
     "location": {
       "value": "eastus2"
     },
-    "geoRedundancyLocation": {
-      "value": "centralus"
-    },
     "targetVnetResourceId": {
       "value": "/subscriptions/[subscription id]/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-spoke-BU0001A0005-01 - RESOURCEID_VNET_CLUSTERSPOKE"
     },
@@ -19,9 +16,6 @@
     },
     "appGatewayListenerCertificate": {
       "value": "[base64 cert data - APP_GATEWAY_LISTENER_CERTIFICATE_BASE64]"
-    },
-    "aksIngressControllerCertificate": {
-      "value": "[base64 public cert data - INGRESS_CONTROLLER_CERTIFICATE_BASE64]"
     },
     "jumpBoxImageResourceId": {
       "value": "/subscriptions/[subscription id]/resourceGroups/rg-bu0001a0005/providers/Microsoft.Compute/images/img-aksopsjb-TIMESTAMP - RESOURCEID_IMAGE_JUMPBOX"

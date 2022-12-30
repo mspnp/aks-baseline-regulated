@@ -71,13 +71,13 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 
    ```output
    NAME                                  STATUS   ROLES   AGE   VERSION
-   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.23.12
-   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.23.12
-   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.23.12
-   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.23.12
-   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.23.12
-   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.23.12
-   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.23.12
+   aks-npinscope01-26621167-vmss000000   Ready    agent   20m   v1.23.x
+   aks-npinscope01-26621167-vmss000001   Ready    agent   20m   v1.23.x
+   aks-npooscope01-26621167-vmss000000   Ready    agent   20m   v1.23.x
+   aks-npooscope01-26621167-vmss000001   Ready    agent   20m   v1.23.x
+   aks-npsystem-26621167-vmss000000      Ready    agent   20m   v1.23.x
+   aks-npsystem-26621167-vmss000001      Ready    agent   20m   v1.23.x
+   aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.23.x
    ```
 
    > :watch: The access tokens obtained in the prior two steps are subject to a Microsoft Identity Platform TTL (e.g. six hours). If your `az` or `kubectl` commands start erroring out after hours of usage with a message related to permission/authorization, you'll need to re-execute the `az login` and `az aks get-credentials` (overwriting your context) to refresh those tokens.
@@ -140,7 +140,7 @@ The GitOps implementation in this reference architecture is _intentionally simpl
 * [Private GitHub repos](https://fluxcd.io/docs/components/source/gitrepositories/#ssh-authentication)
 * Kustomization [under/overlays](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#bases-and-overlays)
 
-Additional flux controllers like Helm. These are explicitly disabled to reduce surface area on the extension in the regulated cluster. Enable only those controllers you need from within the mcFlux_extension resource in your ARM template.
+* Additional flux controllers like Helm. These are explicitly disabled to reduce surface area on the extension in the regulated cluster. Enable only those controllers you need from within the mcFlux_extension resource in your ARM template.
 
 This reference implementation isn't going to dive into the nuances of git manifest organization. A lot of that depends on your namespacing, multi-tenant needs, multi-stage (dev, pre-prod, prod) deployment needs, multi-cluster needs, etc. **The key takeaway here is to ensure that you're managing your Kubernetes resources in a declarative manner with a reconcile loop, to achieve desired state configuration within your cluster.** Ensuring your cluster internally is managed by a single, appropriately-privileged, observable pipeline will aide in compliance. You'll have a git trail that aligns with a log trail from your GitOps toolkit.
 

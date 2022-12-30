@@ -86,7 +86,7 @@ var pdApprovedServicePortsOnly = tenantResourceId('Microsoft.Authorization/polic
 var pdMustUseSpecifiedLabels = tenantResourceId('Microsoft.Authorization/policyDefinitions', '46592696-4c7b-4bf3-9e45-6c2763bdc0a6')
 
 @description('Built-in \'Kubernetes clusters should disable automounting API credentials\' Azure Policy policy definition')
-var pdMustNotAutomountApiCreds = tenantResourceId('Microsoft.Authorization/policyDefinitions','423dd1ba-798e-40e4-9c4d-b6902674b423')
+var pdMustNotAutomountApiCreds = tenantResourceId('Microsoft.Authorization/policyDefinitions', '423dd1ba-798e-40e4-9c4d-b6902674b423')
 
 @description('Built-in \'Kubernetes cluster containers should run with a read only root file systemv\' Azure Policy for Kubernetes policy definition')
 var pdRoRootFilesystemId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'df49d893-a74c-421d-bc95-c663042e5b80')
@@ -105,13 +105,13 @@ var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDef
 @description('Spoke resource group')
 resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   scope: subscription()
-  name: '${split(targetVnetResourceId,'/')[4]}'
+  name: '${split(targetVnetResourceId, '/')[4]}'
 }
 
 @description('The Spoke virtual network')
 resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: spokeResourceGroup
-  name: '${last(split(targetVnetResourceId,'/'))}'
+  name: '${last(split(targetVnetResourceId, '/'))}'
 
   // Spoke virutual network's subnet for application gateway
   resource snetApplicationGateway 'subnets' existing = {
@@ -469,7 +469,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       {
         name: 'agw-${clusterName}-ssl-certificate'
         properties: {
-          keyVaultSecretId:  kvsGatewaySslCert.properties.secretUri
+          keyVaultSecretId: kvsGatewaySslCert.properties.secretUri
         }
       }
     ]
@@ -526,11 +526,11 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
           pickHostNameFromBackendAddress: false
           requestTimeout: 20
           probe: {
-            id: resourceId('Microsoft.Network/applicationGateways/probes', 'agw-${clusterName}','probe-bu0001a0005-00.aks-ingress.contoso.com')
+            id: resourceId('Microsoft.Network/applicationGateways/probes', 'agw-${clusterName}', 'probe-bu0001a0005-00.aks-ingress.contoso.com')
           }
           trustedRootCertificates: [
             {
-              id: resourceId('Microsoft.Network/applicationGateways/trustedRootCertificates', 'agw-${clusterName}','root-cert-wildcard-aks-ingress-contoso')
+              id: resourceId('Microsoft.Network/applicationGateways/trustedRootCertificates', 'agw-${clusterName}', 'root-cert-wildcard-aks-ingress-contoso')
             }
           ]
         }
@@ -541,14 +541,14 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
         name: 'listener-https'
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'agw-${clusterName}','agw-frontend-ip-configuration')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'agw-${clusterName}', 'agw-frontend-ip-configuration')
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'agw-${clusterName}','agw-frontend-ports')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'agw-${clusterName}', 'agw-frontend-ports')
           }
           protocol: 'Https'
           sslCertificate: {
-            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'agw-${clusterName}','agw-${clusterName}-ssl-certificate')
+            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'agw-${clusterName}', 'agw-${clusterName}-ssl-certificate')
           }
           hostName: 'bicycle.contoso.com'
           hostNames: []
@@ -563,13 +563,13 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
           priority: 1
           ruleType: 'Basic'
           httpListener: {
-            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'agw-${clusterName}','listener-https')
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'agw-${clusterName}', 'listener-https')
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'agw-${clusterName}','bu0001a0005-00.aks-ingress.contoso.com')
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'agw-${clusterName}', 'bu0001a0005-00.aks-ingress.contoso.com')
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'agw-${clusterName}','aks-ingress-contoso-backendpool-httpsettings')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'agw-${clusterName}', 'aks-ingress-contoso-backendpool-httpsettings')
           }
         }
       }
@@ -724,7 +724,6 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
   }
 }
 
-
 resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
   name: guid(psdAKSLinuxRestrictiveId, resourceGroup().name, clusterName)
   properties: {
@@ -789,11 +788,11 @@ resource paMustNotAutomountApiCreds 'Microsoft.Authorization/policyAssignments@2
         value: [
           'kube-system'
           'gatekeeper-system'
-          'flux-system'  // Required by Flux
-          'falco-system'  // Required by Falco
-          'osm-system'  // Required by OSM
-          'ingress-nginx'  // Required by NGINX
-          'cluster-baseline-settings'  // Required by Key Vault CSI & Kured
+          'flux-system' // Required by Flux
+          'falco-system' // Required by Falco
+          'osm-system' // Required by OSM
+          'ingress-nginx' // Required by NGINX
+          'cluster-baseline-settings' // Required by Key Vault CSI & Kured
         ]
       }
     }
@@ -834,7 +833,7 @@ resource paMustUseTheseExternalIps 'Microsoft.Authorization/policyAssignments@20
         ]
       }
       allowedExternalIPs: {
-        value: []  // No external IPs allowed (LoadBalancer Service types do not apply to this policy)
+        value: [] // No external IPs allowed (LoadBalancer Service types do not apply to this policy)
       }
     }
   }
@@ -860,10 +859,10 @@ resource paApprovedContainerPortsOnly 'Microsoft.Authorization/policyAssignments
       }
       allowedContainerPortsList: {
         value: [
-          '8080'   // ASP.net service listens on this
-          '15000'  // envoy proxy for service mesh
-          '15003'  // envoy proxy for service mesh
-          '15010'  // envoy proxy for service mesh
+          '8080' // ASP.net service listens on this
+          '15000' // envoy proxy for service mesh
+          '15003' // envoy proxy for service mesh
+          '15010' // envoy proxy for service mesh
         ]
       }
     }
@@ -888,9 +887,9 @@ resource paApprovedServicePortsOnly 'Microsoft.Authorization/policyAssignments@2
       }
       allowedServicePortsList: {
         value: [
-          '443'   // ingress-controller
-          '80'    // flux source-controller and microservice workload
-          '8080'  // web-frontend workload
+          '443' // ingress-controller
+          '80' // flux source-controller and microservice workload
+          '8080' // web-frontend workload
         ]
       }
     }
@@ -2019,7 +2018,6 @@ resource mc_fluxConfiguration 'Microsoft.KubernetesConfiguration/fluxConfigurati
     crMiKubeletContainerRegistryPullRole_roleAssignment
   ]
 }
-
 
 /*** OUTPUTS ***/
 
