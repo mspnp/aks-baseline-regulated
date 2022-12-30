@@ -353,7 +353,7 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   resource azureFirewallSubnet 'subnets' existing = {
     name: 'AzureFirewallSubnet'
   }
- 
+
   resource azureBastionSubnet 'subnets' existing = {
     name: 'AzureBastionSubnet'
   }
@@ -403,7 +403,7 @@ resource pipAzureBastion 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   zones: [
     '1'
     '2'
-    '3'    
+    '3'
   ]
   properties: {
     publicIPAllocationMethod: 'Static'
@@ -637,7 +637,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'azure-monitor-addon'
               description: 'All required for Azure Monitor for containers per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your cluster\'s log analytics instances.'
               sourceIpGroups: [
-                  aks_ipgroup.id
+                aks_ipgroup.id
               ]
               protocols: [
                 {
@@ -653,7 +653,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
             }
             {
               name: 'azure-policy-addon'
-#disable-next-line no-hardcoded-env-urls
+              #disable-next-line no-hardcoded-env-urls
               description: 'All required for Azure Policy per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com'
               sourceIpGroups: [
                 aks_ipgroup.id
@@ -665,10 +665,10 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
-#disable-next-line no-hardcoded-env-urls
-                  'data.policy.core.windows.net'
-#disable-next-line no-hardcoded-env-urls
-                  'store.policy.core.windows.net'
+                #disable-next-line no-hardcoded-env-urls
+                'data.policy.core.windows.net'
+                #disable-next-line no-hardcoded-env-urls
+                'store.policy.core.windows.net'
               ]
             }
           ]
@@ -678,27 +678,48 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
         name: 'Flux-Requirements'
         properties: {
           action: {
-              type: 'Allow'
+            type: 'Allow'
           }
           priority: 300
           rules: [
-              {
-                name: 'flux-to-github'
-                description: 'This address is required for Flux <-> Github repository with the desired cluster baseline configuration.'
-                sourceIpGroups: [
-                  aks_ipgroup.id
-                ]
-                protocols: [
-                  {
-                    protocolType: 'Https'
-                    port: 443
-                  }
-                ]
-                targetFqdns: [
-                  'github.com'
-                  'api.github.com'
-                ]
-              }
+            {
+              name: 'flux-to-github'
+              description: 'Supports pulling GitOps configuration from GitHub.'
+              sourceIpGroups: [
+                aks_ipgroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                'github.com'
+                'api.github.com'
+              ]
+            }
+            {
+              name: 'flux-extension-runtime-requirements'
+              description: 'Supports required communication for the Flux v2 extension operate and contains allowances for our applications deployed to the cluster.'
+              sourceIpGroups: [
+                aks_ipgroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                '${location}.dp.kubernetesconfiguration.azure.com'
+                'mcr.microsoft.com'
+                '${split(environment().resourceManager, '/')[2]}' // Prevent the linter from getting upset at management.azure.com - https://github.com/Azure/bicep/issues/3080
+                '${split(environment().authentication.loginEndpoint, '/')[2]}' // Prevent the linter from getting upset at login.microsoftonline.com
+                '*.blob.${environment().suffixes.storage}' // required for the extension installer to download the helm chart install flux. This storage account is not predictable, but does look like eusreplstore196 for example.
+                'azurearcfork8s.azurecr.io' // required for a few of the images installed by the extension.
+              ]
+            }
           ]
         }
       }
@@ -723,7 +744,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
-#disable-next-line no-hardcoded-env-urls
+                #disable-next-line no-hardcoded-env-urls
                 'management.azure.com'
               ]
             }
@@ -740,7 +761,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
-#disable-next-line no-hardcoded-env-urls
+                #disable-next-line no-hardcoded-env-urls
                 '*.blob.core.windows.net'
               ]
             }
@@ -768,44 +789,44 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               ]
             }
             {
-                name: 'install-azcli'
-                description: 'This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
-                sourceIpGroups: [
-                  imageBuilder_ipgroup.id
-                ]
-                protocols: [
-                  {
-                    protocolType: 'Https'
-                    port: 443
-                  }
-                ]
-                targetFqdns: [
-                  'aka.ms'
-#disable-next-line no-hardcoded-env-urls                  
-                  'azurecliextensionsync.blob.core.windows.net'
-#disable-next-line no-hardcoded-env-urls
-                  'azurecliprod.blob.core.windows.net'
-                ]
+              name: 'install-azcli'
+              description: 'This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
+              sourceIpGroups: [
+                imageBuilder_ipgroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                'aka.ms'
+                #disable-next-line no-hardcoded-env-urls
+                'azurecliextensionsync.blob.core.windows.net'
+                #disable-next-line no-hardcoded-env-urls
+                'azurecliprod.blob.core.windows.net'
+              ]
             }
             {
-                name: 'install-k8scli'
-                description: 'This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
-                sourceIpGroups: [
-                  imageBuilder_ipgroup.id
-                ]
-                protocols: [
-                  {
-                    protocolType: 'Https'
-                    port: 443
-                  }
-                ]
-                targetFqdns: [
-                  'objects.githubusercontent.com'
-                  'storage.googleapis.com'
-                  'api.github.com'
-                  'github-releases.githubusercontent.com'
-                  'github.com'
-                ]
+              name: 'install-k8scli'
+              description: 'This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
+              sourceIpGroups: [
+                imageBuilder_ipgroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                'objects.githubusercontent.com'
+                'storage.googleapis.com'
+                'api.github.com'
+                'github-releases.githubusercontent.com'
+                'github.com'
+              ]
             }
             {
               name: 'install-helm'
@@ -822,25 +843,6 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               targetFqdns: [
                 'raw.githubusercontent.com'
                 'get.helm.sh'
-                'github-releases.githubusercontent.com'
-              ]
-            }
-            {
-              name: 'install-flux'
-              description: 'This is required as the Packer VMs needs to install flux cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
-              sourceIpGroups: [
-                imageBuilder_ipgroup.id
-              ]
-              protocols: [
-                {
-                  protocolType: 'Https'
-                  port: 443
-                }
-              ]
-              targetFqdns: [
-                'raw.githubusercontent.com'
-                'api.github.com'
-                'fluxcd.io'
                 'github-releases.githubusercontent.com'
               ]
             }
@@ -901,7 +903,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
-#disable-next-line no-hardcoded-env-urls
+                #disable-next-line no-hardcoded-env-urls
                 'login.microsoftonline.com'
               ]
             }
@@ -918,7 +920,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 }
               ]
               targetFqdns: [
-#disable-next-line no-hardcoded-env-urls                
+                #disable-next-line no-hardcoded-env-urls
                 'management.azure.com'
               ]
             }
@@ -936,9 +938,9 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               ]
               targetFqdns: [
                 'aka.ms'
-#disable-next-line no-hardcoded-env-urls
+                #disable-next-line no-hardcoded-env-urls
                 'azurecliprod.blob.core.windows.net'
-#disable-next-line no-hardcoded-env-urls
+                #disable-next-line no-hardcoded-env-urls
                 'azcliextensionsync.blob.core.windows.net'
               ]
             }

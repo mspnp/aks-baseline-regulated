@@ -15,9 +15,6 @@ param k8sControlPlaneAuthorizationTenantId string
 @description('The certificate data for app gateway TLS termination. It is base64')
 param appGatewayListenerCertificate string
 
-@description('The base 64 encoded AKS Ingress Controller public certificate (as .crt or .cer) to be stored in Azure Key Vault as secret and referenced by Azure Application Gateway as a trusted root certificate.')
-param aksIngressControllerCertificate string
-
 @allowed([
   'australiaeast'
   'canadacentral'
@@ -39,33 +36,6 @@ param aksIngressControllerCertificate string
 @minLength(4)
 param location string = 'eastus2'
 
-@allowed([
-  'australiasoutheast'
-  'canadaeast'
-  'eastus2'
-  'westus'
-  'centralus'
-  'westcentralus'
-  'francesouth'
-  'germanynorth'
-  'westeurope'
-  'ukwest'
-  'northeurope'
-  'japanwest'
-  'southafricawest'
-  'northcentralus'
-  'eastasia'
-  'eastus'
-  'westus2'
-  'francecentral'
-  'uksouth'
-  'japaneast'
-  'southeastasia'
-])
-@description('For Azure resources that support native geo-redunancy, provide the location the redundant service will have its secondary. Should be different than the location parameter and ideally should be a paired region - https://learn.microsoft.com/azure/best-practices-availability-paired-regions. This region does not need to support availability zones.')
-@minLength(4)
-param geoRedundancyLocation string = 'centralus'
-
 @description('The Azure resource ID of a VM image that will be used for the jump box.')
 @minLength(70)
 param jumpBoxImageResourceId string
@@ -73,6 +43,14 @@ param jumpBoxImageResourceId string
 @description('A cloud init file (starting with #cloud-config) as a base 64 encoded string used to perform image customization on the jump box VMs. Used for user-management in this context.')
 @minLength(100)
 param jumpBoxCloudInitAsBase64 string
+
+@description('Your cluster will be bootstrapped from this git repo.')
+@minLength(9)
+param gitOpsBootstrappingRepoHttpsUrl string
+
+@description('Your cluster will be bootstrapped from this branch in the identified git repo.')
+@minLength(1)
+param gitOpsBootstrappingRepoBranch string = 'main'
 
 /*** VARIABLES ***/
 
@@ -82,6 +60,7 @@ var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resou
 var clusterName = 'aks-${subRgUniqueString}'
 var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
 var acrName = 'acraks${subRgUniqueString}'
+var kvName = 'kv-${clusterName}'
 
 /*** EXISTING TENANT RESOURCES ***/
 
@@ -107,7 +86,7 @@ var pdApprovedServicePortsOnly = tenantResourceId('Microsoft.Authorization/polic
 var pdMustUseSpecifiedLabels = tenantResourceId('Microsoft.Authorization/policyDefinitions', '46592696-4c7b-4bf3-9e45-6c2763bdc0a6')
 
 @description('Built-in \'Kubernetes clusters should disable automounting API credentials\' Azure Policy policy definition')
-var pdMustNotAutomountApiCreds = tenantResourceId('Microsoft.Authorization/policyDefinitions','423dd1ba-798e-40e4-9c4d-b6902674b423')
+var pdMustNotAutomountApiCreds = tenantResourceId('Microsoft.Authorization/policyDefinitions', '423dd1ba-798e-40e4-9c4d-b6902674b423')
 
 @description('Built-in \'Kubernetes cluster containers should run with a read only root file systemv\' Azure Policy for Kubernetes policy definition')
 var pdRoRootFilesystemId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'df49d893-a74c-421d-bc95-c663042e5b80')
@@ -126,13 +105,13 @@ var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDef
 @description('Spoke resource group')
 resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   scope: subscription()
-  name: '${split(targetVnetResourceId,'/')[4]}'
+  name: '${split(targetVnetResourceId, '/')[4]}'
 }
 
 @description('The Spoke virtual network')
 resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: spokeResourceGroup
-  name: '${last(split(targetVnetResourceId,'/'))}'
+  name: '${last(split(targetVnetResourceId, '/'))}'
 
   // Spoke virutual network's subnet for application gateway
   resource snetApplicationGateway 'subnets' existing = {
@@ -168,17 +147,6 @@ resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   resource snetClusterOutScopeNodePools 'subnets' existing = {
     name: 'snet-cluster-outofscopenodepools'
   }
-
-}
-
-resource pdzKv 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
-  scope: spokeResourceGroup
-  name: 'privatelink.vaultcore.azure.net'
-}
-
-resource pdzCr 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
-  scope: spokeResourceGroup
-  name: 'privatelink.azurecr.io'
 }
 
 resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
@@ -190,6 +158,33 @@ resource pdzMc 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
 resource pipPrimaryCluster 'Microsoft.Network/publicIPAddresses@2022-05-01' existing = {
   scope: spokeResourceGroup
   name: 'pip-BU0001A0005-00'
+}
+
+@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
+resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  scope: resourceGroup()
+  name: 'mi-${clusterName}-ingresscontroller'
+}
+
+@description('Azure Container Registry.')
+resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
+  scope: resourceGroup()
+  name: 'acraks${subRgUniqueString}'
+}
+
+@description('The secret storage management resource for the AKS regulated cluster.')
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  scope: resourceGroup()
+  name: kvName
+  resource kvsAppGwIngressInternalAksIngressTls 'secrets' existing = {
+    name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
+  }
+}
+
+@description('Log Analytics Workspace.')
+resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
+  scope: resourceGroup()
+  name: 'la-${clusterName}'
 }
 
 /*** EXISTING SUBSCRIPTION RESOURCES ***/
@@ -232,24 +227,6 @@ resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities
   location: location
 }
 
-@description('The in-cluster ingress controller identity used by the pod identity agent to acquire access tokens to read SSL certs from Azure Key Vault.')
-resource miIngressController 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'mi-${clusterName}-ingresscontroller'
-  location: location
-
-  // Workload identity service account federation
-  resource federatedCreds 'federatedIdentityCredentials@2022-01-31-preview' = {
-    name: 'ingress-controller'
-    properties: {
-      audiences: [
-        'api://AzureADTokenExchange'
-      ]
-      issuer: mc.properties.oidcIssuerProfile.issuerURL
-      subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
-    }
-  }
-}
-
 @description('The regional load balancer identity used by your Application Gateway instance to acquire access tokens to read certs and secrets from Azure Key Vault.')
 resource miAppGateway 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-appgateway'
@@ -267,51 +244,15 @@ resource icMiClusterControlPlaneManagedIdentityOperatorRole_roleAssignment 'Micr
   }
 }
 
-@description('The secret storage management resource for the AKS regulated cluster.')
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
-  name: 'kv-${clusterName}'
-  location: location
+resource kvsGatewaySslCert 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+  parent: kv
+  name: 'sslcert'
   properties: {
-    accessPolicies: [] // Azure RBAC is used instead
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
-    tenantId: subscription().tenantId
-    networkAcls: {
-      bypass: 'AzureServices' // Required for AppGW communication
-      defaultAction: 'Deny'
-      ipRules: []
-      virtualNetworkRules: []
-    }
-    enableRbacAuthorization: true
-    enabledForDeployment: false
-    enabledForDiskEncryption: false
-    enabledForTemplateDeployment: false
-    enableSoftDelete: true
-    softDeleteRetentionInDays: 7
-    createMode: 'default'
+    value: appGatewayListenerCertificate
   }
   dependsOn: [
     miAppGateway
-    miIngressController
   ]
-
-  // The internet facing TLS certificate to establish HTTPS connections between your clients and your regional load balancer
-  resource kvsGatewaySslCert 'secrets' = {
-    name: 'sslcert'
-    properties: {
-      value: appGatewayListenerCertificate
-    }
-  }
-
-  // The in-cluster TLS certificate to establish HTTPS connections between your regional load balancer and your ingress controller, enabling end-to-end TLS connections.
-  resource kvsAppGwIngressInternalAksIngressTls 'secrets' = {
-    name: 'agw-ingress-internal-aks-ingress-contoso-com-tls'
-    properties: {
-      value: aksIngressControllerCertificate
-    }
-  }
 }
 
 @description('Grant the Azure Application Gateway managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
@@ -333,42 +274,6 @@ resource kvMiAppGatewayKeyVaultReader_roleAssignment 'Microsoft.Authorization/ro
     roleDefinitionId: keyVaultReaderRole.id
     principalId: miAppGateway.properties.principalId
     principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grant the Ingress Controller managed identity with Key Vault secrets user role permissions; this allows pulling secrets from Key Vault.')
-resource kvMiIngressControllerSecretsUserRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: kv
-  name: guid(resourceGroup().id, miIngressController.name, keyVaultSecretsUserRole.id)
-  properties: {
-    roleDefinitionId: keyVaultSecretsUserRole.id
-    principalId: miIngressController.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grant the Ingress Controller managed identity with Key Vault reader role permissions; this allows pulling frontend and backend certificates.')
-resource kvMiIngressControllerKeyVaultReader_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: kv
-  name: guid(resourceGroup().id, miIngressController.name, keyVaultReaderRole.id)
-  properties: {
-    roleDefinitionId: keyVaultReaderRole.id
-    principalId: miIngressController.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('The AKS cluster and related resources log analytics workspace.')
-resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
-  name: 'la-${clusterName}'
-  location: location
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-    retentionInDays: 90
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
   }
 }
 
@@ -484,62 +389,6 @@ resource omsKeyVaultAnalytics 'Microsoft.OperationsManagement/solutions@2015-11-
   }
 }
 
-resource kv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: kv
-  name: 'default'
-  properties: {
-    workspaceId: la.id
-    logs: [
-      {
-        category: 'AuditEvent'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
-
-@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Key Vault.')
-resource peKv 'Microsoft.Network/privateEndpoints@2022-01-01' = {
-  name: 'pe-${kv.name}'
-  location: location
-  properties: {
-    subnet: {
-      id: vnetSpoke::snetPrivatelinkendpoints.id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'to-${vnetSpoke.name}'
-        properties: {
-          privateLinkServiceId: kv.id
-          groupIds: [
-            'vault'
-          ]
-        }
-      }
-    ]
-  }
-
-  resource pdzg 'privateDnsZoneGroups' = {
-    name: 'for-${kv.name}'
-    properties: {
-      privateDnsZoneConfigs: [
-        {
-          name: 'privatelink-akv-net'
-          properties: {
-            privateDnsZoneId: pdzKv.id
-          }
-        }
-      ]
-    }
-  }
-}
-
 @description('The regional load balancer resource that ingests all the client requests and forward them back to the aks regulated cluster after passing the configured WAF rules.')
 resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
   name: 'agw-${clusterName}'
@@ -620,7 +469,7 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
       {
         name: 'agw-${clusterName}-ssl-certificate'
         properties: {
-          keyVaultSecretId:  kv::kvsGatewaySslCert.properties.secretUri
+          keyVaultSecretId: kvsGatewaySslCert.properties.secretUri
         }
       }
     ]
@@ -677,11 +526,11 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
           pickHostNameFromBackendAddress: false
           requestTimeout: 20
           probe: {
-            id: resourceId('Microsoft.Network/applicationGateways/probes', 'agw-${clusterName}','probe-bu0001a0005-00.aks-ingress.contoso.com')
+            id: resourceId('Microsoft.Network/applicationGateways/probes', 'agw-${clusterName}', 'probe-bu0001a0005-00.aks-ingress.contoso.com')
           }
           trustedRootCertificates: [
             {
-              id: resourceId('Microsoft.Network/applicationGateways/trustedRootCertificates', 'agw-${clusterName}','root-cert-wildcard-aks-ingress-contoso')
+              id: resourceId('Microsoft.Network/applicationGateways/trustedRootCertificates', 'agw-${clusterName}', 'root-cert-wildcard-aks-ingress-contoso')
             }
           ]
         }
@@ -692,14 +541,14 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
         name: 'listener-https'
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'agw-${clusterName}','agw-frontend-ip-configuration')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'agw-${clusterName}', 'agw-frontend-ip-configuration')
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'agw-${clusterName}','agw-frontend-ports')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'agw-${clusterName}', 'agw-frontend-ports')
           }
           protocol: 'Https'
           sslCertificate: {
-            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'agw-${clusterName}','agw-${clusterName}-ssl-certificate')
+            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'agw-${clusterName}', 'agw-${clusterName}-ssl-certificate')
           }
           hostName: 'bicycle.contoso.com'
           hostNames: []
@@ -714,20 +563,19 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
           priority: 1
           ruleType: 'Basic'
           httpListener: {
-            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'agw-${clusterName}','listener-https')
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'agw-${clusterName}', 'listener-https')
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'agw-${clusterName}','bu0001a0005-00.aks-ingress.contoso.com')
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'agw-${clusterName}', 'bu0001a0005-00.aks-ingress.contoso.com')
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'agw-${clusterName}','aks-ingress-contoso-backendpool-httpsettings')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'agw-${clusterName}', 'aks-ingress-contoso-backendpool-httpsettings')
           }
         }
       }
     ]
   }
   dependsOn: [
-    peKv
     kvMiAppGatewayKeyVaultReader_roleAssignment
     kvMiAppGatewaySecretsUserRole_roleAssignment
   ]
@@ -876,163 +724,6 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
   }
 }
 
-@description('The private container registry for the aks regulated cluster.')
-resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
-  name: acrName
-  location: location
-  sku: {
-    name: 'Premium'
-  }
-  properties: {
-    adminUserEnabled: false
-    networkRuleSet: {
-      defaultAction: 'Deny'
-      virtualNetworkRules: []
-      ipRules: []
-    }
-    policies: {
-      quarantinePolicy: {
-        status: 'disabled'
-      }
-      trustPolicy: {
-        type: 'Notary'
-        status: 'enabled'
-      }
-      retentionPolicy: {
-        days: 15
-        status: 'enabled'
-      }
-    }
-    publicNetworkAccess: 'Disabled'
-    encryption: {
-      status: 'disabled'
-    }
-    dataEndpointEnabled: true
-    networkRuleBypassOptions: 'AzureServices'
-    zoneRedundancy: 'Enabled'
-  }
-
-  resource grl 'replications' = {
-    name: geoRedundancyLocation
-    location: geoRedundancyLocation
-  }
-
-  resource ap 'agentPools@2019-06-01-preview' = {
-    name: 'acragent'
-    location: location
-    properties: {
-      count: 1
-      os: 'Linux'
-      tier: 'S1'
-      virtualNetworkSubnetResourceId: vnetSpoke::snetManagmentCrAgents.id
-    }
-  }
-}
-
-resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: acr
-  name: 'default'
-  properties: {
-    workspaceId: la.id
-    metrics: [
-      {
-        timeGrain: 'PT1M'
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-    logs: [
-      {
-        category: 'ContainerRegistryRepositoryEvents'
-        enabled: true
-      }
-      {
-        category: 'ContainerRegistryLoginEvents'
-        enabled: true
-      }
-    ]
-  }
-}
-
-@description('The network interface in the spoke vnet that enables privately connecting the AKS cluster with Container Registry.')
-resource peCr 'Microsoft.Network/privateEndpoints@2022-05-01' = {
-  name: 'pe-${acr.name}'
-  location: location
-  properties: {
-    subnet: {
-      id: vnetSpoke::snetPrivatelinkendpoints.id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'to-${vnetSpoke.name}'
-        properties: {
-          privateLinkServiceId: acr.id
-          groupIds: [
-            'registry'
-          ]
-        }
-      }
-    ]
-  }
-  dependsOn: [
-    acr::grl
-  ]
-
-  resource pdzg 'privateDnsZoneGroups' = {
-    name: 'for-${acr.name}'
-    properties: {
-      privateDnsZoneConfigs: [
-        {
-          name: 'privatelink-azurecr-io'
-          properties: {
-            privateDnsZoneId: pdzCr.id
-          }
-        }
-      ]
-    }
-  }
-}
-
-@description('The scheduled query that returns images being imported from repositories different than quarantine/')
-resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRules@2022-06-15' = {
-  name: 'Image Imported into ACR from ${acr.name} source other than approved Quarantine'
-  location: location
-  properties: {
-    description: 'The only images we want in live/ are those that came from this ACR instance, but from the quarantine/ repository.'
-    actions: {
-      actionGroups: []
-    }
-    criteria: {
-      allOf: [
-        {
-          operator: 'GreaterThan'
-          query: 'ContainerRegistryRepositoryEvents\r\n| where OperationName == "importImage" and Repository startswith "live/" and MediaType !startswith strcat(_ResourceId, "/quarantine")'
-          threshold: 0
-          timeAggregation: 'Count'
-          dimensions: []
-          failingPeriods: {
-            minFailingPeriodsToAlert: 1
-            numberOfEvaluationPeriods: 1
-          }
-          resourceIdColumn: ''
-        }
-      ]
-    }
-    enabled: true
-    evaluationFrequency: 'PT10M'
-    scopes: [
-      acr.id
-    ]
-    severity: 3
-    windowSize: 'PT10M'
-    muteActionsDuration: null
-    overrideQueryTimeRange: null
-  }
-  dependsOn: [
-    cr_diagnosticSettings
-  ]
-}
-
 resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
   name: guid(psdAKSLinuxRestrictiveId, resourceGroup().name, clusterName)
   properties: {
@@ -1097,11 +788,11 @@ resource paMustNotAutomountApiCreds 'Microsoft.Authorization/policyAssignments@2
         value: [
           'kube-system'
           'gatekeeper-system'
-          'flux-system'  // Required by Flux
-          'falco-system'  // Required by Falco
-          'osm-system'  // Required by OSM
-          'ingress-nginx'  // Required by NGINX
-          'cluster-baseline-settings'  // Required by Key Vault CSI & Kured
+          'flux-system' // Required by Flux
+          'falco-system' // Required by Falco
+          'osm-system' // Required by OSM
+          'ingress-nginx' // Required by NGINX
+          'cluster-baseline-settings' // Required by Key Vault CSI & Kured
         ]
       }
     }
@@ -1142,7 +833,7 @@ resource paMustUseTheseExternalIps 'Microsoft.Authorization/policyAssignments@20
         ]
       }
       allowedExternalIPs: {
-        value: []  // No external IPs allowed (LoadBalancer Service types do not apply to this policy)
+        value: [] // No external IPs allowed (LoadBalancer Service types do not apply to this policy)
       }
     }
   }
@@ -1168,10 +859,10 @@ resource paApprovedContainerPortsOnly 'Microsoft.Authorization/policyAssignments
       }
       allowedContainerPortsList: {
         value: [
-          '8080'   // ASP.net service listens on this
-          '15000'  // envoy proxy for service mesh
-          '15003'  // envoy proxy for service mesh
-          '15010'  // envoy proxy for service mesh
+          '8080' // ASP.net service listens on this
+          '15000' // envoy proxy for service mesh
+          '15003' // envoy proxy for service mesh
+          '15010' // envoy proxy for service mesh
         ]
       }
     }
@@ -1196,9 +887,9 @@ resource paApprovedServicePortsOnly 'Microsoft.Authorization/policyAssignments@2
       }
       allowedServicePortsList: {
         value: [
-          '443'   // ingress-controller
-          '80'    // flux source-controller and microservice workload
-          '8080'  // web-frontend workload
+          '443' // ingress-controller
+          '80' // flux source-controller and microservice workload
+          '8080' // web-frontend workload
         ]
       }
     }
@@ -1261,6 +952,7 @@ resource paEnforceResourceLimits 'Microsoft.Authorization/policyAssignments@2020
         value: [
           'kube-system'
           'gatekeeper-system'
+          'flux-system' /* Flux extension, not all containers have limits defined by Microsoft */
         ]
       }
     }
@@ -1283,6 +975,7 @@ resource paEnforceImageSource 'Microsoft.Authorization/policyAssignments@2020-03
         value: [
           'kube-system'
           'gatekeeper-system'
+          'flux-system'
         ]
       }
     }
@@ -1512,9 +1205,6 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
       'skip-nodes-with-local-storage': 'true'
       'skip-nodes-with-system-pods': 'true'
     }
-    // autoUpgradeProfile: {
-    //   upgradeChannel: 'none'
-    // }
     apiServerAccessProfile: {
       enablePrivateCluster: true
       privateDNSZone: pdzMc.id
@@ -1571,9 +1261,6 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
     paEnforceImageSource
 
     vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
-
-    kvMiIngressControllerSecretsUserRole_roleAssignment
-    kvMiIngressControllerKeyVaultReader_roleAssignment
   ]
 }
 
@@ -1603,11 +1290,25 @@ resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   }
 }
 
+@description('Workload identity service account federation for the ingress controller\'s identity which is used to acquire access tokens to read TLS certs from Azure Key Vault.')
+resource fic 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
+  name: 'ingress-controller'
+  parent: miIngressController
+  properties: {
+    audiences: [
+      'api://AzureADTokenExchange'
+    ]
+    issuer: mc.properties.oidcIssuerProfile.issuerURL
+    subject: 'system:serviceaccount:ingress-nginx:ingress-nginx'
+  }
+}
+
 @description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
 resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: acr
   name: guid(resourceGroup().id, mc.id, containerRegistryPullRole.id)
   properties: {
+    description: 'Allows AKS to pull container images from this ACR instance.'
     roleDefinitionId: containerRegistryPullRole.id
     principalId: mc.properties.identityProfile.kubeletidentity.objectId
     principalType: 'ServicePrincipal'
@@ -2248,11 +1949,77 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
   ]
 }
 
+// Ensures that flux extension is installed.
+resource mcFlux_extension 'Microsoft.KubernetesConfiguration/extensions@2021-09-01' = {
+  scope: mc
+  name: 'flux'
+  properties: {
+    extensionType: 'microsoft.flux'
+    autoUpgradeMinorVersion: true
+    releaseTrain: 'Stable'
+    scope: {
+      cluster: {
+        releaseNamespace: 'flux-system'
+      }
+    }
+    configurationSettings: {
+      'helm-controller.enabled': 'false'
+      'source-controller.enabled': 'true'
+      'kustomize-controller.enabled': 'true'
+      'notification-controller.enabled': 'false'
+      'image-automation-controller.enabled': 'false'
+      'image-reflector-controller.enabled': 'false'
+    }
+    configurationProtectedSettings: {}
+  }
+  dependsOn: [
+    crMiKubeletContainerRegistryPullRole_roleAssignment
+    fic
+  ]
+}
+
+// Bootstraps your cluster using content from your repo.
+resource mc_fluxConfiguration 'Microsoft.KubernetesConfiguration/fluxConfigurations@2022-03-01' = {
+  scope: mc
+  name: 'bootstrap'
+  properties: {
+    scope: 'cluster'
+    namespace: 'flux-system'
+    sourceKind: 'GitRepository'
+    gitRepository: {
+      url: gitOpsBootstrappingRepoHttpsUrl
+      timeoutInSeconds: 180
+      syncIntervalInSeconds: 300
+      repositoryRef: {
+        branch: gitOpsBootstrappingRepoBranch
+        tag: null
+        semver: null
+        commit: null
+      }
+      sshKnownHosts: ''
+      httpsUser: null
+      httpsCACert: null
+      localAuthRef: null
+    }
+    kustomizations: {
+      unified: {
+        path: './cluster-manifests'
+        dependsOn: []
+        timeoutInSeconds: 300
+        syncIntervalInSeconds: 300
+        retryIntervalInSeconds: 300
+        prune: true
+        force: false
+      }
+    }
+  }
+  dependsOn: [
+    mcFlux_extension
+    crMiKubeletContainerRegistryPullRole_roleAssignment
+  ]
+}
+
 /*** OUTPUTS ***/
 
 output agwName string = agw.name
-output keyVaultName string = kv.name
-output quarantineContainerRegistryName string = acr.name
-output containerRegistryName string = acr.name
 output aksClusterName string = clusterName
-output miIngressControllerClientId string = miIngressController.properties.clientId

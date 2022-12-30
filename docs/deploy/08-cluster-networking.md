@@ -43,4 +43,4 @@ Your `rg-enterprise-networking-spokes` will be populated with the dedicated regi
 
 ### Next step
 
-:arrow_forward: [Deploy the AKS cluster](./09-aks-cluster.md)
+:arrow_forward: [Prep for cluster bootstrapping](./09-pre-cluster-stamp.md)

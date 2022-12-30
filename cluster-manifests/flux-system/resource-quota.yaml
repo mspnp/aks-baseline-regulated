@@ -4,15 +4,15 @@ metadata:
   name: default
 spec:
   hard:
-    requests.cpu: "1"
-    requests.memory: 1Gi
-    requests.storage: "0"
-    limits.cpu: "4"
-    limits.memory: 4Gi
+    # requests.cpu: "1"
+    # requests.memory: 1Gi
+    # requests.storage: "0"
+    # limits.cpu: "4"
+    # limits.memory: 4Gi
     count/persistentvolumeclaims: "0"
     count/services.loadbalancers: "0"
     count/services.nodeports: "0"
-    count/deployments.apps: "2"
-    count/daemonset.apps: "0"
-    count/services: "2"
-    count/pods: "4"
+    # count/deployments.apps: "4"
+    # count/daemonset.apps: "0"
+    # count/services: "1"
+    # count/pods: "4"

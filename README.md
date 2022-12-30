@@ -53,12 +53,13 @@ Finally, this implementation uses a small, custom application as an example work
 
 #### In-cluster Open-Source Software components
 
-* [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver)
-* [Falco](https://falco.org)
-* [Flux 2 GitOps Operator](https://fluxcd.io)
-* [Kured](https://learn.microsoft.com/azure/aks/node-updates-kured)
-* [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
-* [Open Service Mesh](https://openservicemesh.io/)
+- [Azure Workload Identity](https://learn.microsoft.com/azure/aks/workload-identity-overview) _[AKS-managed add-on]_
+- [Flux GitOps Operator](https://fluxcd.io) _[AKS-managed extension]_
+- [Falco](https://falco.org)
+- [Kubernetes Reboot Daemon](https://learn.microsoft.com/azure/aks/node-updates-kured)
+- [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) _[AKS-managed add-on]_
+- [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
+- [Open Service Mesh](https://openservicemesh.io/)
 
 #### Network topology
 
@@ -102,17 +103,12 @@ Because the AKS server is a "private cluster" the control plane is not exposed t
 
 ### 4. Deploy the cluster
 
-Deploy the Azure resources that make up the primary runtime components of this architecture; the AKS cluster itself, jump box, Azure Container Registry, Azure Application Gateway, and Azure Key Vault.
+This is the heart of the guidance in this reference implementation; paired with prior network topology guidance. Here you will deploy the Azure resources for your cluster and the adjacent services such as Azure Application Gateway WAF, Azure Monitor, Azure Container Registry, and Azure Key Vault. This is also where you will validate the cluster is bootstrapped.
 
 * [ ] [Deploy the target network spoke](./docs/deploy/08-cluster-networking.md) that the cluster will be homed to.
-* [ ] [Deploy the AKS cluster](./docs/deploy/09-aks-cluster.md) and supporting services.
-
-#### and then bootstrap it
-
-Bootstrapping your cluster should be seen as a direct _immediate follow_ of deploying any cluster. This takes the raw AKS cluster and enrolls it in GitOps which will adds workload-agnostic baseline functionality (such as security agents).
-
-* [ ] [Quarantine & import all bootstrap images](./docs/deploy/10-pre-bootstrap.md) to Azure Container Registry.
-* [ ] [Place the cluster under GitOps management](./docs/deploy/11-gitops.md).
+* [ ] [Prep for cluster bootstrapping](./docs/deploy/09-pre-cluster-stamp.md) by deploy and populating Azure Container Registry and Azure Key Vault. This includes passing cluster images through quarantine.
+* [ ] [Deploy the AKS cluster](./docs/deploy/10-aks-cluster.md) and supporting services.
+* [ ] [Validate cluster access and bootstrapping](./docs/deploy/11-validate-cluster-access-and-bootstrapping.md).
 
 ### 5. Deploy your workload
 
@@ -125,13 +121,13 @@ A simple workload made up of four interconnected services is manually deployed a
 Now that the cluster and the sample workload is deployed; now it's time to look at how the cluster is functioning.
 
 * [ ] [Perform end-to-end deployment validation](./docs/deploy/13-validation.md).
-* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/13-validation-logs.md)
+* [ ] [Review resource logs & Microsoft Defender for Cloud data](./docs/deploy/14-validation-logs.md)
 
 ### 7. :broom: Clean up resources
 
 Most of the Azure resources deployed in the prior steps will have ongoing billing impact unless removed.
 
-* [ ] [Cleanup all resources](./docs/deploy/14-cleanup.md)
+* [ ] [Cleanup all resources](./docs/deploy/15-cleanup.md)
 
 ## Separation of duties
 

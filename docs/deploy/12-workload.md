@@ -1,6 +1,6 @@
 # Deploy the Workload
 
-This point in the steps marks a significant transition in roles and purpose. At this point, you have a [AKS cluster that is deployed in an architecture that will help your compliance needs](./09-aks-cluster.md) and is [bootstrapped with core tooling](./11-gitops.md) you feel are requirements for your solution, all managed via Flux. You've got a cluster without any business workloads.
+This point in the steps marks a significant transition in roles and purpose. At this point, you have a [AKS cluster that is deployed in an architecture that will help your compliance needs](./10-aks-cluster.md) and is bootstrapped with core tooling you feel are requirements for your solution, all managed via the Flux extension. You've got a cluster without any business workloads.
 
 The next few steps will walk through considerations that are specific to the first workload in the cluster. Workloads are a mix of potential infrastructure changes (e.g. Azure Application Gateway routes, Azure resources for the workload itself -- such as CosmosDB for state storage and Azure Cache for Redis for cache.), privileged cluster changes (i.e. creating target namespace, creating and assigning any specific cluster or namespace roles, etc.), deciding on how that "last mile" deployment of these workloads will be handled (e.g. using the `snet-management-agents` subnet adjacent to this cluster), and workload teams which are responsible for creating the container image(s), building deployment manifests, etc. Many regulations have a clear separation of duties requirements, be sure in your case you have documented and understood change management process. How you partition this work will not be described here because there isn't a one-size-fits-most solution. Allocate time to plan, document, and educate on these concerns.
 
@@ -49,7 +49,7 @@ While typically workload deployment happens via deployment pipelines, to keep th
    git push
    ```
 
-1. _From your Azure Bastion connection_, deploy the sample workloads to cluster.
+1.  _From your Azure Bastion connection_, deploy the sample workloads to cluster. 🛑
 
    The sample workload will be deployed across two namespaces. An "in-scope" namespace (`a0005-i`) and an "out-of-scope" (`a0005-o`) namespace to represent a logical separation of components in this solution. The workloads that are in `a0005-i` are assumed to be directly or indirectly handling data that is in regulatory scope. The workloads that are in `a0005-o` are supporting workloads, but they themselves do not handle in-scope regulatory data. While this entire cluster is subject to being in regulatory scope, consider making it clear in your namespacing, labeling, etc. what services actively engage in the handling of critical data, vs those that are in a supportive role and should never handle or be able to handle that data. Ideally you'll want to minimize the workload in your in-scope clusters to just those workloads dealing with the data under regulatory compliance; _running non-scoped workloads in an alternate cluster_. Sometimes that isn't practical, therefor when you co-mingle the workloads, you need to treat almost everything as in scope, but that doesn't mean you can't treat the truly in-scope components with added segregation and care.
 
@@ -58,10 +58,10 @@ While typically workload deployment happens via deployment pipelines, to keep th
    > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 2.2.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-network#requirement-221).
 
    ```bash
-   cd ../workload
+   GITHUB_ACCOUNT_NAME=YOUR-GITHUB-ACCOUNT-NAME-GOES-HERE
 
-   # Get the workload ACR endpoint changes you committed above.
-   git pull
+   git clone https://github.com/$GITHUB_ACCOUNT_NAME/aks-baseline-regulated.git
+   cd aks-baseline-regulated/workload
 
    # Deploy "in-scope" components.  These will live in the a0005-i namespace and will be
    # scheduled on the aks-npinscope01 node pool - dedicated to just those workloads.
