@@ -1039,6 +1039,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         osDiskSizeGB: 80
         osDiskType: 'Ephemeral'
         osType: 'Linux'
+        osSKU: 'Ubuntu'
         minCount: 3
         maxCount: 4
         vnetSubnetID: vnetSpoke::snetClusterSystemNodePools.id
@@ -1072,6 +1073,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         osDiskSizeGB: 120
         osDiskType: 'Ephemeral'
         osType: 'Linux'
+        osSKU: 'Ubuntu'
         minCount: 2
         maxCount: 5
         vnetSubnetID: vnetSpoke::snetClusterInScopeNodePools.id
