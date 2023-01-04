@@ -1320,9 +1320,9 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
   }
 }
 
-@description('Grant OMS agent managed identity with publisher metrics role permissions; this allows the OMS agent\'s identity to publish metrics in Container Insights.')
-resource sMiOmsMonitoringMetricPublisherRoleRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(mc.id, monitoringMetricsPublisherRole.id)
+@description('Grant Azure Monitor (fka as OMS) Agent\'s managed identity with publisher metrics role permissions; this allows the AMA\'s identity to publish metrics in Container Insights.')
+resource mcAmaAgentMonitoringMetricsPublisherRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(mc.id, 'amagent', monitoringMetricsPublisherRole.id)
   properties: {
     roleDefinitionId: monitoringMetricsPublisherRole.id
     principalId: mc.properties.addonProfiles.omsagent.identity.objectId
