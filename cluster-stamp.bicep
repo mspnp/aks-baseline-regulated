@@ -1218,6 +1218,9 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     podIdentityProfile: {
       enabled: false
     }
+    autoUpgradeProfile: {
+      upgradeChannel: 'stable'
+    }
     disableLocalAccounts: true
     securityProfile: {
       workloadIdentity: {
