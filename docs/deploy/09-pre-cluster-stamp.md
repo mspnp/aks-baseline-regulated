@@ -74,7 +74,7 @@ Using a security agent that is container-aware and can operate from within the c
    # Get your quarantine Azure Container Registry service name
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
-   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
+   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
    az acr import --source docker.io/falcosecurity/falco:0.29.1 -t quarantine/falcosecurity/falco:0.29.1 -n $ACR_NAME_QUARANTINE               && \
@@ -108,7 +108,7 @@ Using a security agent that is container-aware and can operate from within the c
 
    ```bash
    # Get your live Azure Container Registry service name
-   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/falcosecurity/falco:0.29.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco:0.29.1 -n $ACR_NAME                 && \

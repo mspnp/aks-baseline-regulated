@@ -54,7 +54,7 @@ param gitOpsBootstrappingRepoBranch string = 'main'
 
 /*** VARIABLES ***/
 
-var kubernetesVersion = '1.23.12'
+var kubernetesVersion = '1.25.2'
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
@@ -1020,7 +1020,7 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
   }
 }
 
-resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
+resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
   name: clusterName
   location: location
   tags: {
@@ -1039,6 +1039,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
         osDiskSizeGB: 80
         osDiskType: 'Ephemeral'
         osType: 'Linux'
+        osSKU: 'Ubuntu'
         minCount: 3
         maxCount: 4
         vnetSubnetID: vnetSpoke::snetClusterSystemNodePools.id
@@ -1072,6 +1073,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
         osDiskSizeGB: 120
         osDiskType: 'Ephemeral'
         osType: 'Linux'
+        osSKU: 'Ubuntu'
         minCount: 2
         maxCount: 5
         vnetSubnetID: vnetSpoke::snetClusterInScopeNodePools.id
@@ -1216,6 +1218,9 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-08-03-preview' = {
     podIdentityProfile: {
       enabled: false
     }
+    autoUpgradeProfile: {
+      upgradeChannel: 'stable'
+    }
     disableLocalAccounts: true
     securityProfile: {
       workloadIdentity: {
@@ -1315,9 +1320,9 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
   }
 }
 
-@description('Grant OMS agent managed identity with publisher metrics role permissions; this allows the OMS agent\'s identity to publish metrics in Container Insights.')
-resource sMiOmsMonitoringMetricPublisherRoleRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(mc.id, monitoringMetricsPublisherRole.id)
+@description('Grant Azure Monitor (fka as OMS) Agent\'s managed identity with publisher metrics role permissions; this allows the AMA\'s identity to publish metrics in Container Insights.')
+resource mcAmaAgentMonitoringMetricsPublisherRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(mc.id, 'amagent', monitoringMetricsPublisherRole.id)
   properties: {
     roleDefinitionId: monitoringMetricsPublisherRole.id
     principalId: mc.properties.addonProfiles.omsagent.identity.objectId
