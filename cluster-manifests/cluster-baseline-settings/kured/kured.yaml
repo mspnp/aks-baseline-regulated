@@ -15,7 +15,10 @@ rules:
   verbs:     ["get", "patch"]
 - apiGroups: [""]
   resources: ["pods"]
-  verbs:     ["list", "delete", "get"]
+  verbs:     ["list","delete","get"]
+- apiGroups: ["extensions"]
+  resources: ["daemonsets"]
+  verbs:     ["get"]
 - apiGroups: ["apps"]
   resources: ["daemonsets"]
   verbs:     ["get"]
@@ -42,11 +45,15 @@ metadata:
   namespace: cluster-baseline-settings
   name: kured
 rules:
-# Allow kured to lock/unlock itself
-- apiGroups:     ["apps"]
-  resources:     ["daemonsets"]
-  resourceNames: ["kured"]
-  verbs:         ["update"]
+  # Allow kured to lock/unlock itself
+  - apiGroups:     ["extensions"]
+    resources:     ["daemonsets"]
+    resourceNames: ["kured"]
+    verbs:         ["update", "patch"]
+  - apiGroups:     ["apps"]
+    resources:     ["daemonsets"]
+    resourceNames: ["kured"]
+    verbs:         ["update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -76,14 +83,16 @@ metadata:
 spec:
   selector:
     matchLabels:
-      name: kured
+      app.kubernetes.io/name: kured
       pci-scope: out-of-scope
   updateStrategy:
     type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       labels:
-        name: kured
+        app.kubernetes.io/name: kured
         pci-scope: out-of-scope
       annotations:
         prometheus.io/scrape: "true"
@@ -92,12 +101,15 @@ spec:
     spec:
       serviceAccountName: kured
       tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
         - key: CriticalAddonsOnly
           effect: NoSchedule
           operator: Equal
           value: "true"
+      hostNetwork: true
       hostPID: true # Facilitate entering the host mount namespace via init
       restartPolicy: Always
       nodeSelector:
@@ -113,6 +125,8 @@ spec:
           # image: <your-acr-instance-name>.azurecr.io/weaveworks/kured:1.12.0
           image: docker.io/weaveworks/kured:1.12.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true # Give permission to nsenter /proc/1/ns/mnt
           resources:
             limits:
               cpu: 500m
@@ -120,8 +134,9 @@ spec:
             requests:
               cpu: 200m
               memory: 16Mi
-          securityContext:
-            privileged: true # Give permission to nsenter /proc/1/ns/mnt
+          ports:
+            - containerPort: 8080
+              name: metrics
           env:
             - name: KURED_NODE_ID
               valueFrom:
@@ -129,6 +144,7 @@ spec:
                   fieldPath: spec.nodeName
           command:
             - /usr/bin/kured
+          args:
             - --ds-namespace=cluster-baseline-settings
 #            - --force-reboot=false
 #            - --drain-grace-period=-1
