@@ -262,7 +262,6 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
-    aadpodidbinding: podmi-ingress-controller
     pci-scope: out-of-scope
   name: ingress-nginx-controller
   namespace: ingress-nginx
@@ -285,7 +284,6 @@ spec:
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/component: controller
-        aadpodidbinding: podmi-ingress-controller
         pci-scope: out-of-scope
     spec:
       dnsPolicy: ClusterFirst
