@@ -1,4 +1,4 @@
-# Source: https://github.com/weaveworks/kured/releases/download/1.9.2/kured-1.9.2-dockerhub.yaml
+# Source: https://github.com/kubereboot/charts/tree/kured-4.2.0/charts/kured (1.12.0)
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -108,10 +108,10 @@ spec:
           # PRODUCTION READINESS CHANGE REQUIRED
           # This image should be sourced from a non-public container registry, such as the
           # one deployed along side of this reference implementation.
-          # az acr import --source docker.io/weaveworks/kured:1.9.2 -n <your-acr-instance-name>
+          # az acr import --source docker.io/weaveworks/kured:1.12.0 -n <your-acr-instance-name>
           # and then set this to
-          # image: <your-acr-instance-name>.azurecr.io/weaveworks/kured:1.9.2
-          image: docker.io/weaveworks/kured:1.9.2
+          # image: <your-acr-instance-name>.azurecr.io/weaveworks/kured:1.12.0
+          image: docker.io/weaveworks/kured:1.12.0
           imagePullPolicy: IfNotPresent
           resources:
             limits:
