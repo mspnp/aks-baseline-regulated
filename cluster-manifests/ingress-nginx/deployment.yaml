@@ -6,6 +6,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
   namespace: ingress-nginx
 ---
@@ -16,6 +18,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller
   namespace: ingress-nginx
 data:
@@ -32,6 +36,8 @@ metadata:
   labels:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
 rules:
 - apiGroups:
@@ -43,6 +49,13 @@ rules:
   - pods
   - secrets
   - namespaces
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
   verbs:
   - list
   - watch
@@ -89,6 +102,14 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - watch
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -96,6 +117,8 @@ metadata:
   labels:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -113,6 +136,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
   namespace: ingress-nginx
 rules:
@@ -152,6 +177,14 @@ rules:
 - apiGroups:
   - networking.k8s.io
   resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
   - ingresses/status
   verbs:
   - update
@@ -165,10 +198,10 @@ rules:
   - watch
 - apiGroups:
     - ""
+  resourceNames:
+  - ingress-nginx-leader
   resources:
   - configmaps
-  resourceNames:
-  - ingress-controller-leader
   verbs:
   - get
   - update
@@ -179,12 +212,35 @@ rules:
   verbs:
   - create
 - apiGroups:
+  - coordination.k8s.io
+  resourceNames:
+  - ingress-nginx-leader
+  resources:
+  - leases
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+- apiGroups:
     - ""
   resources:
   - events
   verbs:
   - create
   - patch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - watch
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -193,6 +249,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
   namespace: ingress-nginx
 roleRef:
@@ -211,6 +269,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller-admission
   namespace: ingress-nginx
 spec:
@@ -229,9 +289,11 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/name: ingress-nginx    
+    app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller
   namespace: ingress-nginx
   annotations:
@@ -262,6 +324,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
     pci-scope: out-of-scope
   name: ingress-nginx-controller
   namespace: ingress-nginx
@@ -289,7 +353,7 @@ spec:
       dnsPolicy: ClusterFirst
       containers:
         - name: controller
-          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.1.2
+          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.5.1
           imagePullPolicy: IfNotPresent
           lifecycle:
             preStop:
@@ -394,6 +458,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: nginx
 spec:
   controller: k8s.io/ingress-nginx
@@ -405,6 +471,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission
 webhooks:
   - name: validate.nginx.ingress.kubernetes.io
@@ -437,6 +505,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   namespace: ingress-nginx
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -447,6 +517,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
 rules:
   - apiGroups:
       - admissionregistration.k8s.io
@@ -464,6 +536,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -481,6 +555,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   namespace: ingress-nginx
 rules:
 - apiGroups:
@@ -499,6 +575,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
   namespace: ingress-nginx
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -517,6 +595,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
     pci-scope: out-of-scope
   namespace: ingress-nginx
 spec:
@@ -527,11 +607,13 @@ spec:
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/component: admission-webhook
+        app.kubernetes.io/part-of: ingress-nginx
+        app.kubernetes.io/version: 1.5.1
         pci-scope: out-of-scope
     spec:
       containers:
-      - name: create        
-        image: YOUR_ACR.azurecr.io/live/jettech/kube-webhook-certgen:v1.1.1
+      - name: create
+        image: YOUR_ACR.azurecr.io/live/jettech/kube-webhook-certgen:v20220916-gd32f8c343@sha256:39c5b2e3310dc4264d638ad28d9d1d96c4cbb2b2dcfb52368fe4e3c63f61e10f
         imagePullPolicy: IfNotPresent
         args:
           - create
@@ -570,6 +652,8 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
     pci-scope: out-of-scope
   namespace: ingress-nginx
 spec:
@@ -580,11 +664,13 @@ spec:
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/component: admission-webhook
+        app.kubernetes.io/part-of: ingress-nginx
+        app.kubernetes.io/version: 1.5.1
         pci-scope: out-of-scope
     spec:
       containers:
       - name: patch
-        image: YOUR_ACR.azurecr.io/live/jettech/kube-webhook-certgen:v1.1.1
+        image: YOUR_ACR.azurecr.io/live/jettech/kube-webhook-certgen:v20220916-gd32f8c343@sha256:39c5b2e3310dc4264d638ad28d9d1d96c4cbb2b2dcfb52368fe4e3c63f61e10f
         imagePullPolicy: IfNotPresent
         args:
         - patch
