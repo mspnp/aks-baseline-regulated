@@ -40,7 +40,7 @@ data:
           enabled = true
        [log_collection_settings.enrich_container_logs]
           # In the absense of this configmap, default value for enrich_container_logs is false
-          enabled = false
+          enabled = true
           # When this is enabled (enabled = true), every container log entry (both stdout & stderr) will be enriched with container Name & container Image
        [log_collection_settings.collect_all_kube_events]
           # In the absense of this configmap, default value for collect_all_kube_events is false
