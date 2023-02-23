@@ -77,10 +77,11 @@ Using a security agent that is container-aware and can operate from within the c
    ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
-   az acr import --source docker.io/falcosecurity/falco-no-driver:0.33.1 -t quarantine/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME_QUARANTINE && \
-   az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE                         && \
-   az acr import --source ghcr.io/kubereboot/kured:1.12.0 -t quarantine/kubereboot/kured:1.12.0 -n $ACR_NAME_QUARANTINE                         && \
-   az acr import --source registry.k8s.io/ingress-nginx/controller:v1.6.4 -t quarantine/ingress-nginx/controller:v1.6.4 -n $ACR_NAME_QUARANTINE && \
+   az acr import --source docker.io/falcosecurity/falco-no-driver:0.33.1 -t quarantine/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME_QUARANTINE         && \
+   az acr import --source docker.io/falcosecurity/falco-driver-loader:0.33.1 -t quarantine/falcosecurity/falco-driver-loader:0.33.1 -n $ACR_NAME_QUARANTINE && \
+   az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE                                     && \
+   az acr import --source ghcr.io/kubereboot/kured:1.12.0 -t quarantine/kubereboot/kured:1.12.0 -n $ACR_NAME_QUARANTINE                                     && \
+   az acr import --source registry.k8s.io/ingress-nginx/controller:v1.6.4 -t quarantine/ingress-nginx/controller:v1.6.4 -n $ACR_NAME_QUARANTINE             && \
    az acr import --source registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20220916-gd32f8c343 -t quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME_QUARANTINE
    ```
 
@@ -111,10 +112,11 @@ Using a security agent that is container-aware and can operate from within the c
    ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
-   az acr import --source quarantine/falcosecurity/falco-no-driver:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME && \
-   az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                   && \
-   az acr import --source quarantine/kubereboot/kured:1.12.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/kured:1.12.0 -n $ACR_NAME                 && \
-   az acr import --source quarantine/ingress-nginx/controller:v1.6.4 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.6.4 -n $ACR_NAME && \
+   az acr import --source quarantine/falcosecurity/falco-no-driver:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME         && \
+   az acr import --source quarantine/falcosecurity/falco-driver-loader:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-driver-loader:0.33.1 -n $ACR_NAME && \
+   az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                                     && \
+   az acr import --source quarantine/kubereboot/kured:1.12.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/kured:1.12.0 -n $ACR_NAME                                   && \
+   az acr import --source quarantine/ingress-nginx/controller:v1.6.4 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.6.4 -n $ACR_NAME                   && \
    az acr import --source quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME
    ```
 
