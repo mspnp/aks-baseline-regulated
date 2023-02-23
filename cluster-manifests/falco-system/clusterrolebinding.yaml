@@ -3,16 +3,16 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: aks-falco
+  name: falco
   labels:
-    app.kubernetes.io/name: aks-falco
     app.kubernetes.io/instance: falco
     app.kubernetes.io/version: "0.33.1"
 subjects:
   - kind: ServiceAccount
-    name: aks-falco
     namespace: falco-system
+    name: falco
 roleRef:
   kind: ClusterRole
-  name: aks-falco
+  name: falco
   apiGroup: rbac.authorization.k8s.io
+---

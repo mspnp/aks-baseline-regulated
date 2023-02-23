@@ -3,9 +3,9 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: aks-falco
+  name: falco
   labels:
-    app.kubernetes.io/name: aks-falco
+    app.kubernetes.io/name: falco
     app.kubernetes.io/instance: falco
     app.kubernetes.io/version: "0.33.1"
 rules:
@@ -43,3 +43,4 @@ rules:
       - /healthz/*
     verbs:
       - get
+---
