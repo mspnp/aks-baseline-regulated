@@ -196,7 +196,7 @@ data:
 
     http_output:
       enabled: false
-      url ""
+      url: ""
       user_agent: falcosecurity/falco
 
     grpc:
