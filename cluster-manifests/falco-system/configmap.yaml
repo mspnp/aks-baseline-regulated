@@ -4,11 +4,9 @@ metadata:
   name: falco
   namespace: falco-system
   labels:
-    helm.sh/chart: falco-2.4.6
     app.kubernetes.io/name: falco
     app.kubernetes.io/instance: falco
     app.kubernetes.io/version: "0.33.1"
-    app.kubernetes.io/managed-by: Helm
 data:
   falco.yaml: |-
     buffered_outputs: false
