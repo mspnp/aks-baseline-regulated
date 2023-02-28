@@ -68,7 +68,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: SKIP_DRIVER_LOADER
-              value:
+              value: "false"
           tty: false
           livenessProbe:
             initialDelaySeconds: 60
