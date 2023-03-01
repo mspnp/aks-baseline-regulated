@@ -1,11 +1,13 @@
 ---
-# Source: falco/templates/clusterrole.yaml
+# Source: https://github.com/falcosecurity/deploy-kubernetes/blob/0faf1e702b4f4508414d9b14d178670d782ce25d/kubernetes/falco/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: aks-falco
+  name: falco
   labels:
-    app: aks-falco
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: falco
+    app.kubernetes.io/version: "0.33.1"
 rules:
   - apiGroups:
       - extensions
@@ -41,3 +43,4 @@ rules:
       - /healthz/*
     verbs:
       - get
+---

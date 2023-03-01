@@ -984,6 +984,34 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
           ]
         }
       }
+      {
+        name: 'Falco-Requirements'
+        properties: {
+          action: {
+            type: 'Allow'
+          }
+          priority: 500
+          rules: [
+            {
+              name: 'flux-to-flux-modules'
+              description: 'Supports downloading pre-built modules from Falco.'
+              sourceIpGroups: [
+                aks_ipgroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                'download.falco.org'
+                'falco.org'
+              ]
+            }
+          ]
+        }
+      }
     ]
   }
 }

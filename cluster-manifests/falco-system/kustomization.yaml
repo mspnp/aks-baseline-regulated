@@ -11,5 +11,7 @@ resources:
 - configmap.yaml
 - daemonset.yaml
 images:
-- name: docker.io/falcosecurity/falco
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/falcosecurity/falco
+- name: docker.io/falcosecurity/falco-no-driver
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/falcosecurity/falco-no-driver
+- name: docker.io/falcosecurity/falco-driver-loader
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/falcosecurity/falco-driver-loader
