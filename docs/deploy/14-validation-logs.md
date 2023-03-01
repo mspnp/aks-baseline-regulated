@@ -111,8 +111,9 @@ AzureDiagnostics
 The example workload uses the standard dotnet logger interface, which are captured in `ContainerLogs` in Azure Monitor. You could also include additional logging and telemetry frameworks in your workload, such as Application Insights. Execute the following query to view application logs.
 
 ```kusto
-ContainerLog
-| where Image contains "chain-api"
+ContainerLogV2
+| where ContainerName contains "microservice"
+| where PodNamespace in ("a00095-i", "a0005-o")
 | order by TimeGenerated desc
 ```
 
@@ -121,18 +122,20 @@ ContainerLog
 Azure policy definitions sync with your cluster about once every 15 minutes. To see when they sync you can execute the following query.
 
 ```kusto
-ContainerLog
-| where Image contains "policy-kubernetes-addon"
-| where LogEntry contains "Syncing policies with cluster"
+ContainerLogV2
+| where ContainerName has "azure-policy"
+| where PodNamespace has "kube-system"
+| where LogMessage contains "Syncing policies with cluster"
 | order by TimeGenerated desc
 ```
 
 And audit results will be sent to Azure Policy about once every 30 minutes. To see when they sync you can execute the following query.
 
 ```kusto
-ContainerLog
-| where Image contains "policy-kubernetes-addon"
-| where LogEntry contains "Sending audit result"
+ContainerLogV2
+| where ContainerName has "azure-policy"
+| where PodNamespace has "kube-system"
+| where LogMessage contains "Sending audit result"
 | order by TimeGenerated desc
 ```
 
