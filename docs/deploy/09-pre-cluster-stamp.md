@@ -79,7 +79,7 @@ Using a security agent that is container-aware and can operate from within the c
    # [Combined this takes about eight minutes.]
    az acr import --source docker.io/falcosecurity/falco:0.29.1 -t quarantine/falcosecurity/falco:0.29.1 -n $ACR_NAME_QUARANTINE               && \
    az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE                       && \
-   az acr import --source docker.io/weaveworks/kured:1.9.2 -t quarantine/weaveworks/kured:1.9.2 -n $ACR_NAME_QUARANTINE                       && \
+   az acr import --source ghcr.io/kubereboot/kured:1.12.0 -t quarantine/kubereboot/kured:1.12.0 -n $ACR_NAME_QUARANTINE                       && \
    az acr import --source k8s.gcr.io/ingress-nginx/controller:v1.1.2 -t quarantine/ingress-nginx/controller:v1.1.2 -n $ACR_NAME_QUARANTINE    && \
    az acr import --source k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1 -t quarantine/jettech/kube-webhook-certgen:v1.1.1 -n $ACR_NAME_QUARANTINE
    ```
@@ -113,7 +113,7 @@ Using a security agent that is container-aware and can operate from within the c
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/falcosecurity/falco:0.29.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco:0.29.1 -n $ACR_NAME                 && \
    az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                         && \
-   az acr import --source quarantine/weaveworks/kured:1.9.2 -r $ACR_NAME_QUARANTINE -t live/weaveworks/kured:1.9.2 -n $ACR_NAME                         && \
+   az acr import --source quarantine/kubereboot/kured:1.12.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/kured:1.12.0 -n $ACR_NAME                       && \
    az acr import --source quarantine/ingress-nginx/controller:v1.1.2 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.1.2 -n $ACR_NAME       && \
    az acr import --source quarantine/jettech/kube-webhook-certgen:v1.1.1 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v1.1.1 -n $ACR_NAME
    ```
@@ -155,7 +155,7 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
 1. Import the AKS ingress controller's certificate.
 
    You currently cannot import certificates into Key Vault directly via ARM templates. As such, post deployment of our bootstrapping resources (which includes Key Vault), you need to upload your ingress controller's wildcard certificate to Key Vault. This is the `.pem` file you created on a prior page. Your ingress controller will authenticate to Key Vault (via its workload identity) and use this certificate as its default TLS certificate, presenting exclusively to your Azure Application Gateway.
-   
+
    _As an alternative, this import process could be done with [`deploymentScripts` within the ARM template](https://github.com/Azure/bicep/discussions/8457#discussioncomment-3712980). Use whatever certificate management process your organization and compliance mandates._
 
    ```bash
