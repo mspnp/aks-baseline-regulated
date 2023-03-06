@@ -139,6 +139,17 @@ ContainerLogV2
 | order by TimeGenerated desc
 ```
 
+### Syslog 
+
+Container Insights offers the ability to collect Syslog events from Linux nodes in your Azure Kubernetes Service (AKS) clusters. Customers can use Syslog for monitoring security and health events, typically by ingesting syslog into SIEM systems like Microsoft Sentinel.
+
+```kusto
+// Last 100 Syslog with erros. 
+Syslog 
+| where SeverityLevel == "err" or  SeverityLevel == "error"
+| top 100 by TimeGenerated desc
+```
+
 ## Azure Application Gateway
 
 Azure Application Gateway will log key information such as requests, routing, backend health, and even your WAF rule blocks.

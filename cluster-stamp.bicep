@@ -1143,6 +1143,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         enabled: true
         config: {
           logAnalyticsWorkspaceResourceId: la.id
+          useAADAuth: 'true'
         }
       }
       aciConnectorLinux: {
@@ -1269,6 +1270,96 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
   ]
 }
 
+resource dataCollectionRules_MSCI_cluster_syslog 'Microsoft.Insights/dataCollectionRules@2021-09-01-preview' = {
+  name: 'MSCI-${location}-${clusterName}'
+  location: location
+  properties: {
+    dataSources: {
+      syslog: [
+        {
+          streams: [
+            'Microsoft-Syslog'
+          ]
+          facilityNames: [
+            'auth'
+            'authpriv'
+            'cron'
+            'daemon'
+            'mark'
+            'kern'
+            'local0'
+            'local1'
+            'local2'
+            'local3'
+            'local4'
+            'local5'
+            'local6'
+            'local7'
+            'lpr'
+            'mail'
+            'news'
+            'syslog'
+            'user'
+            'uucp'
+          ]
+          logLevels: [
+            'Debug'
+            'Info'
+            'Notice'
+            'Warning'
+            'Error'
+            'Critical'
+            'Alert'
+            'Emergency'
+          ]
+          name: 'sysLogsDataSource'
+        }
+      ]
+      extensions: [
+        {
+          streams: [
+            'Microsoft-ContainerInsights-Group-Default'
+          ]
+          extensionName: 'ContainerInsights'
+          extensionSettings: {
+          }
+          name: 'ContainerInsightsExtension'
+        }
+      ]
+    }
+    destinations: {
+      logAnalytics: [
+        {
+          workspaceResourceId: la.id
+          name: la.name
+        }
+      ]
+    }
+    dataFlows: [
+      {
+        streams: [
+          'Microsoft-ContainerInsights-Group-Default'
+          'Microsoft-Syslog'
+        ]
+        destinations: [
+          la.name
+        ]
+      }
+    ]
+  }
+}
+
+resource dataCollectionRuleAssociation 'Microsoft.ContainerService/managedClusters/providers/dataCollectionRuleAssociations@2021-09-01-preview' = {
+  name: '${clusterName}/microsoft.insights/dataCollectionRuleAssociation'
+  properties: {
+    description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
+    dataCollectionRuleId: dataCollectionRules_MSCI_cluster_syslog.id
+  }
+  dependsOn:[
+    mc
+  ]
+}
+
 resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: mc
   name: 'default'
@@ -1316,16 +1407,6 @@ resource crMiKubeletContainerRegistryPullRole_roleAssignment 'Microsoft.Authoriz
     description: 'Allows AKS to pull container images from this ACR instance.'
     roleDefinitionId: containerRegistryPullRole.id
     principalId: mc.properties.identityProfile.kubeletidentity.objectId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grant Azure Monitor (fka as OMS) Agent\'s managed identity with publisher metrics role permissions; this allows the AMA\'s identity to publish metrics in Container Insights.')
-resource mcAmaAgentMonitoringMetricsPublisherRole_roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(mc.id, 'amagent', monitoringMetricsPublisherRole.id)
-  properties: {
-    roleDefinitionId: monitoringMetricsPublisherRole.id
-    principalId: mc.properties.addonProfiles.omsagent.identity.objectId
     principalType: 'ServicePrincipal'
   }
 }

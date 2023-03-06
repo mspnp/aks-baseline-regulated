@@ -649,6 +649,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 '*.ods.opinsights.azure.com'
                 '*.oms.opinsights.azure.com'
                 '${location}.monitoring.azure.com'
+                '*.handler.control.monitor.azure.com'
               ]
             }
             {
