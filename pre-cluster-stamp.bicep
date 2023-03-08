@@ -306,6 +306,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
     createMode: 'default'
+    publicNetworkAccess: 'Disabled'
   }
 }
 
