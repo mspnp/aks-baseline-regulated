@@ -141,7 +141,7 @@ ContainerLogV2
 
 ### Syslog 
 
-Container Insights offers the ability to collect Syslog events from Linux nodes in your Azure Kubernetes Service (AKS) clusters. Customers can use Syslog for monitoring security and health events, typically by ingesting syslog into SIEM systems like Microsoft Sentinel.
+Once error Syslog events are collected from the AKS baseline cluster, it is possible to execute a kusto query and see them.
 
 ```kusto
 // Last 100 Syslog with erros. 
