@@ -1270,7 +1270,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
   ]
 }
 
-resource dataCollectionRules_MSCI_cluster_syslog 'Microsoft.Insights/dataCollectionRules@2021-09-01-preview' = {
+resource dcrClusterSyslog 'Microsoft.Insights/dataCollectionRules@2021-09-01-preview' = {
   name: 'MSCI-${location}-${clusterName}'
   location: location
   properties: {
