@@ -1340,15 +1340,13 @@ resource dcrClusterSyslog 'Microsoft.Insights/dataCollectionRules@2021-09-01-pre
   }
 }
 
-resource dataCollectionRuleAssociation 'Microsoft.ContainerService/managedClusters/providers/dataCollectionRuleAssociations@2021-09-01-preview' = {
-  name: '${clusterName}/microsoft.insights/dataCollectionRuleAssociation'
+resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2021-09-01-preview' = {
+  name: 'dataCollectionRuleAssociation'
   properties: {
     description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
     dataCollectionRuleId: dcrClusterSyslog.id
   }
-  dependsOn:[
-    mc
-  ]
+  scope: mc
 }
 
 resource mc_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
