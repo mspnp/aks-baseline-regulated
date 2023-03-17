@@ -213,12 +213,6 @@ resource containerRegistryPullRole 'Microsoft.Authorization/roleDefinitions@2022
   scope: subscription()
 }
 
-@description('Built-in Azure RBAC role that is applied to a Subscription to grant with publishing metrics. Granted to in-cluster agent\'s identity.')
-resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  name: '3913510d-42f4-4e42-8a64-420c390055eb'
-  scope: subscription()
-}
-
 /*** RESOURCES ***/
 
 @description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
@@ -1303,9 +1297,6 @@ resource dcrClusterSyslog 'Microsoft.Insights/dataCollectionRules@2021-09-01-pre
             'uucp'
           ]
           logLevels: [
-            'Debug'
-            'Info'
-            'Notice'
             'Warning'
             'Error'
             'Critical'
@@ -1353,7 +1344,7 @@ resource dataCollectionRuleAssociation 'Microsoft.ContainerService/managedCluste
   name: '${clusterName}/microsoft.insights/dataCollectionRuleAssociation'
   properties: {
     description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
-    dataCollectionRuleId: dataCollectionRules_MSCI_cluster_syslog.id
+    dataCollectionRuleId: dcrClusterSyslog.id
   }
   dependsOn:[
     mc
