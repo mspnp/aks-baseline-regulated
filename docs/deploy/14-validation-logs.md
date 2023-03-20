@@ -141,10 +141,10 @@ ContainerLogV2
 
 ### Syslog 
 
-Once error Syslog events are collected from the AKS baseline cluster, it is possible to execute a kusto query and see them.
+Once Syslog events are collected from the AKS baseline cluster, it is possible to execute a kusto query and see them.
 
 ```kusto
-// Last 100 Syslog with erros. 
+// Last 100 Syslog. 
 Syslog 
 | top 100 by TimeGenerated desc
 ```
