@@ -146,7 +146,6 @@ Once error Syslog events are collected from the AKS baseline cluster, it is poss
 ```kusto
 // Last 100 Syslog with erros. 
 Syslog 
-| where SeverityLevel == "err" or  SeverityLevel == "error"
 | top 100 by TimeGenerated desc
 ```
 
