@@ -139,6 +139,16 @@ ContainerLogV2
 | order by TimeGenerated desc
 ```
 
+### Syslog 
+
+Once Syslog events are collected from the AKS baseline cluster, it is possible to execute a kusto query and see them.
+
+```kusto
+// Last 100 Syslog. 
+Syslog 
+| top 100 by TimeGenerated desc
+```
+
 ## Azure Application Gateway
 
 Azure Application Gateway will log key information such as requests, routing, backend health, and even your WAF rule blocks.
