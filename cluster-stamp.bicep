@@ -1313,6 +1313,8 @@ resource dcrClusterSyslog 'Microsoft.Insights/dataCollectionRules@2021-09-01-pre
           ]
           extensionName: 'ContainerInsights'
           extensionSettings: {
+            interval : '1m'
+            namespaceFilteringMode: 'Off'
           }
           name: 'ContainerInsightsExtension'
         }
