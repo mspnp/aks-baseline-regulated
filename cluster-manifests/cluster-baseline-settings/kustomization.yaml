@@ -6,8 +6,8 @@ resources:
 - resource-quota.yaml
 - limit-range.yaml
 - rbac.yaml
-- fim/fim-standin.yaml
-- av/av-standin.yaml
+#- fim/fim-standin.yaml
+#- av/av-standin.yaml
 - kured/kured.yaml
 images:
 - name: busybox

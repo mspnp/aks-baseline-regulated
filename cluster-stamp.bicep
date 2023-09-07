@@ -16,26 +16,16 @@ param k8sControlPlaneAuthorizationTenantId string
 param appGatewayListenerCertificate string
 
 @allowed([
-  'australiaeast'
-  'canadacentral'
-  'centralus'
-  'eastus'
-  'eastus2'
-  'westus2'
-  'francecentral'
-  'germanywestcentral'
-  'northeurope'
-  'southafricanorth'
-  'southcentralus'
-  'uksouth'
   'westeurope'
-  'japaneast'
-  'southeastasia'
+  'centralsweden'
+  'northsweden'
+  'northerneurope'
 ])
 @description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
 @minLength(4)
-param location string = 'eastus2'
+param location string = 'westeurope'
 
+/*
 @description('The Azure resource ID of a VM image that will be used for the jump box.')
 @minLength(70)
 param jumpBoxImageResourceId string
@@ -43,6 +33,7 @@ param jumpBoxImageResourceId string
 @description('A cloud init file (starting with #cloud-config) as a base 64 encoded string used to perform image customization on the jump box VMs. Used for user-management in this context.')
 @minLength(100)
 param jumpBoxCloudInitAsBase64 string
+*/
 
 @description('Your cluster will be bootstrapped from this git repo.')
 @minLength(9)
