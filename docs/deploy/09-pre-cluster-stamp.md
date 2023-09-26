@@ -79,7 +79,7 @@ Using a security agent that is container-aware and can operate from within the c
    # [Combined this takes about eight minutes.]
    az acr import --source docker.io/falcosecurity/falco-no-driver:0.33.1 -t quarantine/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME_QUARANTINE         && \
    az acr import --source docker.io/falcosecurity/falco-driver-loader:0.33.1 -t quarantine/falcosecurity/falco-driver-loader:0.33.1 -n $ACR_NAME_QUARANTINE && \
-   az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE                                     && \
+   az acr import --source docker.io/library/busybox:1.36.1 -t quarantine/library/busybox:1.36.1 -n $ACR_NAME_QUARANTINE                                     && \
    az acr import --source ghcr.io/kubereboot/kured:1.12.0 -t quarantine/kubereboot/kured:1.12.0 -n $ACR_NAME_QUARANTINE                                     && \
    az acr import --source registry.k8s.io/ingress-nginx/controller:v1.6.4 -t quarantine/ingress-nginx/controller:v1.6.4 -n $ACR_NAME_QUARANTINE             && \
    az acr import --source registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20220916-gd32f8c343 -t quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME_QUARANTINE
@@ -114,7 +114,7 @@ Using a security agent that is container-aware and can operate from within the c
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/falcosecurity/falco-no-driver:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME         && \
    az acr import --source quarantine/falcosecurity/falco-driver-loader:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-driver-loader:0.33.1 -n $ACR_NAME && \
-   az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                                     && \
+   az acr import --source quarantine/library/busybox:1.36.1 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.36.1 -n $ACR_NAME                                     && \
    az acr import --source quarantine/kubereboot/kured:1.12.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/kured:1.12.0 -n $ACR_NAME                                   && \
    az acr import --source quarantine/ingress-nginx/controller:v1.6.4 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.6.4 -n $ACR_NAME                   && \
    az acr import --source quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME
@@ -125,7 +125,7 @@ Using a security agent that is container-aware and can operate from within the c
    You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import an image directly to `live/`. On the validation page later in this walkthrough, you'll see that alert.
 
    ```bash
-   az acr import --source docker.io/library/busybox:1.33.0 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME
+   az acr import --source docker.io/library/busybox:1.36.1 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME
    ```
 
 ## Container registry note
