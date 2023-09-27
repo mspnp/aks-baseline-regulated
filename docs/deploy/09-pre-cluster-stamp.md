@@ -115,7 +115,7 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source quarantine/falcosecurity/falco-no-driver:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-no-driver:0.33.1 -n $ACR_NAME         && \
    az acr import --source quarantine/falcosecurity/falco-driver-loader:0.33.1 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-driver-loader:0.33.1 -n $ACR_NAME && \
    az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME                                     && \
-   az acr import --source quarantine/kubereboot/kured:1.14.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/:1.14.0 -n $ACR_NAME                                   && \
+   az acr import --source quarantine/kubereboot/kured:1.14.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/kured:1.14.0 -n $ACR_NAME                                   && \
    az acr import --source quarantine/ingress-nginx/controller:v1.6.4 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.6.4 -n $ACR_NAME                   && \
    az acr import --source quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME
    ```
