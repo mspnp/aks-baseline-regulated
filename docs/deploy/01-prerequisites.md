@@ -29,6 +29,10 @@ Throughout this walkthrough, take note of the following symbol.
 
    Ensure you're logged into the subscription in which you plan on deploying this reference to.
 
+1. While the following feature(s) are still in _preview_, please enable them in your target subscription.
+
+   _None. This reference implementation currently does not use any preview features._
+
 1. Fork this repository and clone it locally. 🛑
 
    ```bash
