@@ -23,7 +23,7 @@ Throughout this walkthrough, take note of the following symbol.
 
    The Azure AD tenant backing your Cluster's API RBAC does NOT need to be the same tenant associated with your Azure subscription. Your organization may have dedicated Azure AD tenants used specifically as a separation between Azure resource management, and Kubernetes control plane access. Ensure you're following your organization's practices when it comes to separation of identity stores to ensure limited "blast radius" on any compromised accounts.
 
-1. Latest [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) (must be at least 2.37), or you can perform this from Azure Cloud Shell by clicking below.
+1. Latest [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) (must be at least 2.52), or you can perform this from Azure Cloud Shell by clicking below.
 
    [![Launch Azure Cloud Shell](https://learn.microsoft.com/azure/includes/media/cloud-shell-try-it/hdi-launch-cloud-shell.png)](https://shell.azure.com/bash)
 
@@ -31,17 +31,7 @@ Throughout this walkthrough, take note of the following symbol.
 
 1. While the following feature(s) are still in _preview_, please enable them in your target subscription.
 
-   1. [Register the Workload Identity preview feature = `EnableWorkloadIdentityPreview`](https://learn.microsoft.com/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag)
-
-   ```bash
-   az feature register --namespace "Microsoft.ContainerService" -n "EnableWorkloadIdentityPreview"
-
-   # Keep running until all say "Registered." (This may take up to 20 minutes.)
-   az feature list -o table --query "[?name=='Microsoft.ContainerService/EnableWorkloadIdentityPreview'].{Name:name,State:properties.state}"
-
-   # When all say "Registered" then re-register the AKS and related resource providers
-   az provider register --namespace Microsoft.ContainerService
-   ```
+   _None. This reference implementation currently does not use any preview features._
 
 1. Fork this repository and clone it locally. 🛑
 

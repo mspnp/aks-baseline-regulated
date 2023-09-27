@@ -33,7 +33,7 @@ Finally, this implementation uses a small, custom application as an example work
 
 #### Azure platform
 
-* AKS v1.26
+* AKS v1.27
   * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
   * [AKS-managed Azure AD](https://learn.microsoft.com/azure/aks/managed-aad)
   * Managed Identities for kubelet and control plane
