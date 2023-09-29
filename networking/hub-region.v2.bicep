@@ -1008,6 +1008,10 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               targetFqdns: [
                 'download.falco.org'
                 'falco.org'
+                'falcosecurity.github.io'
+                'ghcr.io'
+                'pkg-containers.githubusercontent.com'
+                'tuf-repo-cdn.sigstore.dev'
               ]
             }
           ]
