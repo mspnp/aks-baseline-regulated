@@ -6,7 +6,7 @@ resources:
 - akv-tls-provider.yaml
 - deployment.yaml
 images:
-- name: YOUR_ACR.azurecr.io/live/jettech/kube-webhook-certgen
-  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/jettech/kube-webhook-certgen
+- name: YOUR_ACR.azurecr.io/live/ingress-nginx/kube-webhook-certgen
+  newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/ingress-nginx/kube-webhook-certgen
 - name: YOUR_ACR.azurecr.io/live/ingress-nginx/controller
   newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/ingress-nginx/controller
