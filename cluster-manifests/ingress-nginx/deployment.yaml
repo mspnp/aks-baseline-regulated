@@ -417,8 +417,9 @@ spec:
             readOnly: true
       dnsPolicy: ClusterFirst
       nodeSelector:
-       kubernetes.io/os: linux
-       pci-scope: out-of-scope       
+        kubernetes.io/os: linux
+        pci-scope: out-of-scope
+
       serviceAccountName: ingress-nginx
       terminationGracePeriodSeconds: 300
       volumes:
