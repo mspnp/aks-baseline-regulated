@@ -1,0 +1,32 @@
+# Source: https://raw.githubusercontent.com/falcosecurity/deploy-kubernetes/main/kubernetes/falco/templates/falcoctl-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-falcoctl
+  namespace: falco-system
+  labels:
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: falco
+    app.kubernetes.io/version: "0.36.0"
+data:
+  falcoctl.yaml: |-
+    artifact:
+      allowedTypes:
+      - rulesfile
+      follow:
+        every: 6h
+        falcoversions: http://localhost:8765/versions
+        pluginsDir: /plugins
+        refs:
+        - falco-rules:2
+        rulesfilesDir: /rulesfiles
+      install:
+        pluginsDir: /plugins
+        refs:
+        - falco-rules:2
+        resolveDeps: false
+        rulesfilesDir: /rulesfiles
+    indexes:
+    - name: falcosecurity
+      url: https://falcosecurity.github.io/falcoctl/index.yaml
+---
