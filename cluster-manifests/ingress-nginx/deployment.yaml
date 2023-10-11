@@ -400,6 +400,9 @@ spec:
           requests:
             cpu: 100m
             memory: 90Mi
+          limits:
+            cpu: 500m
+            memory: 300Mi
         securityContext:
           allowPrivilegeEscalation: true
           capabilities:
@@ -419,7 +422,6 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
         pci-scope: out-of-scope
-
       serviceAccountName: ingress-nginx
       terminationGracePeriodSeconds: 300
       volumes:
@@ -609,6 +611,13 @@ spec:
         name: create
         securityContext:
           allowPrivilegeEscalation: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 90Mi
+          limits:
+            cpu: 300m
+            memory: 100Mi
       nodeSelector:
         kubernetes.io/os: linux
         pci-scope: out-of-scope
@@ -661,6 +670,13 @@ spec:
         name: patch
         securityContext:
           allowPrivilegeEscalation: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 90Mi
+          limits:
+            cpu: 300m
+            memory: 100Mi
       nodeSelector:
         kubernetes.io/os: linux
         pci-scope: out-of-scope
