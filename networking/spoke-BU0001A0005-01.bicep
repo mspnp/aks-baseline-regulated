@@ -745,7 +745,7 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
         }
     }
     dependsOn: [
-        policyAssignmentNoPublicIpsInVnet
+     //   policyAssignmentNoPublicIpsInVnet
     ]
 
     resource aksSystemNodepoolSubnet 'subnets' existing = {
@@ -764,7 +764,7 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
         name: 'snet-management-ops'
     }
 }
-
+/*
 @description('Deploys subscription-level policy related to spoke deployment. ')
 module policyAssignmentNoPublicIpsInVnet './modules/ClusterVNetShouldNotHaveNICwithpublicIP.bicep' = {
     name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
@@ -772,7 +772,7 @@ module policyAssignmentNoPublicIpsInVnet './modules/ClusterVNetShouldNotHaveNICw
         clusterVNetId: resourceId('Microsoft.Network/virtualNetworks','vnet-spoke-${orgAppId}-01')
     }
 }
-
+*/
 @description('Peer to regional hub.')
 resource clusterVNet_virtualNetworkPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
     name: 'spoke-to-${last(split(hubVnetResourceId, '/'))}'

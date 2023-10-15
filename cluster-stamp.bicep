@@ -23,7 +23,7 @@ param appGatewayListenerCertificate string
 ])
 @description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
 @minLength(4)
-param location string = 'westeurope'
+param location string
 
 /*
 @description('The Azure resource ID of a VM image that will be used for the jump box.')
@@ -45,16 +45,16 @@ param gitOpsBootstrappingRepoBranch string = 'main'
 
 /*** VARIABLES ***/
 
-var kubernetesVersion = '1.26.0'
+var kubernetesVersion = '1.26.6'
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
-var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
-var acrName = 'acraks${subRgUniqueString}'
+//var jumpBoxDefaultAdminUserName = uniqueString(clusterName, resourceGroup().id)
+//var acrName = 'acraks${subRgUniqueString}'
 var kvName = 'kv-${clusterName}'
 
 /*** EXISTING TENANT RESOURCES ***/
-
+/*
 @description('Built-in \'Kubernetes cluster pod security restricted standards for Linux-based workloads\' Azure Policy for Kubernetes initiative definition')
 var psdAKSLinuxRestrictiveId = tenantResourceId('Microsoft.Authorization/policySetDefinitions', '42b8ef37-b724-4e24-bbc8-7a7708edfe00')
 
@@ -90,7 +90,7 @@ var pdEnforceResourceLimitsId = tenantResourceId('Microsoft.Authorization/policy
 
 @description('Built-in \'AKS containers should only use allowed images\' Azure Policy for Kubernetes policy definition')
 var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDefinitions', 'febd0533-8e55-448f-b837-bd0e06f16469')
-
+*/
 /*** EXISTING RESOURCE GROUP RESOURCES ***/
 
 @description('Spoke resource group')
@@ -532,9 +532,11 @@ resource agw 'Microsoft.Network/applicationGateways@2022-01-01' = {
             id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'agw-${clusterName}', 'agw-frontend-ports')
           }
           protocol: 'Https'
+          
           sslCertificate: {
             id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'agw-${clusterName}', 'agw-${clusterName}-ssl-certificate')
           }
+          
           hostName: 'bicycle.contoso.com'
           hostNames: []
           requireServerNameIndication: true
@@ -588,7 +590,7 @@ resource agw_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
     ]
   }
 }
-
+/*
 @description('The compute for operations jumpboxes; these machines are assigned to cluster operator users')
 resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = {
   name: 'vmss-jumpboxes'
@@ -708,7 +710,8 @@ resource vmssJumpboxes 'Microsoft.Compute/virtualMachineScaleSets@2020-12-01' = 
     ]
   }
 }
-
+*/
+/*
 resource paAksLinuxRestrictive 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
   name: guid(psdAKSLinuxRestrictiveId, resourceGroup().name, clusterName)
   properties: {
@@ -937,7 +940,7 @@ resource paEnforceResourceLimits 'Microsoft.Authorization/policyAssignments@2020
         value: [
           'kube-system'
           'gatekeeper-system'
-          'flux-system' /* Flux extension, not all containers have limits defined by Microsoft */
+          'flux-system' // Flux extension, not all containers have limits defined by Microsoft
         ]
       }
     }
@@ -966,6 +969,7 @@ resource paEnforceImageSource 'Microsoft.Authorization/policyAssignments@2020-03
     }
   }
 }
+*/
 
 resource alaAllAzureAdvisorAlert 'Microsoft.Insights/activityLogAlerts@2020-10-01' = {
   name: 'AllAzureAdvisorAlert'
@@ -1238,7 +1242,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     // You want policies created before cluster because they take some time to be made available and we want them
     // to apply to your cluster as soon as possible. Nothing in this cluster "technically" depends on these existing,
     // just trying to get coverage as soon as possible.
-    paAksLinuxRestrictive
+    /*paAksLinuxRestrictive
     paEnforceHttpsIngress
     paEnforceInternalLoadBalancers
     paMustNotAutomountApiCreds
@@ -1248,10 +1252,11 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     paApprovedServicePortsOnly
     paRoRootFilesystem
     paBlockDefaultNamespace
-    paEnforceResourceLimits
     paEnforceImageSource
+    paEnforceResourceLimits
+    */
 
-    vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
+   // vmssJumpboxes // Ensure jumboxes are available to use as soon as possible, don't wait until cluster is created.
   ]
 }
 

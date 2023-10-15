@@ -15,7 +15,7 @@ param clusterControlPlaneIdentityName string
 @description('The regional network spoke VNet Resource name that the cluster is being joined to, so it can be used to discover subnets during role assignments.')
 @minLength(1)
 param vnetSpokeName string
-
+/*
 @allowed([
   'australiaeast'
   'canadacentral'
@@ -32,7 +32,7 @@ param vnetSpokeName string
   'westeurope'
   'japaneast'
   'southeastasia'
-])
+])*/
 @description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
 @minLength(4)
 param location string

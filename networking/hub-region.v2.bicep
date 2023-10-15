@@ -2,6 +2,8 @@ targetScope = 'resourceGroup'
 
 /*** PARAMETERS ***/
 
+/*
+// TO BE ADDED IN main?
 @description('Subnet resource Ids for all AKS clusters nodepools in all attached spokes to allow necessary outbound traffic through the firewall')
 param nodepoolSubnetResourceIds array
 
@@ -12,6 +14,7 @@ param aksImageBuilderSubnetResourceId string
 @description('Subnet resource Id for the AKS jumpbox subnet')
 @minLength(79)
 param aksJumpboxSubnetResourceId string
+*/
 
 @allowed([
   'australiaeast'
@@ -32,7 +35,7 @@ param aksJumpboxSubnetResourceId string
 ])
 @description('The hub\'s regional affinity. All resources tied to this hub will also be homed in this region.  The network team maintains this approved regional list which is a subset of zones with Availability Zone support.')
 @minLength(4)
-param location string = 'eastus2'
+param location string = 'westeurope'
 
 @description('A /24 to contain the regional firewall, management, and gateway subnet')
 @minLength(10)
@@ -57,7 +60,7 @@ param azureBastionSubnetAddressSpace string = '10.200.0.96/27'
 @description('Flow Logs are enabled by default, if for some reason they cause conflicts with flow log policies already in place in your subscription, you can disable them by passing "false" to this parameter.')
 param deployFlowLogResources bool = true
 
-/*** EXISTING RESOURCES ***/
+/*** EXISTING RESOURCES **
 
 @description('The resource group name containing virtual network in which Azure Image Builder will drop the compute into to perform the image build.')
 resource rgSpokes 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
@@ -88,7 +91,7 @@ resource aksJumpboxSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01'
   parent: aksJumpboxVnet
   name: last(split(aksJumpboxSubnetResourceId, '/'))
 }
-
+*/
 @description('NetworkWatcher ResourceGroup; it contains regional Network Watchers')
 resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
   scope: subscription()
@@ -488,7 +491,7 @@ resource flowlogs_storageAccount_diagnosticSettings 'Microsoft.Insights/diagnost
     ]
   }
 }
-
+/*
 @description('This holds IP addresses of known AKS Jumpbox image building subnets in attached spokes.')
 resource imageBuilder_ipgroup 'Microsoft.Network/ipGroups@2021-05-01' = {
   name: 'ipg-${location}-AksJumpboxImageBuilders'
@@ -519,6 +522,7 @@ resource aks_ipgroup 'Microsoft.Network/ipGroups@2021-05-01' = {
     ipAddresses: [for nodepoolSubnetResourceId in nodepoolSubnetResourceIds: '${reference(nodepoolSubnetResourceId, '2020-05-01').addressPrefix}']
   }
 }
+*/
 
 resource region_flowlog_storageAccount_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2017-05-01-preview' = {
   name: 'default'
@@ -578,7 +582,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
       }
     }]
     natRuleCollections: []
-    networkRuleCollections: [
+    networkRuleCollections: []/*[
       {
         name: 'allow-ntp'
         properties: {
@@ -591,8 +595,8 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'ntp'
               description: 'Network Time Protocol (NTP) time synchronization for image builder VMs and jumpboxes.'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
-                aksJumpbox_ipgroup.id
+                //imageBuilder_ipgroup.id
+                //aksJumpbox_ipgroup.id
               ]
               protocols: [
                 'UDP'
@@ -607,7 +611,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
           ]
         }
       }
-    ]
+    ]*/
     applicationRuleCollections: [
       {
         name: 'AKS-Global-Requirements'
@@ -621,7 +625,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'runtime'
               description: 'This covers all runtime requirements for AKS (sans addons). If you wish to use a more restricted set of values than what this provides, see: https://learn.microsoft.com/azure/firewall/protect-azure-kubernetes-service and https://learn.microsoft.com/azure/aks/limit-egress-traffic#required-outbound-network-rules-and-fqdns-for-aks-clusters and remove this entry'
               sourceIpGroups: [
-                aks_ipgroup.id
+                // aks_ipgroup.id
               ]
               protocols: [
                 {
@@ -637,7 +641,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'azure-monitor-addon'
               description: 'All required for Azure Monitor for containers per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your cluster\'s log analytics instances.'
               sourceIpGroups: [
-                aks_ipgroup.id
+                // aks_ipgroup.id
               ]
               protocols: [
                 {
@@ -657,7 +661,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               #disable-next-line no-hardcoded-env-urls
               description: 'All required for Azure Policy per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-policy. If not using the AzureKubernetesService fqdnTag, you must also add gov-prod-policy-data.trafficmanager.net, raw.githubusercontent.com, and dc.services.visualstudio.com'
               sourceIpGroups: [
-                aks_ipgroup.id
+                // aks_ipgroup.id
               ]
               protocols: [
                 {
@@ -687,7 +691,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'flux-to-github'
               description: 'Supports pulling GitOps configuration from GitHub.'
               sourceIpGroups: [
-                aks_ipgroup.id
+               // aks_ipgroup.id
               ]
               protocols: [
                 {
@@ -704,7 +708,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'flux-extension-runtime-requirements'
               description: 'Supports required communication for the Flux v2 extension operate and contains allowances for our applications deployed to the cluster.'
               sourceIpGroups: [
-                aks_ipgroup.id
+                // aks_ipgroup.id
               ]
               protocols: [
                 {
@@ -736,7 +740,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'to-azuremanagement'
               description: 'This for AIB VMs to communicate with Azure management API.'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -753,7 +757,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'to-blobstorage'
               description: 'This is required as the Proxy VM and Packer VM both read and write from transient storage accounts (no ability to know what storage accounts before the process starts.)'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -770,7 +774,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'apt-get'
               description: 'This is required as the Packer VM performs a package upgrade. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -793,7 +797,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-azcli'
               description: 'This is required as the Packer VM needs to install Azure CLI. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -813,7 +817,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-k8scli'
               description: 'This is required as the Packer VM needs to install k8s cli tooling. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -833,7 +837,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-helm'
               description: 'This is required as the Packer VM needs to install helm cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -851,7 +855,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-open-service-mesh'
               description: 'This is required as the Packer VMs needs to install open service mesh cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -868,7 +872,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'install-terraform'
               description: 'This is required as the Packer VMs needs to install HashiCorp Terraform cli. [Step performed in the referenced jump box building process. Not needed if your jump box building process doesn\'t do this.]'
               sourceIpGroups: [
-                imageBuilder_ipgroup.id
+                //imageBuilder_ipgroup.id
               ]
               protocols: [
                 {
@@ -895,7 +899,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'az-login'
               description: 'Allow jumpboxes to perform az login.'
               sourceIpGroups: [
-                aksJumpbox_ipgroup.id
+                //aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -912,7 +916,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'az-management-api'
               description: 'Allow jumpboxes to communicate with Azure management APIs.'
               sourceIpGroups: [
-                aksJumpbox_ipgroup.id
+                //aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -929,7 +933,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'az-cli-extensions'
               description: 'Allow jumpboxes query az cli status and download extensions'
               sourceIpGroups: [
-                aksJumpbox_ipgroup.id
+                //aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -949,7 +953,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'github'
               description: 'Allow pulling things down from GitHub. [Only a requirement of this walkthrough because we deploy some manifests that you clone from your repo.]'
               sourceIpGroups: [
-                aksJumpbox_ipgroup.id
+                //aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -967,7 +971,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'azure-monitor-addon'
               description: 'Required for Azure Monitor Extension on Jumpbox.'
               sourceIpGroups: [
-                aksJumpbox_ipgroup.id
+                //aksJumpbox_ipgroup.id
               ]
               protocols: [
                 {
@@ -997,7 +1001,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               name: 'flux-to-flux-modules'
               description: 'Supports downloading pre-built modules from Falco.'
               sourceIpGroups: [
-                aks_ipgroup.id
+                // aks_ipgroup.id
               ]
               protocols: [
                 {
