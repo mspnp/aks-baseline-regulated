@@ -1,0 +1,46 @@
+---
+# Source: https://github.com/falcosecurity/deploy-kubernetes/blob/0faf1e702b4f4508414d9b14d178670d782ce25d/kubernetes/falco/templates/clusterrole.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: falco
+  labels:
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/instance: falco
+    app.kubernetes.io/version: "0.33.1"
+rules:
+  - apiGroups:
+      - extensions
+      - ""
+    resources:
+      - nodes
+      - namespaces
+      - pods
+      - replicationcontrollers
+      - replicasets
+      - services
+      - daemonsets
+      - deployments
+      - events
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+  - nonResourceURLs:
+      - /healthz
+      - /healthz/*
+    verbs:
+      - get
+---
