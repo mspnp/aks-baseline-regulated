@@ -82,8 +82,8 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source docker.io/falcosecurity/falcoctl:0.6.2 -t quarantine/falcosecurity/falcoctl:0.6.2 -n $ACR_NAME_QUARANTINE && \
    az acr import --source docker.io/library/busybox:1.36.1 -t quarantine/library/busybox:1.36.1 -n $ACR_NAME_QUARANTINE                                     && \
    az acr import --source ghcr.io/kubereboot/kured:1.14.0 -t quarantine/kubereboot/kured:1.14.0 -n $ACR_NAME_QUARANTINE                                     && \
-   az acr import --source registry.k8s.io/ingress-nginx/controller:v1.6.4 -t quarantine/ingress-nginx/controller:v1.6.4 -n $ACR_NAME_QUARANTINE             && \
-   az acr import --source registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20220916-gd32f8c343 -t quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME_QUARANTINE
+   az acr import --source registry.k8s.io/ingress-nginx/controller:v1.9.0 -t quarantine/ingress-nginx/controller:v1.9.0 -n $ACR_NAME_QUARANTINE             && \
+   az acr import --source registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407 -t quarantine/ingress-nginx/kube-webhook-certgen:v20230407 -n $ACR_NAME_QUARANTINE
    ```
 
    > The above imports account for 100% of the containers that you are actively bringing to the cluster, but not those that come with the AKS service itself nor any of its add-ons or extensions. Those images, outside of your direct control, are all sourced from Microsoft Container Registry's (MCR). While you do not have an affordance to inject yourself in the middle of their distribution to your cluster, you can still pull those images through your inspection process for your own audit and reporting purposes. _All container images that you directly bring to the cluster should pass through your quarantine process._ The _allowed images_ Azure Policy associated with this cluster should be configured to match your specific needs. Be sure to update `allowedContainerImagesRegex` in [`cluster-stamp.json`](../../cluster-stamp.json) to define expected image sources to whatever specificity is manageable for you. Never allow a source that you do not intend to use. For example, if you do not bring Open Service Mesh into your cluster, you can remove the existing allowance for `mcr.microsoft.com` as a valid source of images, leaving just `<your acr instance>/live/` repositories as the only valid source for non-system namespaces.
@@ -118,8 +118,8 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source quarantine/falcosecurity/falcoctl:0.6.2 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falcoctl:0.6.2 -n $ACR_NAME && \
    az acr import --source quarantine/library/busybox:1.36.1 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.36.1 -n $ACR_NAME                                     && \
    az acr import --source quarantine/kubereboot/kured:1.14.0 -r $ACR_NAME_QUARANTINE -t live/kubereboot/kured:1.14.0 -n $ACR_NAME                                   && \
-   az acr import --source quarantine/ingress-nginx/controller:v1.6.4 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.6.4 -n $ACR_NAME                   && \
-   az acr import --source quarantine/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v20220916-gd32f8c343 -n $ACR_NAME
+   az acr import --source quarantine/ingress-nginx/controller:v1.9.0 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v1.9.0 -n $ACR_NAME                   && \
+   az acr import --source quarantine/ingress-nginx/kube-webhook-certgen:v20230407 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/kube-webhook-certgen:v20230407 -n $ACR_NAME
    ```
 
 1. Trigger quarantine violation. _Optional._
