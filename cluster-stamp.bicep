@@ -1023,14 +1023,14 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     agentPoolProfiles: [
       {
         name: 'npsystem'
-        count: 3
+        count: 2
         vmSize: 'Standard_DS2_v2'
         osDiskSizeGB: 80
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         osSKU: 'Ubuntu'
-        minCount: 3
-        maxCount: 4
+        minCount: 2
+        maxCount: 5
         vnetSubnetID: vnetSpoke::snetClusterSystemNodePools.id
         enableAutoScaling: true
         type: 'VirtualMachineScaleSets'
@@ -1039,7 +1039,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         scaleSetEvictionPolicy: 'Delete'
         orchestratorVersion: kubernetesVersion
         enableNodePublicIP: false
-        maxPods: 30
+        maxPods: 110
         availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
         upgradeSettings: {
           maxSurge: '33%'
@@ -1058,7 +1058,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       {
         name: 'npinscope01'
         count: 2
-        vmSize: 'Standard_DS3_v2'
+        vmSize: 'Standard_DS2_v2'
         osDiskSizeGB: 120
         osDiskType: 'Ephemeral'
         osType: 'Linux'
@@ -1073,7 +1073,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         scaleSetEvictionPolicy: 'Delete'
         orchestratorVersion: kubernetesVersion
         enableNodePublicIP: false
-        maxPods: 30
+        maxPods: 110
         availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
         upgradeSettings: {
           maxSurge: '33%'
@@ -1091,7 +1091,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       {
         name: 'npooscope01'
         count: 2
-        vmSize: 'Standard_DS3_v2'
+        vmSize: 'Standard_DS2_v2'
         osDiskSizeGB: 120
         osDiskType: 'Ephemeral'
         osType: 'Linux'
