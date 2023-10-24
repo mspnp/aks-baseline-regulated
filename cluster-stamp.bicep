@@ -1009,7 +1009,7 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
   }
 }
 
-resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
+resource mc 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
   name: clusterName
   location: location
   tags: {
@@ -1024,8 +1024,8 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       {
         name: 'npsystem'
         count: 2
-        vmSize: 'Standard_DS2_v2'
-        osDiskSizeGB: 80
+        vmSize: 'standard_a2_v2'
+        osDiskSizeGB: 20
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         osSKU: 'Ubuntu'
@@ -1058,8 +1058,8 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       {
         name: 'npinscope01'
         count: 2
-        vmSize: 'Standard_DS2_v2'
-        osDiskSizeGB: 120
+        vmSize: 'standard_a2_v2'
+        osDiskSizeGB: 20
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         osSKU: 'Ubuntu'
@@ -1091,8 +1091,8 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       {
         name: 'npooscope01'
         count: 2
-        vmSize: 'Standard_DS2_v2'
-        osDiskSizeGB: 120
+        vmSize: 'standard_a2_v2'
+        osDiskSizeGB: 20
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         minCount: 2
@@ -1232,8 +1232,8 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     }
   }
   sku: {
-    name: 'Basic'
-    tier: 'Paid'
+    name: 'Base'
+    tier: 'Standard'
   }
   dependsOn: [
     omsContainerInsights
