@@ -1025,7 +1025,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         name: 'npsystem'
         count: 2
         vmSize: 'standard_B2s'
-        osDiskSizeGB: 20
+        osDiskSizeGB: 30
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         osSKU: 'Ubuntu'
@@ -1059,7 +1059,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         name: 'npinscope01'
         count: 2
         vmSize: 'standard_B2s'
-        osDiskSizeGB: 20
+        osDiskSizeGB: 30
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         osSKU: 'Ubuntu'
@@ -1092,7 +1092,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         name: 'npooscope01'
         count: 2
         vmSize: 'standard_B2s'
-        osDiskSizeGB: 20
+        osDiskSizeGB: 30
         osDiskType: 'Ephemeral'
         osType: 'Linux'
         minCount: 2

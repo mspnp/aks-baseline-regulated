@@ -7,8 +7,8 @@ param environment string
 
 // AKS params
 param admingroupobjectid string
+param availabilityZoneCount int
 param kubernetesVersion string
-param nodePools array
 param podCidr string
 param serviceCidr string
 param dnsServiceIP string
@@ -58,26 +58,15 @@ module umi './bicep-modules/umi.bicep' = {
   }
 }
 
-// Set network contrib for umi
-module setRbac './bicep-modules/rbac.bicep' = {
-  name: 'setRbacDeploy'
-  scope: resourceGroup(vnetRgName)
-  params: {
-    name: resourceName
-    vnetName: vnetName
-  }
-  dependsOn: [
-    umi
-  ]
-}
-
-/*module la './bicep-modules/loganalytics.bicep' = if(deployAzDiagnostics) {
+/*
+module la './bicep-modules/loganalytics.bicep' = if(deployAzDiagnostics) {
   name: 'laDeploy'
   params: {
     name: resourceName
     location: location
   }
-}*/
+}
+*/
 
 module acr './bicep-modules/acr.bicep' = {
   name: 'acrDeploy'
@@ -86,7 +75,7 @@ module acr './bicep-modules/acr.bicep' = {
     name: resourceName
     location: location
     workspaceId: la.id
-    snetManagmentCrAgentsId:
+    snetManagmentCrAgentsId: resourceId()
     snetPrivateEndpointId:
   }
 
@@ -99,7 +88,7 @@ module akv './bicep-modules/akv.bicep' = {
     name: resourceName
     location: location
     workspaceId: la.id
-    snetPrivateEndpointId:
+    snetPrivateEndpointId: 
   }
 }
 
@@ -116,7 +105,19 @@ module aks './bicep-modules/aks.bicep' = {
     serviceCidr: serviceCidr
     dnsServiceIP: dnsServiceIP
     networkPlugin: networkPlugin
-    // privateDnsZoneId: 
     workspaceId: la.id
   }
+}
+
+// Set network contrib for umi
+module setRbac './bicep-modules/rbac.bicep' = {
+  name: 'setRbacDeploy'
+  scope: resourceGroup(vnetRgName)
+  params: {
+    name: resourceName
+    vnetName: vnetName
+  }
+  dependsOn: [
+    umi
+  ]
 }

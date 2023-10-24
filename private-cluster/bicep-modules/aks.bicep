@@ -8,7 +8,7 @@ param name string
 param location string
 param adminGroupObjectIDs string
 param kubernetesVersion string
-param nodePools array
+param agentPoolProfiles object = []
 param podCidr string
 param serviceCidr string
 param dnsServiceIP string
@@ -18,6 +18,8 @@ param workspaceId string
 // vars
 var managedIdentityOperatorDefId = 'f1a07417-d97a-45cb-824c-7a7467783830' // Managed Identity Operator
 var clusterName = 'aks-${name}'
+
+
 
 // Existing resources
 resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
@@ -42,7 +44,33 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
   properties: {
     kubernetesVersion: kubernetesVersion
     dnsPrefix: uniqueString(subscription().subscriptionId, resourceGroup().id, clusterName)
-    agentPoolProfiles: nodePools /*[
+    agentPoolProfiles: [
+      for agentPoolProfile in agentPoolProfiles {
+        name: agentPoolProfile.name
+        count: agentPoolProfile.count
+        vmSize: agentPoolProfile.vmSize
+        osDiskSizeGB: agentPoolProfile.osDiskSizeGB
+        osDiskType: agentPoolProfile.osDiskType
+        osType: agentPoolProfile.osType
+        minCount: agentPoolProfile.minCount
+        maxCount: agentPoolProfile.maxCount
+        vnetSubnetID: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetSpoke, agentPoolProfile.vnetSubnetName)
+        enableAutoScaling: agentPoolProfile.enableAutoScaling
+        type: agentPoolProfile.type
+        mode: agentPoolProfile.mode
+        scaleSetPriority: agentPoolProfile.scaleSetPriority
+        scaleSetEvictionPolicy: agentPoolProfile.scaleSetEvictionPolicy
+        orchestratorVersion: kubernetesVersion
+        enableNodePublicIP: agentPoolProfile.enableNodePublicIP
+        maxPods: agentPoolProfile.maxPods
+        availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, availabilityZones)
+        upgradeSettings: agentPoolProfile.upgradeSettings
+        nodeLabels: agentPoolProfile.nodeLabels
+        tags: agentPoolProfile.tags
+      }
+    ]
+ 
+    /*for nodePool in nodePools /*[
       {
         name: 'npsystem'
         count: 2

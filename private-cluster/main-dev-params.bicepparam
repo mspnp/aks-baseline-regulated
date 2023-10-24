@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param name = 'test'
+param name = 'dev'
 param location = 'northeurope'
 param environment = 'dev'
 param admingroupobjectid = ''
@@ -107,9 +107,9 @@ param nodePools = [
         }
       }
     ]
-param podCidr = ''
-param dnsServiceIP = ''
-param serviceCidr = ''
+param podCidr = '172.18.0.0/16'
+param dnsServiceIP = '172.16.0.10'
+param serviceCidr = '172.16.0.0/16'
 param workspaceName = '' //log-mgmt-swc-201
 param workspaceGroupName = '' //rg-log-mgmt-002
 param workspaceSubscriptionId = '' //shb-platform-management-201
