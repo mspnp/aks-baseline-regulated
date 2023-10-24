@@ -5,7 +5,7 @@ var containerInsights = {
   name: 'ContainerInsights(la-${name})'
   galleryName: 'ContainerInsights'
 }
-
+/*
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   name: 'la-${name}'
   location: location
@@ -18,6 +18,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12
     publicNetworkAccessForQuery: 'Enabled'
   }
 }
+*/
 
 // INSIGHTS
 

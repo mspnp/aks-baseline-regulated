@@ -4,32 +4,29 @@
 // az provider register -n microsoft.compute
 
 // params
-param location string
 param name string
-//param nodeResourceGroup string
-param podCidr string
-param dnsServiceIP string
-param serviceCidr string
+param location string
 param adminGroupObjectIDs string
-param networkPlugin string
 param kubernetesVersion string
 param nodePools array
+param podCidr string
+param serviceCidr string
+param dnsServiceIP string
+param networkPlugin string
+param workspaceId string
 
 // vars
 var managedIdentityOperatorDefId = 'f1a07417-d97a-45cb-824c-7a7467783830' // Managed Identity Operator
+var clusterName = 'aks-${name}'
 
 // Existing resources
 resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
   name: 'umi-${name}'
 }
 
-resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
-  name: 'la-${name}'
-}
-
 // AKS
 resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
-  name: 'aks-${name}'
+  name: clusterName
   location: location
   tags: {
     'Data classification': 'Confidential'
@@ -156,7 +153,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
       omsagent: {
         enabled: true
         config: {
-          logAnalyticsWorkspaceResourceId: la.id
+          logAnalyticsWorkspaceResourceId: workspaceId
           useAADAuth: 'true'
         }
       }
@@ -231,7 +228,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
     }
     apiServerAccessProfile: {
       enablePrivateCluster: true
-      privateDNSZone: pdzMc.id
+      privateDNSZone: 'none'
       enablePrivateClusterPublicFQDN: false
     }
     oidcIssuerProfile: {
@@ -249,7 +246,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
         enabled: true
       }
       defender: {
-        logAnalyticsWorkspaceResourceId: la.id
+        logAnalyticsWorkspaceResourceId: workspaceId
         securityMonitoring: {
           enabled: true
         }
@@ -282,7 +279,7 @@ resource aks_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
   scope: aks
   name: 'default'
   properties: {
-    workspaceId: la.id
+    workspaceId: workspaceId
     logs: [
       {
         category: 'cluster-autoscaler'
@@ -376,15 +373,15 @@ resource maNodeCpuUtilizationHighCI1 'Microsoft.Insights/metricAlerts@2018-03-01
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maNodeCpuUtilizationHighCI2 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -420,15 +417,15 @@ resource maNodeCpuUtilizationHighCI2 'Microsoft.Insights/metricAlerts@2018-03-01
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maJobsCompletedMoreThan6hAgoCI11 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -471,15 +468,15 @@ resource maJobsCompletedMoreThan6hAgoCI11 'Microsoft.Insights/metricAlerts@2018-
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT1M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maContainerCpuUtilizationHighCI9 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -522,15 +519,15 @@ resource maContainerCpuUtilizationHighCI9 'Microsoft.Insights/metricAlerts@2018-
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maContainerWorkingSetMemoryUsageHighCI10 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -573,15 +570,15 @@ resource maContainerWorkingSetMemoryUsageHighCI10 'Microsoft.Insights/metricAler
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maPodsInFailedStateCI4 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -617,15 +614,15 @@ resource maPodsInFailedStateCI4 'Microsoft.Insights/metricAlerts@2018-03-01' = {
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maDiskUsageHighCI5 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -668,15 +665,15 @@ resource maDiskUsageHighCI5 'Microsoft.Insights/metricAlerts@2018-03-01' = {
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maNodesInNotReadyStatusCI3 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -712,15 +709,15 @@ resource maNodesInNotReadyStatusCI3 'Microsoft.Insights/metricAlerts@2018-03-01'
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maContainersGettingOomKilledCI6 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -763,15 +760,15 @@ resource maContainersGettingOomKilledCI6 'Microsoft.Insights/metricAlerts@2018-0
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT1M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maPersistentVolumeUsageHighCI18 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -814,15 +811,15 @@ resource maPersistentVolumeUsageHighCI18 'Microsoft.Insights/metricAlerts@2018-0
     enabled: false
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maPodsNotInReadyStateCI8 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -865,15 +862,15 @@ resource maPodsNotInReadyStateCI8 'Microsoft.Insights/metricAlerts@2018-03-01' =
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'microsoft.containerservice/managedclusters'
     windowSize: 'PT5M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 
 resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-01' = {
@@ -916,14 +913,14 @@ resource maRestartingContainerCountCI7 'Microsoft.Insights/metricAlerts@2018-03-
     enabled: true
     evaluationFrequency: 'PT1M'
     scopes: [
-      mc.id
+      aks.id
     ]
     severity: 3
     targetResourceType: 'Microsoft.ContainerService/managedClusters'
     windowSize: 'PT1M'
   }
-  dependsOn: [
-    omsContainerInsights
-  ]
+//  dependsOn: [
+//    omsContainerInsights
+//  ]
 }
 

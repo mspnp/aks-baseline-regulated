@@ -1,7 +1,12 @@
 using 'main.bicep'
 
-var aksNodePools = {
-  agentPoolProfiles: [
+param name = 'test'
+param location = 'northeurope'
+param environment = 'prd'
+param admingroupobjectid = ''
+
+param kubernetesVersion = '1.26.6'
+param nodePools = [
       {
         name: 'npsystem'
         count: 2
@@ -101,12 +106,10 @@ var aksNodePools = {
           'Business criticality': 'Business unit-critical'
         }
       }
-    ]  
-}
-
-param resourceName
-param location
-param kubernetesVersion
-param aksNodepools = aksNodePools
-param vnetName
-param vnetRgName
+    ]
+param podCidr = ''
+param dnsServiceIP = ''
+param serviceCidr = ''
+param workspaceName = '' //log-mgmt-swc-201
+param workspaceGroupName = '' //rg-log-mgmt-002
+param workspaceSubscriptionId = '' //shb-platform-management-201

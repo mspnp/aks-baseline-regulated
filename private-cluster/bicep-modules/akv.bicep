@@ -1,16 +1,19 @@
 
 param name string
 param location string
+param workspaceId string
+param snetPrivateEndpointId string
 
 
 var akvRoleDefId = '4633458b-17de-408a-b874-0445c86b69e6' // Secrets user
+var akvName = 'akv-${name}'
 
 resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
   name: 'umi-${name}'
 }
 
 resource akv 'Microsoft.KeyVault/vaults@2022-07-01' = {
-  name : 'akv-${name}'
+  name : akvName
   location : location
   properties: {
     accessPolicies: [] // Azure RBAC is used instead
@@ -41,7 +44,7 @@ resource akv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
   scope: akv
   name: 'default'
   properties: {
-    workspaceId: la.id
+    workspaceId: workspaceId
     logs: [
       {
         category: 'AuditEvent'
@@ -86,10 +89,9 @@ module pe 'privateendpoint.bicep' = {
   params: {
     name: name
     location: location
-    subnetId: 
+    subnetId: snetPrivateEndpointId
     groupId: 'vault'
     destinationId: akv.id
-    privateDnsZoneName: 
   }
 }
 

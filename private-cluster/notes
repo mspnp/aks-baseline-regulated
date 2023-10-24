@@ -1,0 +1,2 @@
+for bootstraping cluster there are several options:
+1. .sh script running in bicep Maks deployment creating argocd, nginx ingress controller.

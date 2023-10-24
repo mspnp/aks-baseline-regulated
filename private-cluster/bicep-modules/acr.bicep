@@ -1,22 +1,21 @@
 param name string
 param location string = resourceGroup().location
+param workspaceId string
+param snetManagmentCrAgentsId string
+param snetPrivateEndpointId string
 
 // Vars
 var acrRoleDefId = '7f951dda-4ed3-4680-a7ca-43fe172d538d' // Acr Pull
-
+var acrName = replace('acr${name}','-','')
 
 // Existing resources
 resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
   name: 'umi-${name}'
 }
 
-resource la 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' existing = {
-  name: 'la-${name}'
-}
-
 // ACR
 resource acr 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' = {
-  name:replace('acr${name}','-','')
+  name: acrName
   location:location
   sku:{
     name:'Premium'
@@ -61,7 +60,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' = {
       count: 1
       os: 'Linux'
       tier: 'S1'
-      virtualNetworkSubnetResourceId: vnetSpoke::snetManagmentCrAgents.id
+      virtualNetworkSubnetResourceId: snetManagmentCrAgentsId
     }
   }
 }
@@ -98,11 +97,9 @@ module pe 'privateendpoint.bicep' = {
   params: {
     name: name
     location: location
-    subnetId: 
+    subnetId: snetPrivateEndpointId
     groupId: 'registry'
     destinationId: acr.id
-    privateDnsZoneName: 
-
   }
 }
 
@@ -111,7 +108,7 @@ resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   scope: acr
   name: 'default'
   properties: {
-    workspaceId: la.id
+    workspaceId: workspaceId
     metrics: [
       {
         timeGrain: 'PT1M'

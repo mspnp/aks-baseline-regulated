@@ -1,25 +1,57 @@
+targetScope = 'subscription'
+
 // params
 param name string
-param env string
-param location string = resourceGroup().location
+param location string
+param environment string
+
+// AKS params
 param admingroupobjectid string
-param vnetRgName string
+param kubernetesVersion string
+param nodePools array
+param podCidr string
+param serviceCidr string
+param dnsServiceIP string
+param networkPlugin string
+
+// VNET params
 param vnetName string
-param kubernetesVersion string = '1.26'
-param aksNodepools array
+param vnetRgName string
 
-//param env string
-
+// Log Analytics params
+param workspaceName string
+param workspaceGroupName string
+param workspaceSubscriptionId string
 
 // Step-by-step params
 param deployAzDiagnostics bool
 
 // Variables
-var resourceName = '${name}-${env}'
+var resourceName = '${name}-${environment}'
+
+// Existing resources
+resource la 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+  name: workspaceName
+  scope: resourceGroup(workspaceSubscriptionId, workspaceGroupName)
+}
+
+resource vnet 'Microsoft.ScVmm/virtualNetworks@2023-04-01-preview' existing = {
+  name: vnetName
+  scope: resourceGroup(vnetRgName)
+}
 
 // Modules
+module rg './bicep-modules/rg.bicep' = {
+  name: 'rgDeploy'
+  params: {
+    location: location
+    name: resourceName
+  }
+}
+
 module umi './bicep-modules/umi.bicep' = {
   name: 'umiDeploy'
+  scope: resourceGroup(rg.name)
   params: {
     name: resourceName
     location: location
@@ -29,63 +61,62 @@ module umi './bicep-modules/umi.bicep' = {
 // Set network contrib for umi
 module setRbac './bicep-modules/rbac.bicep' = {
   name: 'setRbacDeploy'
-  scope:resourceGroup(vnetRgName)
+  scope: resourceGroup(vnetRgName)
   params: {
     name: resourceName
     vnetName: vnetName
-    rgName: resourceGroup().name
   }
   dependsOn: [
     umi
   ]
 }
 
-module la './bicep-modules/loganalytics.bicep' = if(deployAzDiagnostics) {
+/*module la './bicep-modules/loganalytics.bicep' = if(deployAzDiagnostics) {
   name: 'laDeploy'
   params: {
     name: resourceName
     location: location
   }
-}
+}*/
 
 module acr './bicep-modules/acr.bicep' = {
   name: 'acrDeploy'
-  dependsOn: [
-    la
-  ]
+  scope: resourceGroup(rg.name)
   params: {
     name: resourceName
     location: location
+    workspaceId: la.id
+    snetManagmentCrAgentsId:
+    snetPrivateEndpointId:
   }
+
 }
 
 module akv './bicep-modules/akv.bicep' = {
   name: 'akvDeploy'
-  dependsOn: [
-    la
-  ]
+  scope: resourceGroup(rg.name)
   params: {
     name: resourceName
     location: location
+    workspaceId: la.id
+    snetPrivateEndpointId:
   }
 }
 
 module aks './bicep-modules/aks.bicep' = {
   name: 'aksDeploy'
-  dependsOn: [
-    la
-  ]
+  scope: resourceGroup(rg.name)
   params: {
     name: resourceName
     location: location
-    nodePools: aksNodepools
     adminGroupObjectIDs: admingroupobjectid
-    dnsServiceIP: 
     kubernetesVersion: kubernetesVersion
-    networkPlugin: 
-    nodeResourceGroup: 
-    podCidr: 
-    privateDnsZoneId: 
-    serviceCidr: 
+    nodePools: nodePools
+    podCidr: podCidr
+    serviceCidr: serviceCidr
+    dnsServiceIP: dnsServiceIP
+    networkPlugin: networkPlugin
+    // privateDnsZoneId: 
+    workspaceId: la.id
   }
 }

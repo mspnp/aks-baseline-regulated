@@ -2,14 +2,14 @@ param name string
 param location string
 param subnetId string
 param destinationId string
-@allowed(
+/*@allowed(
   [
   'privatelink.azurecr.io'
   'privatelink.vaultcore.azure.net'
   'privatelink.blob.core.windows.net'
   ]
 )
-param privateDnsZoneName string
+param privateDnsZoneName string*/
 @allowed(
   [
   'registry'
@@ -20,10 +20,9 @@ param privateDnsZoneName string
 param groupId string
 var privateEndpointName = 'pe-${name}'
 
-resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+/*resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: privateDnsZoneName
-}
-
+}*/
 
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2022-05-01' = {
   name: privateEndpointName
@@ -45,7 +44,7 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2022-05-01' = {
     ]
   }
 }
-
+/*
 resource peEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-05-01' = {
   name: '${privateEndpointName}/dnsgroup'
   properties: {
@@ -61,4 +60,4 @@ resource peEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
   dependsOn: [
     privateEndpoint
   ]
-}
+}*/
