@@ -4,10 +4,13 @@ param name = 'prd'
 param location = 'northeurope'
 param environment = 'prd'
 param admingroupobjectid = ''
-param systemNodePoolSubnetName string
-param availabilityZoneCount int
+param snetPrivateEndpointName = 'snetPrivateEndpointName'
+param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
+param vnetName = 'clickops-vnet'
+param vnetRgName = 'clickops-vnet'
 
-var nodePools = [
+param kubernetesVersion = '1.26.6'
+param nodePools = [
   {
     name: 'npsystem'
     count: 2
@@ -18,16 +21,15 @@ var nodePools = [
     osSKU: 'Ubuntu'
     minCount: 2
     maxCount: 5
-    vnetSubnetID: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetSpoke, 'snetClusterSystemNodePools')
+    vnetSubnetName: 'snetClusterSystemNodePools'
     enableAutoScaling: true
     type: 'VirtualMachineScaleSets'
     mode: 'System'
     scaleSetPriority: 'Regular'
     scaleSetEvictionPolicy: 'Delete'
-    orchestratorVersion: kubernetesVersion
     enableNodePublicIP: false
     maxPods: 110
-    availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, availabilityZoneCount)
+    availabilityZones: '1,2,3'
     upgradeSettings: {
       maxSurge: '33%'
     }
@@ -35,6 +37,9 @@ var nodePools = [
     // nodeTaints: [
     //   'CriticalAddonsOnly=true:NoSchedule'
     // ]
+    nodeLabels: {
+      'pci-scope': 'in-scope'
+    }
     tags: {
       'pci-scope': 'out-of-scope'
       'Data classification': 'Confidential'
@@ -52,16 +57,15 @@ var nodePools = [
     osSKU: 'Ubuntu'
     minCount: 2
     maxCount: 5
-    vnetSubnetID: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetSpoke, 'snetClusterInScopeNodePools')
+    vnetSubnetName: 'snetClusterInScopeNodePools'
     enableAutoScaling: true
     type: 'VirtualMachineScaleSets'
     mode: 'User'
     scaleSetPriority: 'Regular'
     scaleSetEvictionPolicy: 'Delete'
-    orchestratorVersion: kubernetesVersion
     enableNodePublicIP: false
     maxPods: 110
-    availabilityZones: pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, availabilityZoneCount)
+    availabilityZones: '1,2,3'
     upgradeSettings: {
       maxSurge: '33%'
     }
@@ -84,16 +88,15 @@ var nodePools = [
     osType: 'Linux'
     minCount: 2
     maxCount: 5
-    vnetSubnetID: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetSpoke, 'snetClusterOutScopeNodePools')
+    vnetSubnetName: 'snetClusterOutScopeNodePools'
     enableAutoScaling: true
     type: 'VirtualMachineScaleSets'
     mode: 'User'
     scaleSetPriority: 'Regular'
     scaleSetEvictionPolicy: 'Delete'
-    orchestratorVersion: kubernetesVersion
     enableNodePublicIP: false
     maxPods: 30
-    availabilityZones: availabilityZones //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
+    availabilityZones: '1,2,3' //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
     upgradeSettings: {
       maxSurge: '33%'
     }
@@ -109,11 +112,11 @@ var nodePools = [
   }
 ]
 
-param kubernetesVersion = '1.26.6'
-param nodePools = nodePools
-param podCidr = ''
-param dnsServiceIP = ''
-param serviceCidr = ''
+
+param podCidr = '172.18.0.0/16'
+param dnsServiceIP = '172.16.0.10'
+param serviceCidr = '172.16.0.0/16'
+param networkPlugin = 'kubenet'
 param workspaceName = '' //log-mgmt-swc-201
 param workspaceGroupName = '' //rg-log-mgmt-002
 param workspaceSubscriptionId = '' //shb-platform-management-201

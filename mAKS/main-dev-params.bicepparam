@@ -1,0 +1,122 @@
+using 'main.bicep'
+
+param name = 'test'
+param location = 'northeurope'
+param environment = 'dev'
+param admingroupobjectid = ''
+param snetPrivateEndpointName = 'snetPrivateEndpointName'
+param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
+param vnetName = 'clickops-vnet'
+param vnetRgName = 'clickops-vnet'
+
+param kubernetesVersion = '1.26.6'
+param nodePools = [
+  {
+    name: 'npsystem'
+    count: 2
+    vmSize: 'Standard_DS2_v2'
+    osDiskSizeGB: 80
+    osDiskType: 'Ephemeral'
+    osType: 'Linux'
+    osSKU: 'Ubuntu'
+    minCount: 2
+    maxCount: 5
+    vnetSubnetName: 'snetClusterSystemNodePools'
+    enableAutoScaling: true
+    type: 'VirtualMachineScaleSets'
+    mode: 'System'
+    scaleSetPriority: 'Regular'
+    scaleSetEvictionPolicy: 'Delete'
+    enableNodePublicIP: false
+    maxPods: 110
+    availabilityZones: '1,2,3'
+    upgradeSettings: {
+      maxSurge: '33%'
+    }
+    // This can be used to prevent unexpected workloads from landing on system node pool. All add-ons support this taint.
+    // nodeTaints: [
+    //   'CriticalAddonsOnly=true:NoSchedule'
+    // ]
+    nodeLabels: {
+      'pci-scope': 'in-scope'
+    }
+    tags: {
+      'pci-scope': 'out-of-scope'
+      'Data classification': 'Confidential'
+      'Business unit': 'X0001'
+      'Business criticality': 'Business unit-critical'
+    }
+  }
+  {
+    name: 'npinscope01'
+    count: 2
+    vmSize: 'Standard_DS2_v2'
+    osDiskSizeGB: 120
+    osDiskType: 'Ephemeral'
+    osType: 'Linux'
+    osSKU: 'Ubuntu'
+    minCount: 2
+    maxCount: 5
+    vnetSubnetName: 'snetClusterInScopeNodePools'
+    enableAutoScaling: true
+    type: 'VirtualMachineScaleSets'
+    mode: 'User'
+    scaleSetPriority: 'Regular'
+    scaleSetEvictionPolicy: 'Delete'
+    enableNodePublicIP: false
+    maxPods: 110
+    availabilityZones: '1,2,3'
+    upgradeSettings: {
+      maxSurge: '33%'
+    }
+    nodeLabels: {
+      'pci-scope': 'in-scope'
+    }
+    tags: {
+      'pci-scope': 'in-scope'
+      'Data classification': 'Confidential'
+      'Business unit': 'X0001'
+      'Business criticality': 'Business unit-critical'
+    }
+  }
+  {
+    name: 'npooscope01'
+    count: 2
+    vmSize: 'Standard_DS2_v2'
+    osDiskSizeGB: 120
+    osDiskType: 'Ephemeral'
+    osType: 'Linux'
+    minCount: 2
+    maxCount: 5
+    vnetSubnetName: 'snetClusterOutScopeNodePools'
+    enableAutoScaling: true
+    type: 'VirtualMachineScaleSets'
+    mode: 'User'
+    scaleSetPriority: 'Regular'
+    scaleSetEvictionPolicy: 'Delete'
+    enableNodePublicIP: false
+    maxPods: 30
+    availabilityZones: '1,2,3' //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
+    upgradeSettings: {
+      maxSurge: '33%'
+    }
+    nodeLabels: {
+      'pci-scope': 'out-of-scope'
+    }
+    tags: {
+      'pci-scope': 'out-of-scope'
+      'Data classification': 'Confidential'
+      'Business unit': 'X0001'
+      'Business criticality': 'Business unit-critical'
+    }
+  }
+]
+
+
+param podCidr = '172.18.0.0/16'
+param dnsServiceIP = '172.16.0.10'
+param serviceCidr = '172.16.0.0/16'
+param networkPlugin = 'kubenet'
+param workspaceName = '' //log-mgmt-swc-201
+param workspaceGroupName = '' //rg-log-mgmt-002
+param workspaceSubscriptionId = '' //shb-platform-management-201
