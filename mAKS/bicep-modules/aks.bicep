@@ -7,7 +7,6 @@
 param name string
 param location string
 param adminGroupObjectIDs string
-//param availabilityZoneCount int
 param agentPoolProfiles array
 param kubernetesVersion string
 param podCidr string
@@ -17,6 +16,7 @@ param networkPlugin string
 param vnetName string
 param vnetRgName string
 param workspaceId string
+param deployAzDiagnostics bool
 
 // vars
 var managedIdentityOperatorDefId = 'f1a07417-d97a-45cb-824c-7a7467783830' // Managed Identity Operator
@@ -82,7 +82,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
       omsagent: {
         enabled: true
         config: {
-          logAnalyticsWorkspaceResourceId: workspaceId
+          logAnalyticsWorkspaceResourceId: deployAzDiagnostics ? workspaceId : '' 
           useAADAuth: 'true'
         }
       }
@@ -165,7 +165,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         enabled: true
       }
       defender: {
-        logAnalyticsWorkspaceResourceId: workspaceId
+        logAnalyticsWorkspaceResourceId: deployAzDiagnostics ? workspaceId : null // logAnalyticsWorkspaceResourceId: ((!empty(deployAzDiagnostics)) ? workspaceId : null) //workspaceId
         securityMonitoring: {
           enabled: true
         }
@@ -191,7 +191,7 @@ resource miOperatorRbac 'Microsoft.Authorization/roleAssignments@2020-04-01-prev
 
 // Diagnostics
 
-resource aks_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+resource aks_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (deployAzDiagnostics) {
   scope: aks
   name: 'default'
   properties: {

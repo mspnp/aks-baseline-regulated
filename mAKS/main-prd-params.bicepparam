@@ -1,13 +1,14 @@
 using 'main.bicep'
 
-param name = 'prd'
+param name = 'test'
 param location = 'northeurope'
 param environment = 'prd'
-param admingroupobjectid = ''
+param admingroupobjectid = '56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b'
 param snetPrivateEndpointName = 'snetPrivateEndpointName'
 param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
 param vnetName = 'clickops-vnet'
 param vnetRgName = 'clickops-vnet'
+param deployAzDiagnostics = false
 
 param kubernetesVersion = '1.26.6'
 param nodePools = [

@@ -1,8 +1,9 @@
-
+// params
 param name string
 param location string
 param workspaceId string
 param snetPrivateEndpointId string
+param deployAzDiagnostics bool
 
 
 var akvRoleDefId = '4633458b-17de-408a-b874-0445c86b69e6' // Secrets user
@@ -40,7 +41,7 @@ resource akv 'Microsoft.KeyVault/vaults@2022-07-01' = {
 
 // Diagnostics
 
-resource akv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+resource akv_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (deployAzDiagnostics) {
   scope: akv
   name: 'default'
   properties: {

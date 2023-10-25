@@ -7,7 +7,6 @@ param environment string
 
 // AKS params
 param admingroupobjectid string
-//param availabilityZoneCount int
 param kubernetesVersion string
 param nodePools array
 param podCidr string
@@ -27,36 +26,25 @@ param workspaceGroupName string
 param workspaceSubscriptionId string
 
 // Step-by-step params
-//param deployAzDiagnostics bool
+param deployAzDiagnostics bool
 
 // Variables
 var resourceName = '${name}-${environment}'
 
 // Existing resources
-resource la 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource la 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = if (deployAzDiagnostics) {
   name: workspaceName
   scope: resourceGroup(workspaceSubscriptionId, workspaceGroupName)
 }
 
-resource vnet 'Microsoft.ScVmm/virtualNetworks@2023-04-01-preview' existing = {
-  name: vnetName
-  scope: resourceGroup(vnetRgName)
-}
+// Resource group
 
-// Modules
-/*module rg './bicep-modules/rg.bicep' = {
-  name: 'rgDeploy'
-  params: {
-    name: resourceName
-    location: location
-  }
-}*/
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'rg-${resourceName}'
   location: location
-//  managedBy: managedBy
 }
 
+// Modules
 
 module umi './bicep-modules/umi.bicep' = {
   name: 'umiDeploy'
@@ -76,6 +64,7 @@ module acr './bicep-modules/acr.bicep' = {
     workspaceId: la.id
     snetManagmentCrAgentsId: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
     snetPrivateEndpointId: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
+    deployAzDiagnostics: deployAzDiagnostics
   }
 }
 
@@ -87,6 +76,7 @@ module akv './bicep-modules/akv.bicep' = {
     location: location
     workspaceId: la.id
     snetPrivateEndpointId: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
+    deployAzDiagnostics: deployAzDiagnostics
   }
 }
 
@@ -106,10 +96,12 @@ module aks './bicep-modules/aks.bicep' = {
     vnetName: vnetName
     vnetRgName: vnetRgName
     workspaceId: la.id
+    deployAzDiagnostics: deployAzDiagnostics
   }
 }
 
-// Set network contrib for umi
+// RBAC
+
 module setRbac './bicep-modules/rbac.bicep' = {
   name: 'setRbacDeploy'
   scope: resourceGroup(vnetRgName)

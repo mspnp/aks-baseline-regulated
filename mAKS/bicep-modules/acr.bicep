@@ -1,8 +1,10 @@
+// params
 param name string
 param location string = resourceGroup().location
 param workspaceId string
 param snetManagmentCrAgentsId string
 param snetPrivateEndpointId string
+param deployAzDiagnostics bool
 
 // Vars
 var acrRoleDefId = '7f951dda-4ed3-4680-a7ca-43fe172d538d' // Acr Pull
@@ -104,7 +106,7 @@ module pe 'privateendpoint.bicep' = {
 }
 
 // Diagnostics
-resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+resource cr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (deployAzDiagnostics) {
   scope: acr
   name: 'default'
   properties: {

@@ -3,11 +3,12 @@ using 'main.bicep'
 param name = 'test'
 param location = 'northeurope'
 param environment = 'dev'
-param admingroupobjectid = ''
+param admingroupobjectid = '56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b'
 param snetPrivateEndpointName = 'snetPrivateEndpointName'
 param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
 param vnetName = 'clickops-vnet'
 param vnetRgName = 'clickops-vnet'
+param deployAzDiagnostics = false
 
 param kubernetesVersion = '1.26.6'
 param nodePools = [
