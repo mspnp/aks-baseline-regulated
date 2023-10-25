@@ -6,7 +6,7 @@
 // params
 param name string
 param location string
-param adminGroupObjectIDs string
+param adminGroupObjectIDs string[]
 param agentPoolProfiles array
 param kubernetesVersion string
 param podCidr string
@@ -25,7 +25,7 @@ var clusterName = 'aks-${name}'
 
 
 // Existing resources
-resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: 'umi-${name}'
 }
 
@@ -82,7 +82,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
       omsagent: {
         enabled: true
         config: {
-          logAnalyticsWorkspaceResourceId: deployAzDiagnostics ? workspaceId : '' 
+          logAnalyticsWorkspaceResourceId: workspaceId 
           useAADAuth: 'true'
         }
       }
@@ -165,7 +165,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         enabled: true
       }
       defender: {
-        logAnalyticsWorkspaceResourceId: deployAzDiagnostics ? workspaceId : null // logAnalyticsWorkspaceResourceId: ((!empty(deployAzDiagnostics)) ? workspaceId : null) //workspaceId
+        logAnalyticsWorkspaceResourceId: workspaceId // logAnalyticsWorkspaceResourceId: ((!empty(deployAzDiagnostics)) ? workspaceId : null) //workspaceId
         securityMonitoring: {
           enabled: true
         }

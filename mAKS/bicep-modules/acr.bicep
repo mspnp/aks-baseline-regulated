@@ -11,7 +11,7 @@ var acrRoleDefId = '7f951dda-4ed3-4680-a7ca-43fe172d538d' // Acr Pull
 var acrName = replace('acr${name}','-','')
 
 // Existing resources
-resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: 'umi-${name}'
 }
 

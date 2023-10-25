@@ -1,9 +1,9 @@
 using 'main.bicep'
 
-param name = 'test'
+param name = 'shbgereo1'
 param location = 'northeurope'
 param environment = 'dev'
-param admingroupobjectid = '56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b'
+param adminGroupObjectIDs = ['56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b']
 param snetPrivateEndpointName = 'snetPrivateEndpointName'
 param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
 param vnetName = 'clickops-vnet'
@@ -15,8 +15,8 @@ param nodePools = [
   {
     name: 'npsystem'
     count: 2
-    vmSize: 'Standard_DS2_v2'
-    osDiskSizeGB: 80
+    vmSize: 'Standard_B2s'
+    osDiskSizeGB: 30
     osDiskType: 'Ephemeral'
     osType: 'Linux'
     osSKU: 'Ubuntu'
@@ -51,8 +51,8 @@ param nodePools = [
   {
     name: 'npinscope01'
     count: 2
-    vmSize: 'Standard_DS2_v2'
-    osDiskSizeGB: 120
+    vmSize: 'Standard_B2s'
+    osDiskSizeGB: 30
     osDiskType: 'Ephemeral'
     osType: 'Linux'
     osSKU: 'Ubuntu'
@@ -83,8 +83,8 @@ param nodePools = [
   {
     name: 'npooscope01'
     count: 2
-    vmSize: 'Standard_DS2_v2'
-    osDiskSizeGB: 120
+    vmSize: 'Standard_B2s'
+    osDiskSizeGB: 30
     osDiskType: 'Ephemeral'
     osType: 'Linux'
     minCount: 2

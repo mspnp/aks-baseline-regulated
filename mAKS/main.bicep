@@ -6,7 +6,7 @@ param location string
 param environment string
 
 // AKS params
-param admingroupobjectid string
+param adminGroupObjectIDs string[]
 param kubernetesVersion string
 param nodePools array
 param podCidr string
@@ -32,10 +32,10 @@ param deployAzDiagnostics bool
 var resourceName = '${name}-${environment}'
 
 // Existing resources
-resource la 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = if (deployAzDiagnostics) {
+/*resource la 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = if (deployAzDiagnostics) {
   name: workspaceName
   scope: resourceGroup(workspaceSubscriptionId, workspaceGroupName)
-}
+}*/
 
 // Resource group
 
@@ -61,11 +61,14 @@ module acr './bicep-modules/acr.bicep' = {
   params: {
     name: resourceName
     location: location
-    workspaceId: la.id
-    snetManagmentCrAgentsId: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
-    snetPrivateEndpointId: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
+    workspaceId: ''//deployAzDiagnostics ? la.id : '' 
+    snetManagmentCrAgentsId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
+    snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
   }
+  dependsOn: [
+    umi
+  ]
 }
 
 module akv './bicep-modules/akv.bicep' = {
@@ -74,10 +77,13 @@ module akv './bicep-modules/akv.bicep' = {
   params: {
     name: resourceName
     location: location
-    workspaceId: la.id
-    snetPrivateEndpointId: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
+    workspaceId: ''// deployAzDiagnostics ? la.id : ''
+    snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
   }
+  dependsOn: [
+    umi
+  ]
 }
 
 module aks './bicep-modules/aks.bicep' = {
@@ -86,7 +92,7 @@ module aks './bicep-modules/aks.bicep' = {
   params: {
     name: resourceName
     location: location
-    adminGroupObjectIDs: admingroupobjectid
+    adminGroupObjectIDs: adminGroupObjectIDs
     kubernetesVersion: kubernetesVersion
     agentPoolProfiles: nodePools
     podCidr: podCidr
@@ -95,7 +101,7 @@ module aks './bicep-modules/aks.bicep' = {
     networkPlugin: networkPlugin
     vnetName: vnetName
     vnetRgName: vnetRgName
-    workspaceId: la.id
+    workspaceId: ''//deployAzDiagnostics ? la.id : ''
     deployAzDiagnostics: deployAzDiagnostics
   }
 }
