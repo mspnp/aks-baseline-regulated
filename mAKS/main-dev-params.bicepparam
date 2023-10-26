@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param name = 'sgere1'
+param name = 'sger4'
 param location = 'northeurope'
 param environment = 'dev'
 param adminGroupObjectIDs = ['56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b']
@@ -30,7 +30,7 @@ param nodePools = [
     scaleSetEvictionPolicy: 'Delete'
     enableNodePublicIP: false
     maxPods: 110
-    availabilityZones: '1,2,3'
+    availabilityZones: ['1','2','3']
     upgradeSettings: {
       maxSurge: '33%'
     }
@@ -66,7 +66,7 @@ param nodePools = [
     scaleSetEvictionPolicy: 'Delete'
     enableNodePublicIP: false
     maxPods: 110
-    availabilityZones: '1,2,3'
+    availabilityZones: ['1','2','3']
     upgradeSettings: {
       maxSurge: '33%'
     }
@@ -97,7 +97,7 @@ param nodePools = [
     scaleSetEvictionPolicy: 'Delete'
     enableNodePublicIP: false
     maxPods: 30
-    availabilityZones: '1,2,3' //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
+    availabilityZones: ['1','2','3'] //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, 3)
     upgradeSettings: {
       maxSurge: '33%'
     }
@@ -113,7 +113,7 @@ param nodePools = [
   }
 ]
 param networkProfile = {
-  networkPlugin: 'kubenet'
+  networkPlugin: 'azure'
   loadBalancerSku: 'standard'
   dnsServiceIP: '172.16.0.10'
   serviceCidr: '172.16.0.0/16'

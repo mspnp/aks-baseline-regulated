@@ -10,10 +10,6 @@ param adminGroupObjectIDs string[]
 param agentPoolProfiles array
 param kubernetesVersion string
 param privateDNSZoneId string
-// param podCidr string
-// param serviceCidr string
-// param dnsServiceIP string
-// param networkPlugin string
 param networkProfile object
 param vnetName string
 param vnetRgName string
@@ -50,26 +46,26 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
     agentPoolProfiles: [
       for agentPoolProfile in agentPoolProfiles: {
         name: agentPoolProfile.name
-        count: agentPoolProfile.count
-        vmSize: agentPoolProfile.vmSize
-        osDiskSizeGB: agentPoolProfile.osDiskSizeGB
-        osDiskType: agentPoolProfile.osDiskType
-        osType: agentPoolProfile.osType
-        minCount: agentPoolProfile.minCount
-        maxCount: agentPoolProfile.maxCount
+        count: contains(agentPoolProfile, 'count') ? agentPoolProfile.count : 1 //pickNodeCount('Microsoft.Compute', 'virtualMachineScaleSets', location, agentPoolProfile.vmSize, agentPoolProfile
+        vmSize: contains(agentPoolProfile, 'vmSize') ? agentPoolProfile.vmSize : 'Standard_B2s'
+        osDiskSizeGB: contains(agentPoolProfile, 'osDiskSizeGB') ? agentPoolProfile.osDiskSizeGB : 30
+        osDiskType: contains(agentPoolProfile, 'osDiskType') ? agentPoolProfile.osDiskType : 'Ephermal'
+        osType: contains(agentPoolProfile, 'osType') ? agentPoolProfile.osType : 'Linux'
+        minCount: contains(agentPoolProfile, 'minCount') ? agentPoolProfile.minCount : 1
+        maxCount: contains(agentPoolProfile, 'maxCount') ? agentPoolProfile.maxCount : 3
         vnetSubnetID: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, agentPoolProfile.vnetSubnetName)
-        enableAutoScaling: agentPoolProfile.enableAutoScaling
-        type: agentPoolProfile.type
-        mode: agentPoolProfile.mode
-        scaleSetPriority: agentPoolProfile.scaleSetPriority
-        scaleSetEvictionPolicy: agentPoolProfile.scaleSetEvictionPolicy
-        orchestratorVersion: kubernetesVersion
-        enableNodePublicIP: agentPoolProfile.enableNodePublicIP
-        maxPods: agentPoolProfile.maxPods
-        availabilityZones: agentPoolProfile.availabilityZones //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, availabilityZoneCount)
-        upgradeSettings: agentPoolProfile.upgradeSettings
-        nodeLabels: agentPoolProfile.nodeLabels
-        tags: agentPoolProfile.tags
+        enableAutoScaling: contains(agentPoolProfile, 'enableAutoScaling') ? agentPoolProfile.enableAutoScaling : true
+        type: contains(agentPoolProfile, 'type') ? agentPoolProfile.type : 'VirtualMachineScaleSets'
+        mode: contains(agentPoolProfile, 'mode') ? agentPoolProfile.mode : 'System'
+        scaleSetPriority: contains(agentPoolProfile, 'scaleSetPriority') ? agentPoolProfile.scaleSetPriority : 'Regular'
+        scaleSetEvictionPolicy: contains(agentPoolProfile, 'scaleSetEvictionPolicy') ? agentPoolProfile.scaleSetEvictionPolicy : 'Delete'
+        orchestratorVersion: kubernetesVersion //change this??
+        enableNodePublicIP: contains(agentPoolProfile, 'enableNodePublicIP') ? agentPoolProfile.enableNodePublicIP : false
+        maxPods: contains(agentPoolProfile, 'maxPods') ? agentPoolProfile.maxPods : 110
+        availabilityZones: contains(agentPoolProfile, 'availabilityZones') ? agentPoolProfile.availabilityZones : [] //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, availabilityZoneCount)
+        upgradeSettings: contains(agentPoolProfile, 'upgradeSettings') ? agentPoolProfile.upgradeSettings : {}
+        nodeLabels: contains(agentPoolProfile, 'nodeLabels') ? agentPoolProfile.nodeLabels : {}
+        tags: contains(agentPoolProfile, 'tags') ? agentPoolProfile.tags : {}
       }
     ]
     servicePrincipalProfile: {
@@ -79,13 +75,13 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
       httpApplicationRouting: {
         enabled: false
       }
-      omsagent: {
+      omsagent: deployAzDiagnostics ? {
         enabled: true
-        config: deployAzDiagnostics ? {
+        config: {
           logAnalyticsWorkspaceResourceId: workspaceId
           useAADAuth: 'true'
-      } : {}
-      }
+        } 
+      }: {}
       aciConnectorLinux: {
         enabled: false
       }

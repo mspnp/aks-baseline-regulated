@@ -64,6 +64,19 @@ module umi './bicep-modules/umi.bicep' = {
   }
 }
 
+module dnsZone './bicep-modules/privatednszone.bicep' = {
+  name: 'dnsZoneDeploy'
+  scope: resourceGroup(rg.name)
+  params: {
+    name: resourceName
+    privateDnsZoneName: 'privatelink.${location}.azmk8s.io'
+    vnetId: vnet.id
+  }
+  dependsOn: [
+    umi
+  ]
+}
+
 module acr './bicep-modules/acr.bicep' = {
   name: 'acrDeploy'
   scope: resourceGroup(rg.name)
@@ -106,12 +119,8 @@ module aks './bicep-modules/aks.bicep' = {
     adminGroupObjectIDs: adminGroupObjectIDs
     kubernetesVersion: kubernetesVersion
     agentPoolProfiles: nodePools
-    // podCidr: podCidr
-    // serviceCidr: serviceCidr
-    // dnsServiceIP: dnsServiceIP
-    // networkPlugin: networkPlugin
     networkProfile: networkProfile
-    privateDNSZoneId: privateDNSZoneId
+    privateDNSZoneId: dnsZone.outputs.privateDNSZoneId //privateDNSZoneId
     vnetName: vnetName
     vnetRgName: vnetRgName
     workspaceId: ''//deployAzDiagnostics ? la.id : ''
