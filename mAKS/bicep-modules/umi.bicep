@@ -6,7 +6,3 @@ resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-previe
   name: 'umi-${name}'
   location: location
 }
-
-output id string = umi.id
-output name string = umi.name
-output principalId string = umi.properties.principalId

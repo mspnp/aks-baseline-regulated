@@ -4,11 +4,15 @@ param location string
 param workspaceId string
 param snetPrivateEndpointId string
 param deployAzDiagnostics bool
-param umi object
 
 
 var akvRoleDefId = '4633458b-17de-408a-b874-0445c86b69e6' // Secrets user
 var akvName = 'akv-${name}'
+
+// Existing resources
+resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'umi-${name}'
+}
 
 resource akv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name : akvName
@@ -97,10 +101,10 @@ module pe 'privateendpoint.bicep' = {
 
 resource setAkvRbac 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   scope: akv
-  name: 'rbacDeploy-${akv.name}' //guid(umi.outputs.name, akvRoleDefId, name)
+  name: guid(umi.id, akvRoleDefId, name)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', akvRoleDefId)
-    principalId: umi.outputs.principalId
+    principalId: umi.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }

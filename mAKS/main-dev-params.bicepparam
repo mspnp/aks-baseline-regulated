@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param name = 'sgereo1'
+param name = 'sgere1'
 param location = 'northeurope'
 param environment = 'dev'
 param adminGroupObjectIDs = ['56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b']
@@ -121,6 +121,7 @@ param networkProfile = {
   networkPolicy: 'calico'
   networkPluginMode: 'overlay'
 }
+param privateDNSZoneId = 'none' //privateDNSZoneName l8s if needed
 
 
 // param podCidr = '172.18.0.0/16'

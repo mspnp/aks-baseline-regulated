@@ -9,6 +9,7 @@ param location string
 param adminGroupObjectIDs string[]
 param agentPoolProfiles array
 param kubernetesVersion string
+param privateDNSZoneId string
 // param podCidr string
 // param serviceCidr string
 // param dnsServiceIP string
@@ -18,11 +19,15 @@ param vnetName string
 param vnetRgName string
 param workspaceId string
 param deployAzDiagnostics bool
-param umi object
 
 // vars
 var managedIdentityOperatorDefId = 'f1a07417-d97a-45cb-824c-7a7467783830' // Managed Identity Operator
 var clusterName = 'aks-${name}'
+
+// Existing resources
+resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: 'umi-${name}'
+}
 
 // AKS
 resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
@@ -36,7 +41,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${umi.outputs.id}': {}
+      '${umi.id}': {}
     }
   }
   properties: {
@@ -76,10 +81,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
       }
       omsagent: {
         enabled: true
-        config: {
-          logAnalyticsWorkspaceResourceId: workspaceId 
+        config: deployAzDiagnostics ? {
+          logAnalyticsWorkspaceResourceId: workspaceId
           useAADAuth: 'true'
-        }
+      } : {}
       }
       aciConnectorLinux: {
         enabled: false
@@ -144,7 +149,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
     }
     apiServerAccessProfile: {
       enablePrivateCluster: true
-      privateDNSZone: 'none'
+      privateDNSZone: privateDNSZoneId
       enablePrivateClusterPublicFQDN: false
     }
     oidcIssuerProfile: {
@@ -161,12 +166,12 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
       workloadIdentity: {
         enabled: true
       }
-      defender: {
+      defender: deployAzDiagnostics ? {
         logAnalyticsWorkspaceResourceId: workspaceId // logAnalyticsWorkspaceResourceId: ((!empty(deployAzDiagnostics)) ? workspaceId : null) //workspaceId
         securityMonitoring: {
           enabled: true
         }
-      }
+      } : {}
     }
   }
   sku: {
@@ -178,10 +183,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
 
 resource miOperatorRbac 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   scope: resourceGroup()
-  name: 'rbacDeploy-${aks.name}'//guid(umi.outputs.name, managedIdentityOperatorDefId, name)
+  name: guid(umi.id, managedIdentityOperatorDefId, name)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', managedIdentityOperatorDefId)
-    principalId: umi.outputs.principalId
+    principalId: umi.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }

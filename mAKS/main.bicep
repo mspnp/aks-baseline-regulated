@@ -10,6 +10,7 @@ param adminGroupObjectIDs string[]
 param kubernetesVersion string
 param nodePools array
 param networkProfile object
+param privateDNSZoneId string
 
 // param podCidr string
 // param serviceCidr string
@@ -47,6 +48,11 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
 }
 
+resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' existing = {
+  name: vnetName
+  scope: resourceGroup(vnetRgName)
+}
+
 // Modules
 
 module umi './bicep-modules/umi.bicep' = {
@@ -68,10 +74,10 @@ module acr './bicep-modules/acr.bicep' = {
     snetManagmentCrAgentsId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
     snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
-    umi: umi
   }
   dependsOn: [
     umi
+    rbac
   ]
 }
 
@@ -84,10 +90,10 @@ module akv './bicep-modules/akv.bicep' = {
     workspaceId: ''// deployAzDiagnostics ? la.id : ''
     snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
-    umi: umi
   }
   dependsOn: [
     umi
+    rbac
   ]
 }
 
@@ -105,23 +111,27 @@ module aks './bicep-modules/aks.bicep' = {
     // dnsServiceIP: dnsServiceIP
     // networkPlugin: networkPlugin
     networkProfile: networkProfile
+    privateDNSZoneId: privateDNSZoneId
     vnetName: vnetName
     vnetRgName: vnetRgName
     workspaceId: ''//deployAzDiagnostics ? la.id : ''
     deployAzDiagnostics: deployAzDiagnostics
-    umi: umi
   }
+  dependsOn: [
+    umi
+    rbac
+  ]
 }
 
 // RBAC
 
-module setRbac './bicep-modules/rbac.bicep' = {
+module rbac './bicep-modules/rbac.bicep' = {
   name: 'setRbacDeploy'
   scope: resourceGroup(vnetRgName)
   params: {
     name: resourceName
     vnetName: vnetName
-    umi: umi
+    umiRgName: rg.name
   }
   dependsOn: [
     umi
