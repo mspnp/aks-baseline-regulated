@@ -9,25 +9,20 @@ param location string
 param adminGroupObjectIDs string[]
 param agentPoolProfiles array
 param kubernetesVersion string
-param podCidr string
-param serviceCidr string
-param dnsServiceIP string
-param networkPlugin string
+// param podCidr string
+// param serviceCidr string
+// param dnsServiceIP string
+// param networkPlugin string
+param networkProfile object
 param vnetName string
 param vnetRgName string
 param workspaceId string
 param deployAzDiagnostics bool
+param umi object
 
 // vars
 var managedIdentityOperatorDefId = 'f1a07417-d97a-45cb-824c-7a7467783830' // Managed Identity Operator
 var clusterName = 'aks-${name}'
-
-
-
-// Existing resources
-resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
-  name: 'umi-${name}'
-}
 
 // AKS
 resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
@@ -41,7 +36,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${umi.id}': {}
+      '${umi.outputs.id}': {}
     }
   }
   properties: {
@@ -57,7 +52,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         osType: agentPoolProfile.osType
         minCount: agentPoolProfile.minCount
         maxCount: agentPoolProfile.maxCount
-        vnetSubnetID: resourceId(vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, agentPoolProfile.vnetSubnetName)
+        vnetSubnetID: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, agentPoolProfile.vnetSubnetName)
         enableAutoScaling: agentPoolProfile.enableAutoScaling
         type: agentPoolProfile.type
         mode: agentPoolProfile.mode
@@ -111,7 +106,9 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
     enableRBAC: true
     enablePodSecurityPolicy: false
     maxAgentPools: 3
-    networkProfile: {
+    networkProfile: networkProfile
+    /*
+    {
       networkPlugin: networkPlugin
       loadBalancerSku: 'standard'
       dnsServiceIP: dnsServiceIP
@@ -119,7 +116,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
       podCidr:  podCidr
       networkPolicy: 'calico'
       networkPluginMode: 'overlay'
-    }
+    }*/
     aadProfile: {
       managed: true
       enableAzureRBAC: false
@@ -181,10 +178,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
 
 resource miOperatorRbac 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   scope: resourceGroup()
-  name: guid(umi.id, managedIdentityOperatorDefId, name)
+  name: 'rbacDeploy-${aks.name}'//guid(umi.outputs.name, managedIdentityOperatorDefId, name)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', managedIdentityOperatorDefId)
-    principalId: umi.properties.principalId
+    principalId: umi.outputs.principalId
     principalType: 'ServicePrincipal'
   }
 }

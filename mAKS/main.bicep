@@ -9,10 +9,12 @@ param environment string
 param adminGroupObjectIDs string[]
 param kubernetesVersion string
 param nodePools array
-param podCidr string
-param serviceCidr string
-param dnsServiceIP string
-param networkPlugin string
+param networkProfile object
+
+// param podCidr string
+// param serviceCidr string
+// param dnsServiceIP string
+// param networkPlugin string
 
 // VNET params
 param vnetName string
@@ -27,6 +29,7 @@ param workspaceSubscriptionId string
 
 // Step-by-step params
 param deployAzDiagnostics bool
+
 
 // Variables
 var resourceName = '${name}-${environment}'
@@ -65,6 +68,7 @@ module acr './bicep-modules/acr.bicep' = {
     snetManagmentCrAgentsId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
     snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
+    umi: umi
   }
   dependsOn: [
     umi
@@ -80,6 +84,7 @@ module akv './bicep-modules/akv.bicep' = {
     workspaceId: ''// deployAzDiagnostics ? la.id : ''
     snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
+    umi: umi
   }
   dependsOn: [
     umi
@@ -95,14 +100,16 @@ module aks './bicep-modules/aks.bicep' = {
     adminGroupObjectIDs: adminGroupObjectIDs
     kubernetesVersion: kubernetesVersion
     agentPoolProfiles: nodePools
-    podCidr: podCidr
-    serviceCidr: serviceCidr
-    dnsServiceIP: dnsServiceIP
-    networkPlugin: networkPlugin
+    // podCidr: podCidr
+    // serviceCidr: serviceCidr
+    // dnsServiceIP: dnsServiceIP
+    // networkPlugin: networkPlugin
+    networkProfile: networkProfile
     vnetName: vnetName
     vnetRgName: vnetRgName
     workspaceId: ''//deployAzDiagnostics ? la.id : ''
     deployAzDiagnostics: deployAzDiagnostics
+    umi: umi
   }
 }
 
@@ -114,6 +121,7 @@ module setRbac './bicep-modules/rbac.bicep' = {
   params: {
     name: resourceName
     vnetName: vnetName
+    umi: umi
   }
   dependsOn: [
     umi

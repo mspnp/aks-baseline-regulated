@@ -5,15 +5,11 @@ param workspaceId string
 param snetManagmentCrAgentsId string
 param snetPrivateEndpointId string
 param deployAzDiagnostics bool
+param umi object
 
 // Vars
 var acrRoleDefId = '7f951dda-4ed3-4680-a7ca-43fe172d538d' // Acr Pull
 var acrName = replace('acr${name}','-','')
-
-// Existing resources
-resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
-  name: 'umi-${name}'
-}
 
 // ACR
 resource acr 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' = {
@@ -175,12 +171,13 @@ resource sqrNonQuarantineImportedImgesToCr 'Microsoft.Insights/scheduledQueryRul
 @description('Grant kubelet managed identity with container registry pull role permissions; this allows the AKS Cluster\'s kubelet managed identity to pull images from this container registry.')
 resource setAcrRbac 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   scope: acr
-  name: guid(umi.id, acrRoleDefId, name)
+  name: 'rbacDeploy-${acr.name}'
+  //name: guid(umi.outputs.id, acrRoleDefId, name)
   //  name: guid(resourceGroup().id, mc.id, containerRegistryPullRole.id)
   properties: {
     description: 'Allows AKS to pull container images from this ACR instance.'
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', acrRoleDefId)
-    principalId: umi.properties.principalId
+    principalId: umi.principalId
     principalType: 'ServicePrincipal'
   }
 }

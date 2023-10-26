@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param name = 'shbgereo1'
+param name = 'sgereo1'
 param location = 'northeurope'
 param environment = 'dev'
 param adminGroupObjectIDs = ['56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b']
@@ -112,12 +112,21 @@ param nodePools = [
     }
   }
 ]
+param networkProfile = {
+  networkPlugin: 'kubenet'
+  loadBalancerSku: 'standard'
+  dnsServiceIP: '172.16.0.10'
+  serviceCidr: '172.16.0.0/16'
+  podCidr:  '172.18.0.0/16'
+  networkPolicy: 'calico'
+  networkPluginMode: 'overlay'
+}
 
 
-param podCidr = '172.18.0.0/16'
-param dnsServiceIP = '172.16.0.10'
-param serviceCidr = '172.16.0.0/16'
-param networkPlugin = 'kubenet'
+// param podCidr = '172.18.0.0/16'
+// param dnsServiceIP = '172.16.0.10'
+// param serviceCidr = '172.16.0.0/16'
+// param networkPlugin = 'kubenet'
 param workspaceName = '' //log-mgmt-swc-201
 param workspaceGroupName = '' //rg-log-mgmt-002
 param workspaceSubscriptionId = '' //shb-platform-management-201
