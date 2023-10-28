@@ -46,7 +46,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
     agentPoolProfiles: [
       for agentPoolProfile in agentPoolProfiles: {
         name: agentPoolProfile.name
-        count: contains(agentPoolProfile, 'count') ? agentPoolProfile.count : 1 //pickNodeCount('Microsoft.Compute', 'virtualMachineScaleSets', location, agentPoolProfile.vmSize, agentPoolProfile
+        count: contains(agentPoolProfile, 'count') ? agentPoolProfile.count : 1
         vmSize: contains(agentPoolProfile, 'vmSize') ? agentPoolProfile.vmSize : 'Standard_B2s'
         osDiskSizeGB: contains(agentPoolProfile, 'osDiskSizeGB') ? agentPoolProfile.osDiskSizeGB : 30
         osDiskType: contains(agentPoolProfile, 'osDiskType') ? agentPoolProfile.osDiskType : 'Ephermal'
@@ -62,7 +62,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         orchestratorVersion: kubernetesVersion //change this??
         enableNodePublicIP: contains(agentPoolProfile, 'enableNodePublicIP') ? agentPoolProfile.enableNodePublicIP : false
         maxPods: contains(agentPoolProfile, 'maxPods') ? agentPoolProfile.maxPods : 110
-        availabilityZones: contains(agentPoolProfile, 'availabilityZones') ? agentPoolProfile.availabilityZones : [] //pickZones('Microsoft.Compute', 'virtualMachineScaleSets', location, availabilityZoneCount)
+        availabilityZones: contains(agentPoolProfile, 'availabilityZones') ? agentPoolProfile.availabilityZones : []
         upgradeSettings: contains(agentPoolProfile, 'upgradeSettings') ? agentPoolProfile.upgradeSettings : {}
         nodeLabels: contains(agentPoolProfile, 'nodeLabels') ? agentPoolProfile.nodeLabels : {}
         tags: contains(agentPoolProfile, 'tags') ? agentPoolProfile.tags : {}
@@ -163,7 +163,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-08-02-preview' = {
         enabled: true
       }
       defender: deployAzDiagnostics ? {
-        logAnalyticsWorkspaceResourceId: workspaceId // logAnalyticsWorkspaceResourceId: ((!empty(deployAzDiagnostics)) ? workspaceId : null) //workspaceId
+        logAnalyticsWorkspaceResourceId: workspaceId
         securityMonitoring: {
           enabled: true
         }
@@ -186,6 +186,7 @@ resource miOperatorRbac 'Microsoft.Authorization/roleAssignments@2020-04-01-prev
     principalType: 'ServicePrincipal'
   }
 }
+
 
 // Diagnostics
 

@@ -1,11 +1,11 @@
 using 'main.bicep'
 
-param name = 'sger4'
+param name = 'mAKS'
 param location = 'northeurope'
 param environment = 'dev'
 param adminGroupObjectIDs = ['56d2b35d-23cd-43e9-bef9-7b1e4b2fdf5b']
 param snetPrivateEndpointName = 'snetPrivateEndpointName'
-param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
+//param snetManagmentCrAgentsName = 'snetManagmentCrAgentsName'
 param vnetName = 'clickops-vnet'
 param vnetRgName = 'clickops-vnet'
 param deployAzDiagnostics = false
@@ -122,12 +122,4 @@ param networkProfile = {
   networkPluginMode: 'overlay'
 }
 param privateDNSZoneId = 'none' //privateDNSZoneName l8s if needed
-
-
-// param podCidr = '172.18.0.0/16'
-// param dnsServiceIP = '172.16.0.10'
-// param serviceCidr = '172.16.0.0/16'
-// param networkPlugin = 'kubenet'
-param workspaceName = '' //log-mgmt-swc-201
-param workspaceGroupName = '' //rg-log-mgmt-002
-param workspaceSubscriptionId = '' //shb-platform-management-201
+param workspaceId = ''

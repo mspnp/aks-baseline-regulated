@@ -1,8 +1,8 @@
 // params
 param name string
-param location string = resourceGroup().location
+param location string
 param workspaceId string
-param snetManagmentCrAgentsId string
+//param snetManagmentCrAgentsId string
 param snetPrivateEndpointId string
 param deployAzDiagnostics bool
 
@@ -47,15 +47,15 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' = {
     }
     dataEndpointEnabled: true
     networkRuleBypassOptions: 'AzureServices'
-    zoneRedundancy: 'Enabled'
+    zoneRedundancy: 'Disabled' //Enabled in prod
   }
 
   resource grl 'replications' = {
-    name: location //geoRedundancyLocation
-    location: location //geoRedundancyLocation
+    name: 'westeurope' //location //geoRedundancyLocation
+    location: 'westeurope' //location //geoRedundancyLocation
   }
 
-  resource ap 'agentPools@2019-06-01-preview' = {
+  /*resource ap 'agentPools@2019-06-01-preview' = {
     name: 'acragent'
     location: location
     properties: {
@@ -64,7 +64,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' = {
       tier: 'S1'
       virtualNetworkSubnetResourceId: snetManagmentCrAgentsId
     }
-  }
+  }*/
 }
 
 // Private endpoint
@@ -103,6 +103,9 @@ module pe 'privateendpoint.bicep' = {
     groupId: 'registry'
     destinationId: acr.id
   }
+  dependsOn: [
+    acr::grl
+  ]
 }
 
 // Diagnostics

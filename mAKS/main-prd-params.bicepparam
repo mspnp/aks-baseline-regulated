@@ -112,12 +112,3 @@ param nodePools = [
     }
   }
 ]
-
-
-param podCidr = '172.18.0.0/16'
-param dnsServiceIP = '172.16.0.10'
-param serviceCidr = '172.16.0.0/16'
-param networkPlugin = 'kubenet'
-param workspaceName = '' //log-mgmt-swc-201
-param workspaceGroupName = '' //rg-log-mgmt-002
-param workspaceSubscriptionId = '' //shb-platform-management-201

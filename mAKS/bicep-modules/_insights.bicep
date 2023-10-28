@@ -1,5 +1,6 @@
 param name string
 param location string
+param workspaceId string
 
 var containerInsights = {
   name: 'ContainerInsights(la-${name})'
@@ -26,7 +27,7 @@ resource solutionsContainerInsights 'Microsoft.OperationsManagement/solutions@20
   name: containerInsights.name
   location: location
   properties: {
-    workspaceResourceId: logAnalyticsWorkspace.id
+    workspaceResourceId: workspaceId // logAnalyticsWorkspace.id
   }
   plan: {
     name: containerInsights.name

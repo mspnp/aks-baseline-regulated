@@ -21,12 +21,10 @@ param privateDNSZoneId string
 param vnetName string
 param vnetRgName string
 param snetPrivateEndpointName string
-param snetManagmentCrAgentsName string
+//param snetManagmentCrAgentsName string
 
 // Log Analytics params
-param workspaceName string
-param workspaceGroupName string
-param workspaceSubscriptionId string
+param workspaceId string
 
 // Step-by-step params
 param deployAzDiagnostics bool
@@ -34,12 +32,6 @@ param deployAzDiagnostics bool
 
 // Variables
 var resourceName = '${name}-${environment}'
-
-// Existing resources
-/*resource la 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = if (deployAzDiagnostics) {
-  name: workspaceName
-  scope: resourceGroup(workspaceSubscriptionId, workspaceGroupName)
-}*/
 
 // Resource group
 
@@ -64,6 +56,7 @@ module umi './bicep-modules/umi.bicep' = {
   }
 }
 
+// START - This resource is to be replaced by central DNSZone - used for test of AKS private cluster
 module dnsZone './bicep-modules/privatednszone.bicep' = {
   name: 'dnsZoneDeploy'
   scope: resourceGroup(rg.name)
@@ -76,6 +69,7 @@ module dnsZone './bicep-modules/privatednszone.bicep' = {
     umi
   ]
 }
+// END 
 
 module acr './bicep-modules/acr.bicep' = {
   name: 'acrDeploy'
@@ -83,8 +77,8 @@ module acr './bicep-modules/acr.bicep' = {
   params: {
     name: resourceName
     location: location
-    workspaceId: ''//deployAzDiagnostics ? la.id : '' 
-    snetManagmentCrAgentsId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
+    workspaceId: deployAzDiagnostics ? workspaceId : ''
+    //snetManagmentCrAgentsId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetManagmentCrAgentsName) // or vnet::snetManagmentCrAgentsName::id
     snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
   }
@@ -100,7 +94,7 @@ module akv './bicep-modules/akv.bicep' = {
   params: {
     name: resourceName
     location: location
-    workspaceId: ''// deployAzDiagnostics ? la.id : ''
+    workspaceId: deployAzDiagnostics ? workspaceId : ''
     snetPrivateEndpointId: resourceId(subscription().subscriptionId, vnetRgName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, snetPrivateEndpointName) // or vnet::snetPrivateEndpointName::id
     deployAzDiagnostics: deployAzDiagnostics
   }
@@ -120,10 +114,10 @@ module aks './bicep-modules/aks.bicep' = {
     kubernetesVersion: kubernetesVersion
     agentPoolProfiles: nodePools
     networkProfile: networkProfile
-    privateDNSZoneId: dnsZone.outputs.privateDNSZoneId //privateDNSZoneId
+    privateDNSZoneId: dnsZone.outputs.privateDNSZoneId
     vnetName: vnetName
     vnetRgName: vnetRgName
-    workspaceId: ''//deployAzDiagnostics ? la.id : ''
+    workspaceId: deployAzDiagnostics ? workspaceId : ''
     deployAzDiagnostics: deployAzDiagnostics
   }
   dependsOn: [
