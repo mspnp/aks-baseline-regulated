@@ -1,0 +1,8 @@
+apiVersion: capsule.clastix.io/v1beta2
+kind: Tenant
+metadata:
+  name: Tenant-2
+spec:
+  owners:
+  - name: ${CoAKS_SOLAR_USER_OBJECTID}
+    kind: Group
