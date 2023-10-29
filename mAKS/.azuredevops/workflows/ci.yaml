@@ -1,0 +1,30 @@
+name: 'ci-check'
+
+on:
+  push:
+    branches:
+    - main  
+  pull_request:
+    branches:
+    - main
+
+env:
+  LOCATION: $GITHUB_OUTPUT_LOCATION
+  TENANT_ID: $GITHUB_OUTPUT_TENANT_ID
+  SUBSCRIPTION_ID: $GITHUB_OUTPUT_SUBSCRIPTION_ID
+  CLIENT_ID: $GITHUB_OUTPUT_CLIENT_ID
+  CLIENT_SECRET: $GITHUB_OUTPUT_CLIENT_SECRET
+
+steps: 
+- name: Checkout
+  uses: actions/checkout@v2
+
+- name: 'Az CLI login'
+  uses: azure/login@v1
+  with:
+    creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+- name: 'Az CLI set subscription'
+  uses: azure/CLI@v1
+  with:
+    inlineScript: az account set --subscription ${{ env.SUBSCRIPTION_ID }}

@@ -12,11 +12,6 @@ param nodePools array
 param networkProfile object
 param privateDNSZoneId string
 
-// param podCidr string
-// param serviceCidr string
-// param dnsServiceIP string
-// param networkPlugin string
-
 // VNET params
 param vnetName string
 param vnetRgName string

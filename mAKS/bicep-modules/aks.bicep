@@ -10,10 +10,6 @@ param adminGroupObjectIDs string[]
 param agentPoolProfiles array
 param kubernetesVersion string
 param privateDNSZoneId string
-// param podCidr string
-// param serviceCidr string
-// param dnsServiceIP string
-// param networkPlugin string
 param networkProfile object
 param vnetName string
 param vnetRgName string

@@ -1,0 +1,69 @@
+name: 'Bicep Unit Tests'
+
+# We run on just PRs + main since this validate requires full read/write permissions to Azure and we can't do wildcards for the branch name in Azure OIDC federated credentials
+on:
+  push:
+    branches:
+    - main  
+  pull_request:
+    branches:
+    - main
+
+env:
+  LOCATION: "eastus"
+  
+#Special permissions required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+  security-events: write
+
+jobs:
+  bicep-unit-tests:
+    name: 'Bicep Unit Tests'
+    runs-on: ubuntu-latest
+    # Bicep What-if / Validate functions also check if your role has permisisons to create the resources so we need full read/write permissions
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Authenticate to Az CLI using OIDC
+    - name: 'Az CLI login'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    # Checks that all Bicep configuration files adhere to a canonical format
+    - name: Bicep Lint
+      uses: Azure/cli@v1
+      with:
+        inlineScript: az bicep build --file main.bicep
+        
+    # Validate whether a template is valid at subscription scope
+    - name: Bicep Validate
+      uses: Azure/cli@v1
+      with:
+        inlineScript: |
+          az deployment sub validate \
+            --name validate-${{ github.run_id }} \
+            --template-file main.bicep \
+            --location $LOCATION 
+
+    # Perform a security scan of the bicep code using checkov
+    - name: Run Checkov action
+      id: checkov
+      uses: bridgecrewio/checkov-action@master
+      with: 
+        framework: bicep
+
+    # Upload results to GitHub Advanced Security
+    - name: Upload SARIF file
+      if: success() || failure()
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: results.sarif
+        category: checkov

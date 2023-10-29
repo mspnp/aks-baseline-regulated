@@ -1,0 +1,40 @@
+apiVersion: capsule.clastix.io/v1alpha1
+kind: Tenant
+metadata:
+  name: my-tenant
+spec:
+  owner: my-team
+  storageClassName: my-storage-class
+  namespace: my-namespace
+  storageQuota:
+    requests:
+      storage: 1Gi
+  ingress:
+    hosts:
+      - my-tenant.example.com
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  nodeSelector:
+    disktype: ssd
+  tolerations:
+    - key: "key"
+      operator: "Equal"
+      value: "value"
+      effect: "NoSchedule"
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - my-app
+          topologyKey: "kubernetes.io/hostname"

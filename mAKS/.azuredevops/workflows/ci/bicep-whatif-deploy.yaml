@@ -1,0 +1,135 @@
+name: 'Bicep Whatif / Deploy'
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+#Special permissions required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  
+env:
+  LOCATION: "eastus"
+
+jobs:
+  bicep-whatif:
+    name: 'Bicep Whatif'
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Authenticate to Az CLI using OIDC
+    - name: 'Az CLI login'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        
+     # Checks that all Bicep configuration files adhere to a canonical format
+    - name: Bicep Lint
+      uses: Azure/cli@v1
+      with:
+        inlineScript: az bicep build --file main.bicep
+        
+    # Validate whether a template is valid at subscription scope
+    - name: Bicep Validate
+      uses: Azure/cli@v1
+      with:
+        inlineScript: |
+          az deployment sub validate \
+            --name validate-${{ github.run_id }} \
+            --template-file main.bicep \
+            --location $LOCATION     
+
+    # Preview changes
+    - name: "What-If"
+      uses: Azure/cli@v1
+      with:
+        inlineScript: |
+          az deployment sub what-if \
+            --name whatif-${{ github.run_id }} \
+            --template-file main.bicep \
+            --location $LOCATION > whatif
+            
+      # Create string output of Whatif
+    - name: Create String Output
+      id: whatif-string
+      run: |
+        WHATIF=$(cat whatif)
+        
+        delimiter="$(openssl rand -hex 8)"
+        echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+        echo "## Whatif Output" >> $GITHUB_OUTPUT
+        echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo '```' >> $GITHUB_OUTPUT
+        echo "$WHATIF" >> $GITHUB_OUTPUT
+        echo '```' >> $GITHUB_OUTPUT
+        echo "</details>" >> $GITHUB_OUTPUT
+        echo "${delimiter}" >> $GITHUB_OUTPUT
+
+    # Publish output as task summary
+    - name: Publish Whatif to Task Summary
+      env:
+        SUMMARY: ${{ steps.whatif-string.outputs.summary }}
+      run: |
+        echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+      
+    # If this is a PR post the changes
+    - name: Push Whatif Output to PR
+      if: github.ref != 'refs/heads/main'
+      uses: actions/github-script@v6
+      env:
+        SUMMARY: "${{ steps.whatif-string.outputs.summary }}"
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = `${process.env.SUMMARY}`;
+            github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+            })
+            
+  bicep-deploy:
+    name: 'Bicep Deploy'
+    #TODO can we easily determine if there are any changes to deploy?
+    if: github.ref == 'refs/heads/main' 
+    runs-on: ubuntu-latest
+    environment: production
+    needs: [bicep-whatif]
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Authenticate to Az CLI using OIDC
+    - name: 'Az CLI login'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        
+    # Deploy
+    - name: "Bicep Deployment"
+      uses: Azure/cli@v1
+      with:
+        inlineScript: |
+          az deployment sub create \
+            --name deploy-${{ github.run_id }} \
+            --template-file main.bicep \
+            --location $LOCATION 
+            
