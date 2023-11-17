@@ -6,6 +6,10 @@ targetScope = 'resourceGroup'
 @minLength(79)
 param aksImageBuilderSubnetResourceId string
 
+@description('Subnet resource Id for the AKS jumpbox subnet')
+@minLength(79)
+param aksJumpboxSubnetResourceId string
+
 @allowed([
   'australiaeast'
   'canadacentral'
@@ -68,6 +72,24 @@ resource aksSpokeVnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = 
 resource aksImageBuilderSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
   parent: aksSpokeVnet
   name: last(split(aksImageBuilderSubnetResourceId, '/'))
+}
+
+@description('The resource group name containing virtual network in which Jumpbox will be dropped.')
+resource rgJumpBoxVirutalNetwork 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+  scope: subscription()
+  name: split(aksJumpboxSubnetResourceId, '/')[4]
+}
+
+@description('Jumpbox Spoke Virtual Network')
+resource aksJumpBoxSpokeVnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+  scope: rgJumpBoxVirutalNetwork
+  name: split(aksJumpboxSubnetResourceId, '/')[8]
+}
+
+@description('Jumpbox subnet')
+resource aksJumpboxSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+  parent: aksJumpBoxSpokeVnet
+  name: last(split(aksJumpboxSubnetResourceId, '/'))
 }
 
 resource networkWatcherResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (deployFlowLogResources) {
@@ -476,6 +498,17 @@ resource imageBuilder_ipgroups 'Microsoft.Network/ipGroups@2021-05-01' = {
   properties: {
     ipAddresses: [
       aksImageBuilderSubnet.properties.addressPrefix
+    ]
+  }
+}
+
+@description('This holds IP addresses of known AKS Jumpbox image building subnets in attached spokes.')
+resource jumpbox_ipgroups 'Microsoft.Network/ipGroups@2021-05-01' = {
+  name: 'ipg-${location}-AksJumpboxes'
+  location: location
+  properties: {
+    ipAddresses: [
+      aksJumpboxSubnet.properties.addressPrefix
     ]
   }
 }

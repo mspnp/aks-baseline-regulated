@@ -98,7 +98,7 @@ resource afRouteTable 'Microsoft.Network/routeTables@2021-05-01' = {
 
 @description('NSG blocking all inbound traffic other than port 22 for jumpbox access.')
 resource nsgAllowSshFromHubBastionInBound 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-management-ops'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-management-ops'
     location: location
     properties: {
         securityRules: [
@@ -193,7 +193,7 @@ resource nsgAllowSshFromHubBastionInBound_diagnosticSettings 'Microsoft.Insights
 
 @description('NSG on all AKS system nodepools. Feel free to constrict further both inbound and outbound!')
 resource nsgAksSystemNodepools 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-system-nodepools'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-system-nodepools'
     location: location
     properties: {
         securityRules: [
@@ -235,7 +235,7 @@ resource nsgAksSystemNodepools_diagnosticSettings 'Microsoft.Insights/diagnostic
 
 @description('NSG on the AKS in-scope nodepools. Feel free to constrict further both inbound and outbound!')
 resource nsgAksInScopeNodepools 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-is-nodepools'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-is-nodepools'
     location: location
     properties: {
         securityRules: [
@@ -277,7 +277,7 @@ resource nsgAksInScopeNodepools_diagnosticSettings 'Microsoft.Insights/diagnosti
 
 @description('NSG on the AKS out-of-scope nodepools. Feel free to constrict further both inbound and outbound!')
 resource nsgAksOutOfScopeNodepools 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-oos-nodepools'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-oos-nodepools'
     location: location
     properties: {
         securityRules: [
@@ -319,7 +319,7 @@ resource nsgAksOutOfScopeNodepools_diagnosticSettings 'Microsoft.Insights/diagno
 
 @description('Default NSG on the private link subnet. No traffic should be allowed out, and only Tcp/443 in. Key Vault and Container Registry is expected to be accessed in here.')
 resource nsgAksPrivateLinkEndpoint 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-privatelinkendpoints'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-privatelinkendpoints'
     location: location
     properties: {
         securityRules: [
@@ -386,7 +386,7 @@ resource nsgAksPrivateLinkEndpoint_diagnosticSettings 'Microsoft.Insights/diagno
 
 @description('Default NSG on the AKS ILB subnet. Feel free to constrict further!')
 resource nsgAksDefaultILBSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-akslibs'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-akslibs'
     location: location
     properties: {
         securityRules: [
@@ -414,7 +414,7 @@ resource nsgAksDefaultILBSubnet_diagnosticSettings 'Microsoft.Insights/diagnosti
 
 @description('NSG on the App Gateway subnet.')
 resource nsgAppGatewaySubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-appgw'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-appgw'
     location: location
     properties: {
         securityRules: [
@@ -510,7 +510,7 @@ resource nsgAppGatewaySubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSe
 
 @description('NSG on the ACR docker subnet.')
 resource nsgAcrDockerSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-    name: 'nsg-vnet-spoke-${orgAppId}-01-acragents'
+    name: 'nsg-vnet-spoke-${orgAppId}-02-acragents'
     location: location
     properties: {
         securityRules: [
@@ -608,7 +608,7 @@ resource nsgAcrDockerSubnet_diagnosticSettings 'Microsoft.Insights/diagnosticSet
 
 @description('cluster\'s virtual network. 65,536 (-reserved) IPs available to the workload, split across four subnets for AKS, one for App Gateway, and two for management.')
 resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-    name: 'vnet-spoke-${orgAppId}-01'
+    name: 'vnet-spoke-${orgAppId}-02'
     location: location
     properties: {
         addressSpace: {
@@ -682,20 +682,6 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
                 }
             }
             {
-                name: 'snet-management-ops'
-                properties: {
-                    addressPrefix: '10.240.1.0/28'
-                    routeTable: {
-                        id: afRouteTable.id
-                    }
-                    networkSecurityGroup: {
-                        id: nsgAllowSshFromHubBastionInBound.id
-                    }
-                    privateEndpointNetworkPolicies: 'Disabled'
-                    privateLinkServiceNetworkPolicies: 'Disabled'
-                }
-            }
-            {
                 name: 'snet-management-agents'
                 properties: {
                     addressPrefix: '10.240.2.0/26'
@@ -759,17 +745,13 @@ resource clusterVNet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
     resource aksSystemOutOfScopeNodepoolsSubnet 'subnets' existing = {
         name: 'snet-cluster-outofscopenodepools'
     }
-
-    resource aksManagementOpsSubnet 'subnets' existing = {
-        name: 'snet-management-ops'
-    }
 }
 
 @description('Deploys subscription-level policy related to spoke deployment. ')
 module policyAssignmentNoPublicIpsInVnet './modules/ClusterVNetShouldNotHaveNICwithpublicIP.bicep' = {
     name: 'Apply-Subscription-Spoke-PipUsage-Policies-01'
     params: {
-        clusterVNetId: resourceId('Microsoft.Network/virtualNetworks','vnet-spoke-${orgAppId}-01')
+        clusterVNetId: resourceId('Microsoft.Network/virtualNetworks','vnet-spoke-${orgAppId}-02')
     }
 }
 
@@ -1011,8 +993,6 @@ module flowlogsDeploymentAksSystemNodepools 'modules/flowlogsDeployment.bicep' =
 /*** OUTPUTS ***/
 
 output clusterVnetResourceId string = clusterVNet.id
-
-output jumpboxSubnetResourceId string = clusterVNet::aksManagementOpsSubnet.id
 
 output nodepoolSubnetResourceIds array = [
     clusterVNet::aksSystemNodepoolSubnet.id

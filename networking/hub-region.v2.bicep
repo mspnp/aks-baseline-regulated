@@ -909,6 +909,22 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
               ]
             }
             {
+              name: 'api-server-address'
+              description: 'Allow jumpboxes to perform kubectl.'
+              sourceIpGroups: [
+                aksJumpbox_ipgroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                '*.privatelink.${location}.azmk8s.io'
+              ]
+            }
+            {
               name: 'az-management-api'
               description: 'Allow jumpboxes to communicate with Azure management APIs.'
               sourceIpGroups: [

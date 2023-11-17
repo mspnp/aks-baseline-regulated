@@ -39,7 +39,7 @@ An Azure user managed identity is going to be deployed. This identity is the ing
 
    ```bash
    # [This takes about eight minutes.]
-   az deployment group create -g rg-bu0001a0005 -f pre-cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} location=eastus2
+   az deployment group create -g rg-bu0001a0005 -f pre-cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} aksIngressControllerCertificate=${AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64} location=eastus2
    ```
 
 ## Quarantine pattern
