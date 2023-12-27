@@ -4,9 +4,9 @@ Microsoft Entra Conditional Access supports policies that apply directly to Kube
 
 For example, you could require that devices accessing the API Server are being performed exclusively from devices marked as compliant, only from select or trusted locations, only from select OSes, etc. Conditional access will often then be applied when connecting to your cluster from [your jump box](./deploy/06-aks-jumpboximage.md), ensuring that the jump box itself and the user performing the action have met core conditional criteria to perform any API Server interaction.
 
-Work with your Conditional Access administrator [to apply a policy](https://learn.microsoft.com/azure/aks/managed-aad#use-conditional-access-with-azure-ad-and-aks) that helps you achieve your access governance requirements. In addition to the portal, you can also perform the assignment via the AzureAD Windows PowerShell module.
+Work with your Conditional Access administrator [to apply a policy](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad) that helps you achieve your access governance requirements. In addition to the portal, you can also perform the assignment via the AzureAD Windows PowerShell module.
 
-Remember to test all conditional access policies using a safe and controlled rollout procedure before applying to all users. Paired with [Microsoft Entra JIT access](https://learn.microsoft.com/azure/aks/managed-aad#configure-just-in-time-cluster-access-with-azure-ad-and-aks), this provides a very robust access control solution for your private cluster.
+Remember to test all conditional access policies using a safe and controlled rollout procedure before applying to all users. Paired with [Microsoft Entra JIT access](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad#use-conditional-access-with-microsoft-entra-id-and-aks), this provides a very robust access control solution for your private cluster.
 
 > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 8.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-82).
 
