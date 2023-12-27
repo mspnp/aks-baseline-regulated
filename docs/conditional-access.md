@@ -14,6 +14,8 @@ Remember to test all conditional access policies using a safe and controlled rol
 
 For many administrators, PowerShell is already an understood scripting tool. The following example shows how to use the Azure AD PowerShell module to apply a Conditional Access policy.
 
+> Note: Azure AD Powershell is planned for deprecation on March 30, 2024, including these following instructions. For more details on the deprecation plans, see the [deprecation update](https://techcommunity.microsoft.com/t5/microsoft-entra-azure-ad-blog/important-azure-ad-graph-retirement-and-powershell-module/ba-p/3848270). We encourage you to continue migrating to [Microsoft Graph PowerShell](https://learn.microsoft.com/powershell/microsoftgraph/overview), which is the recommended module for interacting with Microsoft Entra ID.
+
 ```powershell
 Install-Module -Name AzureAD -Force -Scope CurrentUser
 

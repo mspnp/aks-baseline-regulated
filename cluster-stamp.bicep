@@ -6,7 +6,7 @@ targetScope = 'resourceGroup'
 @minLength(79)
 param targetVnetResourceId string
 
-@description('Azure AD Group in the identified tenant that will be granted the highly privileged cluster-admin role.')
+@description('Microsoft Entra group in the identified tenant that will be granted the highly privileged cluster-admin role.')
 param clusterAdminAadGroupObjectId string
 
 @description('Your AKS control plane Cluster API authentication tenant')
