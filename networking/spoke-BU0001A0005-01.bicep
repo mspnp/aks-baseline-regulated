@@ -559,7 +559,7 @@ resource nsgAcrDockerSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01'
             {
                 name: 'AllowAadOutBound'
                 properties: {
-                    description: 'Allow Azure Active Directory Access'
+                    description: 'Allow Microsoft Entra Access'
                     protocol: 'Tcp'
                     sourcePortRange: '*'
                     sourceAddressPrefix: 'VirtualNetwork'
@@ -573,7 +573,7 @@ resource nsgAcrDockerSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01'
             {
                 name: 'AllowAzureMonitorBound'
                 properties: {
-                    description: 'Allow Azure Active Directory Access'
+                    description: 'Allow Azure Microsoft Entra Access'
                     protocol: 'Tcp'
                     sourcePortRange: '*'
                     sourceAddressPrefix: 'VirtualNetwork'

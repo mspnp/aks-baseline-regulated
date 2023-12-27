@@ -49,7 +49,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
    # az account set -s <subscription name or id>
    ```
 
-   > :warning: Your organization may have a conditional access policies in place that forbids access to Azure resources [from non corporate-managed devices](https://learn.microsoft.com/azure/active-directory/conditional-access/require-managed-devices). This jump box as deployed in these steps might trigger that policy. If that is the case, you'll need to work with your IT Security organization to provide an alterative access mechanism or temporary solution.
+   > :warning: Your organization may have a conditional access policies in place that forbids access to Azure resources [from non corporate-managed devices]https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant). This jump box as deployed in these steps might trigger that policy. If that is the case, you'll need to work with your IT Security organization to provide an alterative access mechanism or temporary solution.
 
 1. _From your Azure Bastion connection_, get your AKS credentials and set your `kubectl` context to your cluster.
 
