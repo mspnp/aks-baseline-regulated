@@ -30,7 +30,7 @@ Following the steps below will result in a Microsoft Entra configuration that wi
    Capture the Microsoft Entra tenant ID that will be associated with your cluster's Kubernetes RBAC for Cluster API access. This is _typically_ the same tenant as your Azure RBAC, see [Microsoft Entra tenant selection](#Microsoft-Entra-tenant-selection) above for more details. However, if you do not have access to manage Microsoft Entra groups and permissions, you may create a temporary tenant specifically for this walkthrough so that you're not blocked at this point.
 
    ```bash
-   az login -t <Replace-With-ClusterApi-AzureAD-TenantId> --allow-no-subscriptions
+   az login -t <Replace-With-ClusterApi-MicrosoftEntra-TenantId> --allow-no-subscriptions
    TENANTID_K8SRBAC=$(az account show --query tenantId -o tsv)
    ```
 
