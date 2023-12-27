@@ -1,4 +1,4 @@
-# Mapping k8s user facing roles to AAD groups: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+# Mapping k8s user facing roles to Microsoft Entra groups: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: ClusterRoleBinding
 #metadata:
@@ -10,7 +10,7 @@
 #subjects:
 #- apiGroup: rbac.authorization.k8s.io
 #  kind: Group
-#  name: <replace-with-an-aad-group-object-id-for-this-cluster-wide-maximally-privileged-admin-role -- consider mapping all cluster-admin roles via the cluster's arm template instead of here.>
+#  name: <replace-with-a-microsoft-entra-group-object-id-for-this-cluster-wide-maximally-privileged-admin-role -- consider mapping all cluster-admin roles via the cluster's arm template instead of here.>
 #---
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: ClusterRoleBinding
@@ -23,4 +23,4 @@
 #subjects:
 #- apiGroup: rbac.authorization.k8s.io
 #  kind: Group
-#  name: <replace-with-an-aad-group-object-id-for-this-cluster-wide-view-role>
+#  name: <replace-with-a-microsoft-entra-group-object-id-for-this-cluster-wide-view-role>

@@ -41,8 +41,8 @@ Following the steps below will result in a Microsoft Entra configuration that wi
    > :warning: This cluster role is the highest-privileged role available in Kubernetes. Members of this group will have _complete access throughout the cluster_. Generally speaking, there should be **no standing access** at this level; and access is [implemented using Just-In-Time AD group membership](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad#configure-just-in-time-cluster-access-with-microsoft-entra-id-and-aks) (_Requires Microsoft Entra PIM found in Premium P2 SKU._). In the next step, you'll create a dedicated account for this highly-privileged, administrative role for this walkthrough. Ensure your all of your cluster's RBAC assignments and memberships are maliciously managed and auditable; aligning to minimal or no standing admin permissions and all other organization & compliance requirements.
 
    ```bash
-   AADOBJECTNAME_GROUP_CLUSTERADMIN=cluster-admins-bu0001a000500
-   AADOBJECTID_GROUP_CLUSTERADMIN=$(az ad group create --display-name $AADOBJECTNAME_GROUP_CLUSTERADMIN --mail-nickname $AADOBJECTNAME_GROUP_CLUSTERADMIN --description "Principals in this group are cluster admins in the bu0001a000500 cluster." --query id -o tsv)
+   OBJECTNAME_GROUP_CLUSTERADMIN=cluster-admins-bu0001a000500
+   OBJECTID_GROUP_CLUSTERADMIN=$(az ad group create --display-name $OBJECTNAME_GROUP_CLUSTERADMIN --mail-nickname $OBJECTNAME_GROUP_CLUSTERADMIN --description "Principals in this group are cluster admins in the bu0001a000500 cluster." --query id -o tsv)
    ```
 
 1. Create a "break-glass" cluster administrator user for your AKS cluster.
@@ -51,21 +51,21 @@ Following the steps below will result in a Microsoft Entra configuration that wi
 
    ```bash
    TENANTDOMAIN_K8SRBAC=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
-   AADOBJECTNAME_USER_CLUSTERADMIN=bu0001a000500-admin
-   AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-sign-in --password ChangeMebu0001a0005AdminChangeMe --query id -o tsv)
+   OBJECTNAME_USER_CLUSTERADMIN=bu0001a000500-admin
+   OBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${OBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${OBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-sign-in --password ChangeMebu0001a0005AdminChangeMe --query id -o tsv)
    ```
 
 1. Add the cluster admin user(s) to the cluster admin security group.
 
    ```bash
-   az ad group member add -g $AADOBJECTID_GROUP_CLUSTERADMIN --member-id $AADOBJECTID_USER_CLUSTERADMIN
+   az ad group member add -g $OBJECTID_GROUP_CLUSTERADMIN --member-id $OBJECTID_USER_CLUSTERADMIN
    ```
 
 1. Create/identify additional security groups to map onto other Kubernetes RBAC roles. _Optional._
 
    Kubernetes has [built-in, user-facing roles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles) like _admin_, _edit_, and _view_, generally to be applied at namespace levels, which can also be mapped to various Microsoft Entra groups. Likewise, if you know you'll have additional _custom_ Kubernetes roles created as part of your [separation of duties authentication schema](../rbac-suggestions.md), you can create those security groups now as well. For this walk through, you do NOT need to map any of these additional roles.
 
-   In the [`cluster-rbac.yaml` file](/cluster-manifests/cluster-rbac.yaml) and the various namespaced [`rbac.yaml files`](/cluster-manifests/cluster-baseline-settings/rbac.yaml), you can uncomment what you wish and replace the `<replace-with-an-aad-group-object-id…>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster or namespace. You do not need to perform this action for this walk through; they are only here for your reference. By default, in this implementation, no additional _cluster_ roles will be bound other than `cluster-admin`. For your final implementation, create custom kubernetes roles to align specifically with those job functions of your team, and create role assignments as needed. Handle [JIT access](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/concept-pim-for-groups) at the group membership level in Microsoft Entra ID via Privileged Identity Management, and leverage conditional access policies where possible. Always strive to minimize standing permissions, especially on identities that have access to in-scope components.
+   In the [`cluster-rbac.yaml` file](/cluster-manifests/cluster-rbac.yaml) and the various namespaced [`rbac.yaml files`](/cluster-manifests/cluster-baseline-settings/rbac.yaml), you can uncomment what you wish and replace the `<replace-with-a-microsoft-entra-group-object-id…>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster or namespace. You do not need to perform this action for this walk through; they are only here for your reference. By default, in this implementation, no additional _cluster_ roles will be bound other than `cluster-admin`. For your final implementation, create custom kubernetes roles to align specifically with those job functions of your team, and create role assignments as needed. Handle [JIT access](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/concept-pim-for-groups) at the group membership level in Microsoft Entra ID via Privileged Identity Management, and leverage conditional access policies where possible. Always strive to minimize standing permissions, especially on identities that have access to in-scope components.
 
 1. Set up Microsoft Entra Conditional Access policies. _Optional. Requires Microsoft Entra ID P1 or P2._
 

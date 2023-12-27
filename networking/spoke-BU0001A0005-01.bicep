@@ -557,7 +557,7 @@ resource nsgAcrDockerSubnet 'Microsoft.Network/networkSecurityGroups@2021-05-01'
                 }
             }
             {
-                name: 'AllowAadOutBound'
+                name: 'AllowEntraIdOutBound'
                 properties: {
                     description: 'Allow Microsoft Entra Access'
                     protocol: 'Tcp'
