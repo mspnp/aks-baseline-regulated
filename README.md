@@ -81,7 +81,7 @@ Ultimately, lifecycle/SDLC management of your cluster, its dependencies, and you
 
 ### 1. :rocket: Prepare the subscription
 
-There are considerations that must be addressed before you start deploying your cluster. Do I have enough permissions in my subscription and AD tenant to do a deployment of this size? How much of this will be handled by my team directly vs having another team be responsible?
+There are considerations that must be addressed before you start deploying your cluster. Do I have enough permissions in my subscription and Microsoft Entra tenant to do a deployment of this size? How much of this will be handled by my team directly vs having another team be responsible?
 
 * [ ] Begin by ensuring you [install and meet the prerequisites](./docs/deploy/01-prerequisites.md).
 * [ ] [Procure required TLS certificates](./docs/deploy/02-ca-certificates.md).
