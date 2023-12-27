@@ -35,7 +35,7 @@ Finally, this implementation uses a small, custom application as an example work
 
 * AKS v1.27
   * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
-  * [AKS-managed Azure AD](https://learn.microsoft.com/azure/aks/managed-aad)
+  * [AKS-managed Microsoft Entra ID](https://learn.microsoft.com/azure/aks/enable-authentication-microsoft-entra-id)
   * Managed Identities for kubelet and control plane
   * Azure CNI
   * [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
@@ -85,7 +85,7 @@ There are considerations that must be addressed before you start deploying your 
 
 * [ ] Begin by ensuring you [install and meet the prerequisites](./docs/deploy/01-prerequisites.md).
 * [ ] [Procure required TLS certificates](./docs/deploy/02-ca-certificates.md).
-* [ ] Plan your [Azure Active Directory integration](./docs/deploy/03-aad.md).
+* [ ] Plan your [Microsoft Entra integration](./docs/deploy/03-aad.md).
 * [ ] [Apply Azure Policy and Microsoft Defender configuration](./docs/deploy/04-subscription.md) to your target subscription.
 
 ### 2. Build regional networking hub

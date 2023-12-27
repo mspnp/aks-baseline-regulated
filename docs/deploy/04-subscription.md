@@ -1,6 +1,6 @@
 # Prepare Cluster Subscription
 
-In the prior step, you've set up an Azure AD tenant to fullfil your [cluster's control plane (Kubernetes Cluster API) authorization](./03-aad.md) needs for this reference implementation deployment. Now you'll prepare the subscription which host this infrastructure. This includes creating the resource groups and applying some high-level Azure Policies to govern our deployments.
+In the prior step, you've set up a Microsoft Entra tenant to fullfil your [cluster's control plane (Kubernetes Cluster API) authorization](./03-aad.md) needs for this reference implementation deployment. Now you'll prepare the subscription which host this infrastructure. This includes creating the resource groups and applying some high-level Azure Policies to govern our deployments.
 
 ## Subscription and resource group topology
 
@@ -36,7 +36,7 @@ To help govern our resources, there are policies we apply over the scope of thes
 | Allowed resource types         | networkWatcherRG                | Restricts the Network Watcher resource group to just Network Watcher resources. _(Audit only mode to prevent conflict with any existing policy that manages this common resource group.)_ |
 | No public AKS clusters         | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those with private Kubernetes API server.   |
 | No out-of-date AKS clusters    | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only recent versions.                            |
-| No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Azure AD RBAC enabled.       |
+| No AKS clusters without RBAC   | rg-bu0001a0005                  | Restricts the creation of AKS clusters to only those that are Microsoft Entra RBAC enabled.       |
 | No AKS clusters without Azure Policy | rg-bu0001a0005            | Restricts the creation of AKS clusters to only those that have the Azure Policy Add-on enabled.   |
 | No AKS clusters without BYOK OS & Data Disk Encryption | rg-bu0001a0005  | Restricts the creation of AKS clusters to only those that have customer-managed disk encryption enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
 | No AKS clusters without encryption-at-host | rg-bu0001a0005      | Restricts the creation of AKS clusters to only those that have the Encryption-At-Host feature enabled. (_This is in audit only mode, as not all customers may wish to do this._) |
