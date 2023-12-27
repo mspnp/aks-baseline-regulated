@@ -85,7 +85,7 @@ There are considerations that must be addressed before you start deploying your 
 
 * [ ] Begin by ensuring you [install and meet the prerequisites](./docs/deploy/01-prerequisites.md).
 * [ ] [Procure required TLS certificates](./docs/deploy/02-ca-certificates.md).
-* [ ] Plan your [Microsoft Entra integration](./docs/deploy/03-aad.md).
+* [ ] Plan your [Microsoft Entra integration](./docs/deploy/03-auth.md).
 * [ ] [Apply Azure Policy and Microsoft Defender configuration](./docs/deploy/04-subscription.md) to your target subscription.
 
 ### 2. Build regional networking hub

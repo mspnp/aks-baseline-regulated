@@ -49,4 +49,4 @@ Microsoft Entra Conditional Access policies can be managed in the following ways
 ## Next Steps
 
 * See additional [Authentication & Authorization considerations](./additional-considerations.md#authentication--authorization)
-* [Prep for Microsoft Entra Integration](./deploy/03-aad.md)
+* [Prep for Microsoft Entra Integration](./deploy/03-auth.md)

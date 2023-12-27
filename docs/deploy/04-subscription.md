@@ -1,6 +1,6 @@
 # Prepare Cluster Subscription
 
-In the prior step, you've set up a Microsoft Entra tenant to fullfil your [cluster's control plane (Kubernetes Cluster API) authorization](./03-aad.md) needs for this reference implementation deployment. Now you'll prepare the subscription which host this infrastructure. This includes creating the resource groups and applying some high-level Azure Policies to govern our deployments.
+In the prior step, you've set up a Microsoft Entra tenant to fullfil your [cluster's control plane (Kubernetes Cluster API) authorization](./03-auth.md) needs for this reference implementation deployment. Now you'll prepare the subscription which host this infrastructure. This includes creating the resource groups and applying some high-level Azure Policies to govern our deployments.
 
 ## Subscription and resource group topology
 
