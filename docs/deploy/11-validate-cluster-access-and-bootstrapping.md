@@ -35,7 +35,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 
 1. _From your Azure Bastion connection_, log into your Azure RBAC tenant and select your subscription.
 
-   The following command will perform a device login. Ensure you're logging in with the Azure AD user that has access to your AKS resources (i.e. the one you did your deployment with.)
+   The following command will perform a device login. Ensure you're logging in with the Microsoft Entra user that has access to your AKS resources (i.e. the one you did your deployment with.)
 
    ```bash
    az login
@@ -49,7 +49,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
    # az account set -s <subscription name or id>
    ```
 
-   > :warning: Your organization may have a conditional access policies in place that forbids access to Azure resources [from non corporate-managed devices](https://learn.microsoft.com/azure/active-directory/conditional-access/require-managed-devices). This jump box as deployed in these steps might trigger that policy. If that is the case, you'll need to work with your IT Security organization to provide an alterative access mechanism or temporary solution.
+   > :warning: Your organization may have a conditional access policies in place that forbids access to Azure resources [from non corporate-managed devices]https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant). This jump box as deployed in these steps might trigger that policy. If that is the case, you'll need to work with your IT Security organization to provide an alterative access mechanism or temporary solution.
 
 1. _From your Azure Bastion connection_, get your AKS credentials and set your `kubectl` context to your cluster.
 
@@ -61,7 +61,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 
 1. _From your Azure Bastion connection_, test cluster access and authenticate as a cluster admin user.
 
-   The following command will force you to authenticate into your AKS cluster's control plane. This will start yet another device login flow. For this one (**Azure Kubernetes Service AAD Client**), log in with a user that is a member of your cluster admin group in the Azure AD tenet you selected to be used for Kubernetes Cluster API RBAC. Also this is where any specified Azure AD conditional access policies would take effect if they had been applied, and ideally you would have first used PIM JIT access to be assigned to the admin group. Remember, the identity you log in here with is the identity you're performing cluster control plane (Cluster API) management commands (e.g. `kubectl`) as.
+   The following command will force you to authenticate into your AKS cluster's control plane. This will start yet another device login flow. For this one (**Azure Kubernetes Service Microsoft Entra Client**), log in with a user that is a member of your cluster admin group in the Microsoft Entra tenant you selected to be used for Kubernetes Cluster API RBAC. Also this is where any specified Microsoft Entra Conditional Access policies would take effect if they had been applied, and ideally you would have first used PIM JIT access to be assigned to the admin group. Remember, the identity you log in here with is the identity you're performing cluster control plane (Cluster API) management commands (e.g. `kubectl`) as.
 
    ```bash
    kubectl get nodes
@@ -80,7 +80,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
    aks-npsystem-26621167-vmss000002      Ready    agent   20m   v1.26.x
    ```
 
-   > :watch: The access tokens obtained in the prior two steps are subject to a Microsoft Identity Platform TTL (e.g. six hours). If your `az` or `kubectl` commands start erroring out after hours of usage with a message related to permission/authorization, you'll need to re-execute the `az login` and `az aks get-credentials` (overwriting your context) to refresh those tokens.
+   > :watch: The access tokens obtained in the prior two steps are subject to a Microsoft identity platform TTL (e.g. six hours). If your `az` or `kubectl` commands start erroring out after hours of usage with a message related to permission/authorization, you'll need to re-execute the `az login` and `az aks get-credentials` (overwriting your context) to refresh those tokens.
 
 1. _From your Azure Bastion connection_, confirm admission policies are applied to the AKS cluster.
 
@@ -169,7 +169,7 @@ This reference implementation includes Microsoft Defender for Containers as a so
 
 You can also consider installing third party solutions to supplement Microsoft Defender for Containers as a defense-in-depth strategy. As an example of that, in this reference implementation you also install a very basic deployment of [Falco](https://falco.org/). It is not configured for alerts, nor tuned to any specific needs. It uses the default rules as they were defined when its manifests were generated. This is installed for illustrative purposes, and you're encouraged to evaluate if a third-party solution like Falco is relevant to your situation. If so, in your final implementation, review and tune its deployment to fit your needs (E.g. add custom rules like [CVE detection](https://artifacthub.io/packages/search?ts_query_web=cve&org=falco), [sudo usage](https://artifacthub.io/packages/falco/security-hub/admin-activities), [basic FIM](https://artifacthub.io/packages/falco/security-hub/file-integrity-monitoring), [SSH Connection monitoring](https://artifacthub.io/packages/falco/security-hub/ssh-connections), and [NGINX containment](https://artifacthub.io/packages/falco/security-hub/nginx)). This tooling, _as most security tooling will be_, is **highly privileged within your cluster**. Usually running as DaemonSets with access to the underlying node in a manner that is well beyond any typical workload in your cluster. Remember to consider the runtime compute and networking requirements of your security tooling when sizing your cluster, as these can often be overlooked when initial cluster sizing conversations are happening.
 
-It's worth noting, some customers with regulated workloads are bringing ISV or open-source security solutions to their clusters in addition to Microsoft Defender for Containers for maximum (and/or redundant) compliance coverage. Azure Kubernetes Service is a managed Kubernetes platform, it does not imply that you will exclusively be using Microsoft products/solutions to solve your requirements. For the most part, after the deployment of the infrastructure and some out-of-the-box addons (like Azure Policy, Azure Monitor, Azure AD Pod Identity, Open Service Mesh), you're in charge of what you choose to run in your hosted Kubernetes platform. Bring the business and compliance solving solutions you need to the cluster from the [vast and ever-growing Kubernetes and CNCF ecosystem](https://l.cncf.io/?fullscreen=yes).
+It's worth noting, some customers with regulated workloads are bringing ISV or open-source security solutions to their clusters in addition to Microsoft Defender for Containers for maximum (and/or redundant) compliance coverage. Azure Kubernetes Service is a managed Kubernetes platform, it does not imply that you will exclusively be using Microsoft products/solutions to solve your requirements. For the most part, after the deployment of the infrastructure and some out-of-the-box addons (like Azure Policy, Azure Monitor, Microsoft Entra Workload ID, Open Service Mesh), you're in charge of what you choose to run in your hosted Kubernetes platform. Bring the business and compliance solving solutions you need to the cluster from the [vast and ever-growing Kubernetes and CNCF ecosystem](https://l.cncf.io/?fullscreen=yes).
 
 **You should ensure all necessary tooling and related reporting/alerting is applied as part of your _initial bootstrapping process_ to ensure coverage _immediately_ after cluster creation.**
 

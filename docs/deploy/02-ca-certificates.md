@@ -51,4 +51,4 @@ To support end-to-end TLS encryption, the following TLS certificates are procure
 
 ### Next step
 
-:arrow_forward: [Prep for Azure Active Directory integration](./03-aad.md)
+:arrow_forward: [Prep for Microsoft Entra integration](./03-auth.md)

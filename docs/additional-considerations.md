@@ -1,6 +1,6 @@
 # Additional Considerations
 
-This reference implementation is designed to be a starting point for your eventual architecture. It does not enable "every security option possible." While some of the features that are not enabled we'd encourage their usage, practicality supporting high completion rate of this material prevents the enablement of some feature. For example, your subscription permissions, already existing security policies in the subscription, existing policies that might block deployment, simplicity in demonstration, etc. Not all going through this walkthrough have the luxury of exploring it in a situation where they are subscription owner and Azure AD administrator. Because they were not trivial to deploy in this walkthrough, we wanted to ensure you at least have a list of things we'd have liked to include out of the box or at least have introduced as a consideration. Review these and add them into your final architecture as you see fit.
+This reference implementation is designed to be a starting point for your eventual architecture. It does not enable "every security option possible." While some of the features that are not enabled we'd encourage their usage, practicality supporting high completion rate of this material prevents the enablement of some feature. For example, your subscription permissions, already existing security policies in the subscription, existing policies that might block deployment, simplicity in demonstration, etc. Not all going through this walkthrough have the luxury of exploring it in a situation where they are subscription owner and Microsoft Entra administrator. Because they were not trivial to deploy in this walkthrough, we wanted to ensure you at least have a list of things we'd have liked to include out of the box or at least have introduced as a consideration. Review these and add them into your final architecture as you see fit.
 
 In addition to the ones mentioned below, the [Azure Architecture Center guidance for PCI-DSS 3.2.1 with AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-intro) also includes sepcific recommendations that might not be implemented in this solution. Some of those will be called out below.
 
@@ -141,7 +141,7 @@ While container images and other OCI artifacts typically do not contain sensitiv
 
 ### JIT and Conditional Access Policies
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.2.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-721) and this repo's [Azure AD Conditional Access](./conditional-access.md) page.
+> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7.2.1 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-721) and this repo's [Microsoft Entra Conditional Access](./conditional-access.md) page.
 
 ### Custom Cluster Roles
 

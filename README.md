@@ -35,7 +35,7 @@ Finally, this implementation uses a small, custom application as an example work
 
 * AKS v1.27
   * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
-  * [AKS-managed Azure AD](https://learn.microsoft.com/azure/aks/managed-aad)
+  * [AKS-managed Microsoft Entra ID](https://learn.microsoft.com/azure/aks/enable-authentication-microsoft-entra-id)
   * Managed Identities for kubelet and control plane
   * Azure CNI
   * [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
@@ -81,11 +81,11 @@ Ultimately, lifecycle/SDLC management of your cluster, its dependencies, and you
 
 ### 1. :rocket: Prepare the subscription
 
-There are considerations that must be addressed before you start deploying your cluster. Do I have enough permissions in my subscription and AD tenant to do a deployment of this size? How much of this will be handled by my team directly vs having another team be responsible?
+There are considerations that must be addressed before you start deploying your cluster. Do I have enough permissions in my subscription and Microsoft Entra tenant to do a deployment of this size? How much of this will be handled by my team directly vs having another team be responsible?
 
 * [ ] Begin by ensuring you [install and meet the prerequisites](./docs/deploy/01-prerequisites.md).
 * [ ] [Procure required TLS certificates](./docs/deploy/02-ca-certificates.md).
-* [ ] Plan your [Azure Active Directory integration](./docs/deploy/03-aad.md).
+* [ ] Plan your [Microsoft Entra integration](./docs/deploy/03-auth.md).
 * [ ] [Apply Azure Policy and Microsoft Defender configuration](./docs/deploy/04-subscription.md) to your target subscription.
 
 ### 2. Build regional networking hub
@@ -131,7 +131,7 @@ Most of the Azure resources deployed in the prior steps will have ongoing billin
 
 ## Separation of duties
 
-All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in that it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Azure AD role guide](./docs/rbac-suggestions.md)** shipped as part of this reference implementation.
+All workloads that find themselves in compliance scope usually require a documented separation of duties/concern implementation plan. Kubernetes poses an interesting challenge in that it involves a significant number of roles typically found across an IT organization. Networking, identity, SecOps, governance, workload teams, cluster operations, deployment pipelines, any many more. If you're looking for a starting point on how you might consider breaking up the roles that are adjacent to the AKS cluster, consider **reviewing our [Microsoft Entra role guide](./docs/rbac-suggestions.md)** shipped as part of this reference implementation.
 
 > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 7, 8, and 9 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity).
 

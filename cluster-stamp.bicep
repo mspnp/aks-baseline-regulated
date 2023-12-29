@@ -6,8 +6,8 @@ targetScope = 'resourceGroup'
 @minLength(79)
 param targetVnetResourceId string
 
-@description('Azure AD Group in the identified tenant that will be granted the highly privileged cluster-admin role.')
-param clusterAdminAadGroupObjectId string
+@description('Microsoft Entra group in the identified tenant that will be granted the highly privileged cluster-admin role.')
+param clusterAdminEntraGroupObjectId string
 
 @description('Your AKS control plane Cluster API authentication tenant')
 param k8sControlPlaneAuthorizationTenantId string
@@ -1179,7 +1179,7 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       managed: true
       enableAzureRBAC: false
       adminGroupObjectIDs: [
-        clusterAdminAadGroupObjectId
+        clusterAdminEntraGroupObjectId
       ]
       tenantID: k8sControlPlaneAuthorizationTenantId
     }

@@ -40,9 +40,9 @@ Consider the scope of roles & responsibilities over topics such as:
 * Live-site access patterns
 * Pre-production environments
 
-### Azure AD objects
+### Microsoft Entra objects
 
-Formalize your Azure AD structure around roles and responsibilities as well. For example, consider items like the following.
+Formalize your Microsoft Entra structure around roles and responsibilities as well. For example, consider items like the following.
 
 * Infrastructure Operators
   * A single **Service Principal** solely responsible for Azure Resource deployment for Azure resources. This would be the cluster and other Azure resources on the same lifecycle. (e.g. `bu001a005-infra-pipeline`)
@@ -60,7 +60,7 @@ Formalize your Azure AD structure around roles and responsibilities as well. For
 
 If you have multiple clusters as part of your portfolio, create separate groups per cluster when the group is applied as Kubernetes RBAC, especially for the highly privileged groups. Ensure that service principals used for any resource deployment (Azure or Kubernetes) are not shared across pre-production and production environments.
 
-### Azure AD mapping to cluster
+### Microsoft Entra ID mapping to cluster
 
 The above, where they materialize in-cluster, would be mapped to distinct, custom Kubernetes `ClusterRole` definitions (e.g. `name: infraAdmin`) and then a singular `ClusterRoleBinding` to the related group above. And for those that are namespaced, to `Role` definitions (e.g. `name: appAdmin`) and then a singular `RoleBinding` to the related group above -- for each related namespace. "Shared Services" in a cluster will live in their own namespace (e.g. a security agent), and while a `ClusterRoleBinding` might work for management of those, consider instead managing those as a independent workload, and managing those through `Role` and `RoleBinding` constructs, that you apply to Infrastructure Operators.
 

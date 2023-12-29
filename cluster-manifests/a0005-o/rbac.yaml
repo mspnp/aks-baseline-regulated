@@ -1,4 +1,4 @@
-# Mapping k8s user facing roles to AAD groups: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+# Mapping k8s user facing roles to Microsoft Entra groups: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: RoleBinding
 #metadata:
@@ -9,7 +9,7 @@
 #  name: admin
 #subjects:
 #  - kind: Group
-#    name: <replace-with-an-aad-group-object-id-for-this-namespace-admin-role>
+#    name: <replace-with-a-microsoft-entra-group-object-id-for-this-namespace-admin-role>
 #---
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: RoleBinding
@@ -21,7 +21,7 @@
 #  name: edit
 #subjects:
 #  - kind: Group
-#    name: <replace-with-an-aad-group-object-id-for-this-namespace-edit-role>
+#    name: <replace-with-a-microsoft-entra-group-object-id-for-this-namespace-edit-role>
 #---
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: RoleBinding
@@ -33,4 +33,4 @@
 #  name: view
 #subjects:
 #  - kind: Group
-#    name: <replace-with-an-aad-group-object-id-for-this-namespace-view-role>
+#    name: <replace-with-a-microsoft-entra-group-object-id-for-this-namespace-view-role>
