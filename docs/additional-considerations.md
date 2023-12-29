@@ -1,8 +1,9 @@
 # Additional Considerations
 
-This reference implementation is designed to be a starting point for your eventual architecture. It does not enable "every security option possible." While some of the features that are not enabled we'd encourage their usage, practicality supporting high completion rate of this material prevents the enablement of some feature. For example, your subscription permissions, already existing security policies in the subscription, existing policies that might block deployment, simplicity in demonstration, etc. Not all going through this walkthrough have the luxury of exploring it in a situation where they are subscription owner and Microsoft Entra administrator. Because they were not trivial to deploy in this walkthrough, we wanted to ensure you at least have a list of things we'd have liked to include out of the box or at least have introduced as a consideration. Review these and add them into your final architecture as you see fit.
+This reference implementation is designed to be a starting point for your eventual architecture. It does not enable "every security option possible." While some of the features that are not enabled we'd encourage their usage, practicality supporting high completion rate of this material prevents the enablement of some feature. For example, your subscription permissions, already existing security policies in the subscription, existing policies that might block deployment, simplicity in demonstration, and so on. Not all going through this walkthrough have the luxury of exploring it in a situation where they are subscription owner and Microsoft Entra administrator. Because they were not trivial to deploy in this walkthrough, we wanted to ensure you at least have a list of things we'd have liked to include out of the box or at least have introduced as a consideration. Review these and add them into your final architecture as you see fit.
 
-In addition to the ones mentioned below, the [Azure Architecture Center guidance for PCI-DSS 3.2.1 with AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-intro) also includes sepcific recommendations that might not be implemented in this solution. Some of those will be called out below.
+In addition to the ones mentioned below, the [Azure Architecture Center guidance for PCI DSS 3.2.1 with AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-intro) also includes sepcific recommendations that might not be implemented in this solution. Some of those will be called out below.
+
 
 ## Host/disk encryption
 
@@ -34,7 +35,7 @@ Note, like above, we enable an Azure Policy detecting clusters without this feat
 
 ### Enable Network Watcher and Traffic Analytics
 
-Observability into your network is critical for compliance. [Network Watcher](https://learn.microsoft.com/azure/network-watcher/network-watcher-monitoring-overview), combined with [Traffic Analytics](https://learn.microsoft.com/azure/network-watcher/traffic-analytics) will help provide a perspective into traffic traversing your networks. This reference implementation will _attempt_ to deploy NSG Flow Logs and Traffic Analytics. These features depend on a regional Network Watcher resource being installed on your subscription. Network Watchers are singletons in a subscription, and their creation is _usually_ automatic and  might exist in a resource group you do not have RBAC access to. We strongly encourage you to enable [NSG flow logs](https://learn.microsoft.com/azure/network-watcher/network-watcher-nsg-flow-logging-overview) on your AKS Cluster subnets, build agent subnets, Azure Application Gateway, and other subnets that may be a source of traffic into and out of your cluster. Ensure you're sending your NSG Flow Logs to a **V2 Storage Account** and set your retention period in the Storage Account for these logs to a value that is at least as long as your compliance needs (e.g. 90 days).
+Observability into your network is critical for compliance. [Network Watcher](https://learn.microsoft.com/azure/network-watcher/network-watcher-monitoring-overview), combined with [Traffic Analytics](https://learn.microsoft.com/azure/network-watcher/traffic-analytics) will help provide a perspective into traffic traversing your networks. This reference implementation will *attempt* to deploy NSG Flow Logs and Traffic Analytics. These features depend on a regional Network Watcher resource being installed on your subscription. Network Watchers are singletons in a subscription, and their creation is *usually* automatic and might exist in a resource group you do not have RBAC access to. We strongly encourage you to enable [NSG flow logs](https://learn.microsoft.com/azure/network-watcher/network-watcher-nsg-flow-logging-overview) on your AKS Cluster subnets, build agent subnets, Azure Application Gateway, and other subnets that may be a source of traffic into and out of your cluster. Ensure you're sending your NSG Flow Logs to a **V2 Storage Account** and set your retention period in the Storage Account for these logs to a value that is at least as long as your compliance needs (such as 90 days).
 
 In addition to Network Watcher aiding in compliance considerations, it's also a highly valuable network troubleshooting utility. As your network is private and heavy with flow restrictions, troubleshooting network flow issues can be time consuming. Network Watcher can help provide additional insight when other troubleshooting means are not sufficient.
 
@@ -48,15 +49,13 @@ As an added measure use apply the [Flow logs should be enabled for every network
 
 > :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Azure Key Vault network restrictions article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#azure-key-vault-network-restrictions).
 
-
 ### Expanded NetworkPolicies
 
-Not all user-provided namespaces in this reference implementation employ a zero-trust network. For example `cluster-baseline-settings` does not. We provide an example of zero-trust networks in `a0005-i` and `a0005-o` as your reference implementation of the concept. All namespaces (other than `kube-system`, `gatekeeper-system`, and other AKS-provided namespaces) should have a maximally restrictive NetworkPolicy applied. What those policies will be will be based on the pods running in those namespaces. Ensure your accounting for readiness, liveliness, and startup probes and also accounting for metrics gathering by `oms-agent`.  Consider standardizing on ports across your workloads so that you can provide a consistent NetworkPolicy and even Azure Policy for allowed container ports.
+Not all user-provided namespaces in this reference implementation employ a zero-trust network. For example `cluster-baseline-settings` does not. We provide an example of zero-trust networks in `a0005-i` and `a0005-o` as your reference implementation of the concept. All namespaces (other than `kube-system`, `gatekeeper-system`, and other AKS-provided namespaces) should have a maximally restrictive NetworkPolicy applied. What those policies will be will be based on the pods running in those namespaces. Ensure your accounting for readiness, liveliness, and startup probes and also accounting for metrics gathering by `oms-agent`. Consider standardizing on ports across your workloads so that you can provide a consistent NetworkPolicy and even Azure Policy for allowed container ports.
 
-### Enable DDoS Protection
+### Enable DDoS protection
 
 > :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [DDoS protection article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#ddos-protection).
-
 
 </details>
 
@@ -67,13 +66,13 @@ Not all user-provided namespaces in this reference implementation employ a zero-
 
 ### Make use of container securityContext options
 
-When describing your workload's security needs, leverage all relevant [`securityContext` settings](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for your containers. The workloads deployed in this reference implementation do NOT represent best practices, as this reference implementation was mainly infrastructure focused.
+When describing your workload's security needs, use all relevant [`securityContext` settings](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for your containers. The workloads deployed in this reference implementation do NOT represent best practices, as this reference implementation was mainly infrastructure focused.
 
 > :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Pod security article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#pod-security).
 
 ### Pin image versions
 
-When practical to do so, do not reference images by their tags in your deployment manifests, this includes version tags like `1.0` and certinally never mutable tags like `latest`. While it may be verbose to do, prefer referring images with their actual image id; for example `my-image:@sha256:10f9714876074e25bdae42bc9ed6fde9a7758706-09fa-474c-86bd-eb7a95ae21ec`. This will ensures you can reliably map container scan results with the actual content running in your cluster.
+When practical to do so, do not reference images by their tags in your deployment manifests, this includes version tags like `1.0` and certinally never mutable tags like `latest`. While it may be verbose to do, prefer referring images with their actual image ID; for example `my-image:@sha256:10f9714876074e25bdae42bc9ed6fde9a7758706-09fa-474c-86bd-eb7a95ae21ec`. This will ensures you can reliably map container scan results with the actual content running in your cluster.
 
 You can extend the Azure Policy for image name to include this pattern in the allowed regular expression to help enforce this.
 
@@ -100,7 +99,7 @@ The reference implementation puts in place an allow list for what resource types
 
 ### Management Groups
 
-This reference implementation is expected to be deployed in a standalone subscription.  As such, Azure Policies are applied at a relatively local scope (subscription or resource group). If you have multiple subscriptions that will be under regulatory compliance, consider grouping them under a [management group hierarchy](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/enterprise-scale/management-group-and-subscription-organization) that applies the relevant Azure Policies uniformly across your in-scope subscriptions.
+This reference implementation is expected to be deployed in a standalone subscription. As such, Azure Policies are applied at a relatively local scope (subscription or resource group). If you have multiple subscriptions that will be under regulatory compliance, consider grouping them under a [management group hierarchy](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/enterprise-scale/management-group-and-subscription-organization) that applies the relevant Azure Policies uniformly across your in-scope subscriptions.
 
 </details>
 
@@ -115,7 +114,7 @@ This reference implementation is expected to be deployed in a standalone subscri
 
 ### Create triage process for alerts
 
-From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud (or via Azure Resource Graph), you have access to all alerts that Microsoft Defender for Cloud detects on your resources. You should have a triage process in place address or defer detected issues. Work with your security team to understand how relevant alerts will be made available to the workload owner(s).
+From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/7) in Microsoft Defender for Cloud (or via Azure Resource Graph), you have access to all alerts that Microsoft Defender for Cloud detects on your resources. You should have a triage process in place address or defer detected issues. Work with your security team to understand how relevant alerts will be made available to the workload owners.
 
 </details>
 
@@ -126,11 +125,11 @@ From the [Security alerts view](https://portal.azure.com/#blade/Microsoft_Azure_
 
 ### OCI Artifact Signing
 
-Azure Container Registry supports the [signing of images](https://learn.microsoft.com/azure/container-registry/container-registry-content-trust), built on [CNFC Notary (v1)](https://github.com/theupdateframework/notary). This, coupled with an admission controller that supports validating signatures, can ensure that you're only running images that you've signed with your private keys. This integration is not something that is provided, today, end-to-end by Azure Container Registry and AKS (Azure Policy), and can consider bringing open source solutions like [SSE Connaisseur](https://github.com/sse-secure-systems/connaisseur) or [IBM Portieris](https://github.com/IBM/portieris). A working group in the CNFC is currently working on [Notary v2](https://github.com/notaryproject/notaryproject) for signing OCI Artifacts (i.e. container images and helm charts), and both the ACR and AKS roadmap includes adding a more native end-to-end experience in this space built upon this foundation.
+Azure Container Registry supports the [signing of images](https://learn.microsoft.com/azure/container-registry/container-registry-content-trust), built on [CNFC Notary (v1)](https://github.com/theupdateframework/notary). This, coupled with an admission controller that supports validating signatures, can ensure that you're only running images that you've signed with your private keys. This integration is not something that is provided, today, end-to-end by Azure Container Registry and AKS (Azure Policy), and can consider bringing open-source solutions like [SSE Connaisseur](https://github.com/sse-secure-systems/connaisseur) or [IBM Portieris](https://github.com/IBM/portieris). A working group in the CNFC is currently working on [Notary v2](https://github.com/notaryproject/notaryproject) for signing OCI Artifacts (that is, container images and Helm charts), and both the Azure Container Registry and AKS roadmap includes adding a more native end-to-end experience in this space built upon this foundation.
 
 ### Customer-managed encryption
 
-While container images and other OCI artifacts typically do not contain sensitive data, they do typically contain your Intellectual Property. Use customer-managed keys to manage the encryption at rest of the contents of your registries. By default, the data is encrypted at rest with service-managed keys, but customer-managed keys are sometimes required to meet regulatory compliance standards. Customer-managed keys enable the data to be encrypted with an Azure Key Vault key created and owned by you. You have full control and _responsibility_ for the key lifecycle, including rotation and management. Learn more at, [Encrypt registry using a customer-managed key](https://aka.ms/acr/CMK).
+While container images and other OCI artifacts typically do not contain sensitive data, they do typically contain your Intellectual Property. Use customer-managed keys to manage the encryption at rest of the contents of your registries. By default, the data is encrypted at rest with service-managed keys, but customer-managed keys are sometimes required to meet regulatory compliance standards. Customer-managed keys enable the data to be encrypted with an Azure Key Vault key created and owned by you. You have full control and *responsibility* for the key lifecycle, including rotation and management. Learn more at, [Encrypt registry using a customer-managed key](https://aka.ms/acr/CMK).
 
 </details>
 
@@ -156,7 +155,7 @@ Regulatory compliance often requires well defined roles, with specific access po
 
 ### Use "distroless" images
 
-Where your workload supports it, always prefer the usage of "distroless" base images for your workloads. These are specially crafted base images that minimize the potential security surface area of your images by removing ancillary features (shells, package managers, etc.) that are not relevant to your workload. Doing so should, generally speaking, reduce CVE hit rates. Every detected CVE in your images should kick off your defined triage process, which is an expensive, human-driven task that benefits from having an improved signal-to-noise ratio.
+Where your workload supports it, always prefer the usage of "distroless" base images for your workloads. These are specially crafted base images that minimize the potential security surface area of your images by removing ancillary features (shells, package managers, and so on) that are not relevant to your workload. Doing so should, generally speaking, reduce CVE hit rates. Every detected CVE in your images should kick off your defined triage process, which is an expensive, human-driven task that benefits from having an improved signal-to-noise ratio.
 
 </details>
 
@@ -167,13 +166,13 @@ Where your workload supports it, always prefer the usage of "distroless" base im
 
 ### Live-site cluster access alternatives
 
-If you wish to add an auditable layer of indirection between cluster & application administrators and the cluster for live-site issues, you might consider a ChatOps approach, in which commands against the cluster are executed by dedicated, hardened compute in a subnet like the one above for deployment but are fronted by a Microsoft Teams integration. That gives you the ability to _limit commands_ executed against the cluster, without necessarily building an ops process based exclusively around jump boxes. Also, you may already have an IAM-gated IT automation platform in place in which pre-defined _actions_ can be constructed within. Its action runners would then execute within the `snet-management-agents` subnet while the initial invocation of the actions is audited and controlled in the IT automation platform.
+If you wish to add an auditable layer of indirection between cluster & application administrators and the cluster for live-site issues, you might consider a ChatOps approach, in which commands against the cluster are executed by dedicated, hardened compute in a subnet like the one above for deployment but are fronted by a Microsoft Teams integration. That gives you the ability to *limit commands* executed against the cluster, without necessarily building an ops process based exclusively around jump boxes. Also, you may already have an IAM-gated IT automation platform in place in which pre-defined *actions* can be constructed within. Its action runners would then execute within the `snet-management-agents` subnet while the initial invocation of the actions is audited and controlled in the IT automation platform.
 
 ### Build Agents
 
-Pipeline agents should be run external to your regulated cluster. While it is possible to do that work on the cluster itself, providing a clear separation of concerns is vital. The build process itself is a potential threat vector and executing that processes as a cluster workload is inappropriate. If you wish to use Kubernetes as your build agent infrastructure, that's fine; just _do not co-mingle that process with your regulated workload runtime_.
+Pipeline agents should be run external to your regulated cluster. While it is possible to do that work on the cluster itself, providing a clear separation of concerns is vital. The build process itself is a potential threat vector and executing that processes as a cluster workload is inappropriate. If you wish to use Kubernetes as your build agent infrastructure, that's fine; just *do not co-mingle that process with your regulated workload runtime*.
 
-Your build agents should be as air-gapped as practical from your cluster, reserving your agents exclusively for last mile interaction with the Kubernetes API Server (if that's how you do your deployments). If instead your build agents can be completely disconnected from your cluster and instead needing just network line of sight to Azure Container Registry to push container images, helm charts, etc and then GitOps does the deployment, even better. Strive for a build and publish workflow that minimizes or eliminates any direct need for network line of sight to your Kubernetes Cluster API (or its nodes).
+Your build agents should be as air-gapped as practical from your cluster, reserving your agents exclusively for last mile interaction with the Kubernetes API Server (if that's how you do your deployments). If instead your build agents can be completely disconnected from your cluster and instead needing just network line of sight to Azure Container Registry to push container images, Helm charts, and so on and then GitOps does the deployment, even better. Strive for a build and publish workflow that minimizes or eliminates any direct need for network line of sight to your Kubernetes Cluster API (or its nodes).
 
 </details>
 
@@ -184,17 +183,17 @@ Your build agents should be as air-gapped as practical from your cluster, reserv
 
 ### Microsoft's Security Response Center
 
-Inline, we talked about many ISV's security agents being able to detect relevant CVEs for your cluster and workloads. But in addition to relying on tooling, you can also see [Microsoft's Security Response Center's 1st-party CVE listings](https://msrc.microsoft.com/update-guide/vulnerability) at any time. Here's [CVE-2021-27075](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-27075), an Information Disclosure entry from March 2021 as an example. No matter how you keep yourself informed about current CVEs, ensure you have a documented plan to stay informed.
+Inline, we talked about many ISV's security agents being able to detect relevant CVEs for your cluster and workloads. But in addition to relying on tooling, you can also see [Microsoft's Security Response Center's first-party CVE listings](https://msrc.microsoft.com/update-guide/vulnerability) at any time. Here's [CVE-2021-27075](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-27075), an Information Disclosure entry from March 2021 as an example. No matter how you keep yourself informed about current CVEs, ensure you have a documented plan to stay informed.
 
 ### Microsoft Sentinel
 
-Microsoft Sentinel was enabled in this reference implementation. No alerts were created or any sort of "usage" of it, other than enabling it. You may already be using another SIEM, likewise you may find that a SIEM is not cost effective for your solution. Evaluate if you will derive benefit from Microsoft Sentinel in your solution, and tune as needed.
+Microsoft Sentinel was enabled in this reference implementation. No alerts were created or any sort of "usage" of it, other than enabling it. You may already be using another SIEM, likewise you may find that a SIEM is not cost effective for your solution. Evaluate whether you will derive benefit from Microsoft Sentinel in your solution, and tune as needed.
 
 > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 10.5 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-monitor#requirement-105)
 
 </details>
 
-## Disaster Recovery
+## Disaster recovery
 
 <details>
   <summary>View considerations…</summary>
@@ -203,7 +202,7 @@ Microsoft Sentinel was enabled in this reference implementation. No alerts were 
 
 While we generally discourage any storage of state within a cluster, you may find your workload demands in-cluster storage. Regardless if that data is in compliance scope or not, you'll often require a robust and secure process for backup and recovery. You may find a solution like Azure Backup (for Azure Disks and Azure Files), [Veeam Kasten K10](https://kasten.io), or [VMware Velero](https://velero.io/) instrumental in achieving any `PersistantVolumeClaim` backup and recovery strategies.
 
-All backup process needs to classify the data contained within the backup. This is true of data both within and external to your cluster. If the data falls within regulatory scope, you'll need extend your compliance boundaries to the lifecycle and destination of the backup -- which will be outside of the cluster. Consider geographic restrictions, encryption at rest, access controls, roles and responsibilities, auditing, time-to-live, and tampering prevention (check-sums, etc) when designing your backup system. Backups can be a vector for malicious intent, with a bad actor compromising a backup and then forcing an event in which their backup is restored.
+All backup process needs to classify the data contained within the backup. This is true of data both within and external to your cluster. If the data falls within regulatory scope, you'll need extend your compliance boundaries to the lifecycle and destination of the backup -- which will be outside of the cluster. Consider geographic restrictions, encryption at rest, access controls, roles and responsibilities, auditing, time-to-live, and tampering prevention (such as check-sums) when designing your backup system. Backups can be a vector for malicious intent, with a bad actor compromising a backup and then forcing an event in which their backup is restored.
 
 > :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Cluster backups (state and resources) article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#cluster-backups-state-and-resources).
 
@@ -220,7 +219,7 @@ While this reference implementation uses Tresor as its TLS certificate provider 
 
 ### Ingress Controller
 
-The ingress controller implemented in this reference implementation is relatively simplistic in implementation. It's currently using a wildcard certificate to handle default traffic when an `Ingress` resource doesn't contain a specific certificate. This might be fine for most customers, but if you have an organizational policy against using wildcard certs (even on your internal, private network), you may need to adjust your ingress controller to not support a "default certificate" and instead require ever workload to surface their own named certificate. This will impact how Azure Application Gateway is performing backend health checks.
+The ingress controller implemented in this reference implementation is relatively simplistic in implementation. It's currently using a wildcard certificate to handle default traffic when an `Ingress` resource doesn't contain a specific certificate. This might be fine for most customers, but if you have an organizational policy against using wildcard certs (even on your internal, private network), you may need to adjust your ingress controller to not support a "default certificate" and instead require ever workload to surface their own named certificate. This will affect how Azure Application Gateway is performing backend health checks.
 
 </details>
 
@@ -233,7 +232,7 @@ The ingress controller implemented in this reference implementation is relativel
 
 The in-cluster `omsagent` pods running in `kube-system` are the Log Analytics collection agent. They are responsible for gathering telemetry, scraping container `stdout` and `stderr` logs, and collecting Prometheus metrics. You can tune its collection settings by updating the [`container-azm-ms-agentconfig.yaml`](/cluster-manifests/kube-system/container-azm-ms-agentconfig.yaml) ConfigMap file. In this reference implementation, logging is enabled across `kube-system` and all your workloads. By default, `kube-system` is excluded from logging. Ensure you're adjusting the log collection process to achieve balance cost objectives, SRE efficiency when reviewing logs, and compliance needs.
 
-### Retention and continous export
+### Retention and continuous export
 
 > :notebook: See the Azure Architecture Center PCI-DSS 3.2.1 for AKS [Security monitoring article](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-ra-code-assets#security-monitoring).
 

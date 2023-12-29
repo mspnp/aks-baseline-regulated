@@ -4,14 +4,14 @@ Now that the all the [necessary bootstrapping requirements are deployed](./09-pr
 
 ## Expected results
 
-* The cluster and all adjacent resources are deployed.
-  * This includes core infrastructure such as Azure Application Gateway.
-  * Private Link configuration
-  * Jump box (Azure Bastion) access
+- The cluster and all adjacent resources are deployed.
+  - This includes core infrastructure such as Azure Application Gateway.
+  - Private Link configuration
+  - Jump box (Azure Bastion) access
 
 ## Steps
 
-1. Get the already-deployed, virtual network resource ID that this cluster will be attached to.
+1. Get the already-deployed, Virtual Network resource ID that this cluster will be attached to.
 
    ```bash
    RESOURCEID_VNET_CLUSTERSPOKE=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-01 --query properties.outputs.clusterVnetResourceId.value -o tsv)
@@ -40,7 +40,7 @@ Now that the all the [necessary bootstrapping requirements are deployed](./09-pr
 
 1. Deploy the cluster ARM template.
 
-   > _Alteratively 🛑_, you could set these values in [`azuredeploy.parameters.prod.json`](../../azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
+   > *Alteratively 🛑*, you could set these values in [`azuredeploy.parameters.prod.json`](../../azuredeploy.parameters.prod.json) file instead of the individual key-value pairs shown below. You'll be redeploying a slight evolution of this template a later time in this walkthrough, and you might find it easier to have these variables captured in the parameters file as they will not change for the second deployment.
 
    ```bash
    GITOPS_REPOURL=$(git config --get remote.origin.url)

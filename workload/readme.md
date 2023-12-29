@@ -6,15 +6,15 @@ This reference implementation is focused on the infrastructure of a secure, AKS 
 
 The workload is spread across two namespaces, `a0005-i` and `a0005-o` representing components that are directly in-scope (`-i`) and components that themselves are not in-scope, but need to be adjacent (`-o`) to the in-scope workload.
 
-The workload will take advantage of the shared ingress controller and Open Service Mesh installation that the [Infrastructure Operator](/docs/rbac-suggestions.md#role-ideas) installed on the cluster.
+The workload will take advantage of the shared ingress controller and Open Service Mesh installation that the [Infrastructure Operator](/docs/rbac-suggestions#role-ideas) installed on the cluster.
 
 ## a0005-i
 
-This is the "in scope" namespace. It's pods ideally will be targeting the matching, dedicated "in scope" nodepool.  There is a zero-trust network policy applied to this namespace and this namespace is enrolled in the workload service mesh.
+This is the "in scope" namespace. It's pods ideally will be targeting the matching, dedicated "in scope" nodepool. There is a zero-trust network policy applied to this namespace and this namespace is enrolled in the workload service mesh.
 
 ### web-frontend
 
-This is an ASP.NET 5.0 application that kicks off a series of network calls in the cluster to report on allowed traffic flows. This is what your ingress controller will be routing traffic to. It is able to communicate to microservice-a only (in the a0005-o namespace).
+This is an ASP.NET 5.0 application that kicks off a series of network calls in the cluster to report on allowed traffic flows. This is what your ingress controller will be routing traffic to. It can communicate to microservice-a only (in the a0005-o namespace).
 
 ### microservice-c
 
@@ -22,7 +22,7 @@ This is an ASP.NET 5.0 application that attempts to make network contact with ot
 
 ## a0005-o
 
-This is the "out of scope" namespace. It's pods ideally will be targeting the matching, dedicated "out of scope" nodepool.  There is a zero-trust network policy applied to this namespace and this namespace is enrolled in the workload service mesh.
+This is the "out of scope" namespace. It's pods ideally will be targeting the matching, dedicated "out of scope" nodepool. There is a zero-trust network policy applied to this namespace and this namespace is enrolled in the workload service mesh.
 
 ### microservice-a
 
@@ -34,4 +34,4 @@ This is an ASP.NET 5.0 application that attempts to make network contact with ot
 
 ## mTLS
 
-All communication within the mesh is mTLS encrypted due to the features of the service mesh.  Likewise, the communication between the Ingress Controller and the web-frontend, is also TLS encrypted.
+All communication within the mesh is mTLS encrypted due to the features of the service mesh. Likewise, the communication between the Ingress Controller and the web-frontend, is also TLS encrypted.

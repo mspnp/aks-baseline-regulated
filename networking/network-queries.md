@@ -2,7 +2,6 @@
 
 ## Azure Firewall
 
-
 ### Network Rules
 
 ```kusto
