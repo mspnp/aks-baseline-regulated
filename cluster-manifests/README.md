@@ -6,16 +6,16 @@ This is the root of the GitOps configuration directory. These Kubernetes object 
 
 ## Contents
 
-* Flux v2 (self-managing) (see: [`flux-system`](./flux-system/))
-* "Deny All" policies for the `default` namespace (see: [`default`](./default/))
-* Sample Falco install (see: [`falco-system`](./falco-system/))
-* Cluster-wide RBAC assignments (see: [`cluster-rbac.yaml`](./cluster-rbac.yaml))
-* Azure Monitor Agent Configuration (see [`kube-system`](./kube-system/))
-* [Kured](#kured) (see: [`cluster-baseline-settings`](./cluster-baseline-settings/kured/))
+- Flux v2 (self-managing) (see: [`flux-system`](./flux-system/))
+- "Deny All" policies for the `default` namespace (see: [`default`](./default/))
+- Sample Falco install (see: [`falco-system`](./falco-system/))
+- Cluster-wide RBAC assignments (see: [`cluster-rbac.yaml`](./cluster-rbac.yaml))
+- Azure Monitor Agent Configuration (see [`kube-system`](./kube-system/))
+- [Kured](#kured) (see: [`cluster-baseline-settings`](./cluster-baseline-settings/kured/))
 
-* Placeholder [FIM](./cluster-baseline-settings/fim/) and [AV](./cluster-baseline-settings/av/) solution.
-* Cluster workload utility, NGINX as an ingress controller (see: [`ingress-nginx`](./ingress-nginx))
-* Open Service Mesh configuration (see: [`osm-config.yaml`](./kube-system/osm-config.yaml))
+- Placeholder [FIM](./cluster-baseline-settings/fim/) and [AV](./cluster-baseline-settings/av/) solution.
+- Cluster workload utility, NGINX as an ingress controller (see: [`ingress-nginx`](./ingress-nginx))
+- Open Service Mesh configuration (see: [`osm-config.yaml`](./kube-system/osm-config.yaml))
 
 ### Kured
 

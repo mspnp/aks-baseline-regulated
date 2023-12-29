@@ -4,17 +4,17 @@ Now that the [hub-spoke network is provisioned](./08-cluster-networking.md), the
 
 ## Expected results
 
-### Container registry
+### Container Registry
 
-Container registries often have a lifecycle that extends beyond the scope of a single cluster. They can be scoped broadly at organizational or business unit levels, or can be scoped at workload levels, but usually are not directly tied to the lifecycle of any specific cluster instance. For example, you may do blue/green _cluster instance_ deployments, both using the same container registry. Even though clusters came and went, the registry stays intact.
+Container registries often have a lifecycle that extends beyond the scope of a single cluster. They can be scoped broadly at organizational or business unit levels, or can be scoped at workload levels, but usually are not directly tied to the lifecycle of any specific cluster instance. For example, you may do blue/green *cluster instance* deployments, both using the same Container Registry. Even though clusters came and went, the registry stays intact.
 
-- Azure Container Registry (ACR) is deployed, and exposed as a private endpoint.
-- ACR is populated with images your cluster will need as part of its bootstrapping process.
-- Log Analytics is deployed and ACR platform logging is configured. This workspace will be used by your cluster as well.
+- Azure Container Registry is deployed, and exposed as a private endpoint.
+- Azure Container Registry is populated with images your cluster will need as part of its bootstrapping process.
+- Log Analytics is deployed and Azure Container Registry platform logging is configured. This workspace will be used by your cluster as well.
 
-The role of this pre-existing ACR instance is made more prominant when we think about cluster bootstrapping. That is the process that happens after Azure resource deployment of the cluster, but before your first workload lands in the cluster. The cluster will be bootstrapped _immediately and automatically_ after cluster deployment by the GitOps extension, which means you'll need ACR in place to act as your official OCI artifact repository for required images and Helm charts used in that bootstrapping process.
+The role of this pre-existing Azure Container Registry instance is made more prominant when we think about cluster bootstrapping. That is the process that happens after Azure resource deployment of the cluster, but before your first workload lands in the cluster. The cluster will be bootstrapped *immediately and automatically* after cluster deployment by the GitOps extension, which means you'll need Azure Container Registry in place to act as your official OCI artifact repository for required images and Helm charts used in that bootstrapping process.
 
-### Key vault
+### Key Vault
 
 Azure Key Vault also often has a lifecycle that extends beyond the scope of a single cluster. It is used to hold certificates needed by various components in the infrastructure and needs to be in place for when the cluster is bootstrapped.
 
@@ -26,9 +26,9 @@ An Azure user managed identity is going to be deployed. This identity is the ing
 
 ## Steps
 
-1. Get the AKS cluster spoke virtual network resource ID.
+1. Get the AKS cluster spoke Virtual Network resource ID.
 
-   > :book: The app team will be deploying to a spoke virtual network, that was already provisioned by the network team.
+   > :book: The app team will be deploying to a spoke Virtual Network, that was already provisioned by the network team.
 
    ```bash
    export RESOURCEID_VNET_CLUSTERSPOKE=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-01 --query properties.outputs.clusterVnetResourceId.value -o tsv)
@@ -44,27 +44,27 @@ An Azure user managed identity is going to be deployed. This identity is the ing
 
 ## Quarantine pattern
 
-Quarantining first- and third-party images is a recommended security practice. This allows you to get your images onto a dedicated container registry and subject them to any sort of security/compliance scrutiny you wish to apply. Once validated, they can then be promoted to being available to your cluster. There are many variations on this pattern, with different tradeoffs for each. For simplicity in this walkthrough we are simply going to import our images to repository names that starts with `quarantine/`. We'll then show you Microsoft Defender for Containers' scan of those images, and then you'll import those same images directly from `quarantine/` to `live/` repositories (retaining their sha256 digest). We've restricted our cluster to only allow pulling from `live/` repositories and we've built an alert if an image was imported to `live/` from a source other than `quarantine/`. This isn't a preventative security control; _this won't block a direct import_ request or _validate_ that the image actually passed quarantine checks. There are other solutions you can use for this pattern that are more exhaustive. [Aquasec](https://go.microsoft.com/fwlink/?linkid=2002601&clcid=0x409) and [Twistlock](https://go.microsoft.com/fwlink/?linkid=2002600&clcid=0x409) both offer integrated solutions specifically for Azure Container Registry scanning and compliance management. Azure Container Registry has an [integrated quarantine feature](https://learn.microsoft.com/azure/container-registry/container-registry-faq#how-do-i-enable-automatic-image-quarantine-for-a-registry) as well that could be considered, however it is in preview at this time.
+Quarantining first- and third-party images is a recommended security practice. This allows you to get your images onto a dedicated container registry and subject them to any sort of security/compliance scrutiny you wish to apply. Once validated, they can then be promoted to being available to your cluster. There are many variations on this pattern, with different tradeoffs for each. For simplicity in this walkthrough we are simply going to import our images to repository names that starts with `quarantine/`. We'll then show you Microsoft Defender for Containers' scan of those images, and then you'll import those same images directly from `quarantine/` to `live/` repositories (retaining their sha256 digest). We've restricted our cluster to only allow pulling from `live/` repositories and we've built an alert if an image was imported to `live/` from a source other than `quarantine/`. This isn't a preventative security control; *this won't block a direct import* request or *validate* that the image actually passed quarantine checks. There are other solutions you can use for this pattern that are more exhaustive. [Aquasec](https://go.microsoft.com/fwlink/?linkid=2002601&clcid=0x409) and [Twistlock](https://go.microsoft.com/fwlink/?linkid=2002600&clcid=0x409) both offer integrated solutions specifically for Azure Container Registry scanning and compliance management. Azure Container Registry has an [integrated quarantine feature](https://learn.microsoft.com/azure/container-registry/container-registry-faq#how-do-i-enable-automatic-image-quarantine-for-a-registry) as well that could be considered, however it is in preview at this time.
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 6.3.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-malware#requirement-632).
+> :notebook: For more information, see [Azure Architecture Center guidance for PCI DSS 3.2.1 Requirement 6.3.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-malware#requirement-632).
 
 ### Deployment pipelines
 
-Your deployment pipelines are one of the first lines of defense in container image security. Shifting left by introducing build steps like [GitHub Image Scanning](https://github.com/Azure/container-scan) (which leverages common tools like [dockle](https://github.com/goodwithtech/dockle) and [Aquasec trivy](https://github.com/aquasecurity/trivy)) will help ensure that, at build time, your images are linted, CIS benchmarked, and free from known vulnerabilities. You can use any tooling at this step that you trust, including paid, ISV solutions that help provide your desired level of confidence and compliance.
+Your deployment pipelines are one of the first lines of defense in container image security. Shifting left by introducing build steps like [GitHub Image Scanning](https://github.com/Azure/container-scan) (which uses common tools like [dockle](https://github.com/goodwithtech/dockle) and [Aquasec trivy](https://github.com/aquasecurity/trivy)) will help ensure that, at build time, your images are linted, CIS benchmarked, and free from known vulnerabilities. You can use any tooling at this step that you trust, including paid, ISV solutions that help provide your desired level of confidence and compliance.
 
 Once your images are built (or identified from a public container registry such as Docker Hub or GitHub Container Registry), the next step is pushing/importing those images to your own container registry. This is the next place a security audit should take place and is in fact the quarantine process identified above. Your newly pushed images undergo any scanning desired. Your pipeline should be gated on the outcome of that scan. If the scan is complete and returned sufficiently healthy results, then your pipeline should move the image into your final container registry repository. If the scan does not complete or is not found sufficiently healthy, you stop that deployment immediately.
 
 ### Continuous scanning
 
-The quarantine pattern is ideal for detecting issues with newly pushed images, but _continuous scanning_ is also desirable as CVEs can be found at any time for your images that are in use. **Microsoft Defender for containers** will perform daily scanning of active images and also provide [run-time visibility of vulnerabilities](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction?tabs=defender-for-container-arch-aks#scanning-images-at-runtime) by grouping them and providing details about the issues discovered and how to remediate them. Third party ISV solutions can perform similar tasks. It is recommended that you implement continuous scanning at the registry level. Microsoft Defender for containers currently has limitations with private Azure Container Registry instances (such as yours, exposed exclusively via Private Link). Ensure your continuous scan solution can work within your network restrictions. You may need to bring a third party ISV solution into network adjacency to your container registry to be able to perform your desired scanning. How you react to a CVE (or other issue) detected in your images should be documented in your security operations playbooks. For example, you could remove the image from being available to pull, but that could cause a downstream outage while you're remediating.
+The quarantine pattern is ideal for detecting issues with newly pushed images, but *continuous scanning* is also desirable as CVEs can be found at any time for your images that are in use. **Microsoft Defender for containers** will perform daily scanning of active images and also provide [run-time visibility of vulnerabilities](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction?tabs=defender-for-container-arch-aks#scanning-images-at-runtime) by grouping them and providing details about the issues discovered and how to remediate them. Third-party ISV solutions can perform similar tasks. It is recommended that you implement continuous scanning at the registry level. Microsoft Defender for containers currently has limitations with private Azure Container Registry instances (such as yours, exposed exclusively via Private Link). Ensure your continuous scan solution can work within your network restrictions. You may need to bring a third-party ISV solution into network adjacency to your container registry to be able to perform your desired scanning. How you react to a CVE (or other issue) detected in your images should be documented in your security operations playbooks. For example, you could remove the image from being available to pull, but that could cause a downstream outage while you're remediating.
 
 ### In-cluster scanning
 
-Using a security agent that is container-aware and can operate from within the cluster is another layer of defense, and is the closest to the actual runtime. This should be used to detect threats that were not detectable in an earlier stage, such as reporting on CVE issues on your current running inventory or unexpected runtime behavior. Having an in-cluster runtime security agent be your _only_ issue detection point is _too late_ in the process. These agents come at a cost (compute power, operational complexity, their own security posture), but are often times still considered a valuable addition to your overall defense in depth position. This topic is covered a bit more on the next page.
+Using a security agent that is container-aware and can operate from within the cluster is another layer of defense, and is the closest to the actual runtime. This should be used to detect threats that were not detectable in an earlier stage, such as reporting on CVE issues on your current running inventory or unexpected runtime behavior. Having an in-cluster runtime security agent be your *only* issue detection point is *too late* in the process. These agents come at a cost (compute power, operational complexity, their own security posture), but are often still considered a valuable addition to your overall defense in depth position. This topic is covered a bit more on the next page.
 
 **Static analysis, registry scanning, and continuous scanning should be the workflow for all of your images; both your own first party and any third party images you use.**
 
-> :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 5 & 6 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-malware).
+> :notebook: For more information, see [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 5 & 6 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-malware).
 
 ## Steps
 
@@ -86,11 +86,11 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407 -t quarantine/ingress-nginx/kube-webhook-certgen:v20230407 -n $ACR_NAME_QUARANTINE
    ```
 
-   > The above imports account for 100% of the containers that you are actively bringing to the cluster, but not those that come with the AKS service itself nor any of its add-ons or extensions. Those images, outside of your direct control, are all sourced from Microsoft Container Registry's (MCR). While you do not have an affordance to inject yourself in the middle of their distribution to your cluster, you can still pull those images through your inspection process for your own audit and reporting purposes. _All container images that you directly bring to the cluster should pass through your quarantine process._ The _allowed images_ Azure Policy associated with this cluster should be configured to match your specific needs. Be sure to update `allowedContainerImagesRegex` in [`cluster-stamp.json`](../../cluster-stamp.json) to define expected image sources to whatever specificity is manageable for you. Never allow a source that you do not intend to use. For example, if you do not bring Open Service Mesh into your cluster, you can remove the existing allowance for `mcr.microsoft.com` as a valid source of images, leaving just `<your acr instance>/live/` repositories as the only valid source for non-system namespaces.
+   > The above imports account for 100% of the containers that you are actively bringing to the cluster, but not those that come with the AKS service itself nor any of its add-ons or extensions. Those images, outside of your direct control, are all sourced from Microsoft Container Registry's (MCR). While you do not have an affordance to inject yourself in the middle of their distribution to your cluster, you can still pull those images through your inspection process for your own audit and reporting purposes. *All container images that you directly bring to the cluster should pass through your quarantine process.* The *allowed images* Azure Policy associated with this cluster should be configured to match your specific needs. Be sure to update `allowedContainerImagesRegex` in [`cluster-stamp.json`](../../cluster-stamp.json) to define expected image sources to whatever specificity is manageable for you. Never allow a source that you do not intend to use. For example, if you do not bring Open Service Mesh into your cluster, you can remove the existing allowance for `mcr.microsoft.com` as a valid source of images, leaving just `<your acr instance>/live/` repositories as the only valid source for non-system namespaces.
 
 1. Run security audits on images.
 
-   If you had sufficient permissions when we did [subscription configuration](./04-subscription.md), Microsoft Defender for containers is enabled on your subscription. Microsoft Defender for containers will begin [scanning all newly imported images](https://learn.microsoft.com/azure/security-center/defender-for-container-registries-introduction#when-are-images-scanned) in your Azure Container Registry using a Microsoft hosted version of Qualys. The results of those scans will be available in Microsoft Defender for Cloud within 15 minutes. _If Microsoft Defender for containers is not enabled on your subscription, you can skip this step._
+   If you had sufficient permissions when we did [subscription configuration](./04-subscription.md), Microsoft Defender for containers is enabled on your subscription. Microsoft Defender for containers will begin [scanning all newly imported images](https://learn.microsoft.com/azure/security-center/defender-for-container-registries-introduction#when-are-images-scanned) in your Azure Container Registry using a Microsoft hosted version of Qualys. The results of those scans will be available in Microsoft Defender for Cloud within 15 minutes. *If Microsoft Defender for containers is not enabled on your subscription, you can skip this step.*
 
    To see the scan results in Microsoft Defender for Cloud, perform the following actions:
 
@@ -98,7 +98,7 @@ Using a security agent that is container-aware and can operate from within the c
    1. Under **Controls** expand **Remediate vulnerabilities**.
    1. Click on **Vulnerabilities in Azure Container Registry images should be remediated (powered by Qualys)**.
    1. Expand **Affected resources**.
-   1. Click on your ACR instance name under one of the **registries** tabs.
+   1. Click on your Azure container registry name under one of the **registries** tabs.
 
    In here, you can see which container images are **Unhealthy** (had a scan detection), **Healthy** (was scanned, but didn't result in any alerts), and **Unverified** (was unable to be scanned). Unfortunately, Microsoft Defender for containers is [unable to scan all artifacts types](https://learn.microsoft.com/azure/security-center/defender-for-container-registries-introduction#availability). Also, because your container registry is exposed exclusively through Private Link, you won't get a list of those Unverified images listed here. Microsoft Defender for containers is only full-featured with non-network restricted container registries.
 
@@ -122,7 +122,7 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source quarantine/ingress-nginx/kube-webhook-certgen:v20230407 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/kube-webhook-certgen:v20230407 -n $ACR_NAME
    ```
 
-1. Trigger quarantine violation. _Optional._
+1. Trigger quarantine violation. *Optional.*
 
    You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import an image directly to `live/`. On the validation page later in this walkthrough, you'll see that alert.
 
@@ -130,15 +130,15 @@ Using a security agent that is container-aware and can operate from within the c
    az acr import --source docker.io/library/busybox:1.36.1 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME
    ```
 
-## Container registry note
+## Container Registry note
 
-In this reference implementation, Azure Policy _and_ Azure Firewall are blocking all container registries other than Microsoft Container Registry (MCR) and your private ACR instance deployed with this reference implementation. This will protect your cluster from unapproved registries being used, which might prevent issues while trying to pull images from a registry which doesn't provide an appropriate SLO and also help meet compliance needs for your container image supply chain.
+In this reference implementation, Azure Policy *and* Azure Firewall are blocking all container registries other than Microsoft Container Registry (MCR) and your private Azure Container Registry instance deployed with this reference implementation. This will protect your cluster from unapproved registries being used, which might prevent issues while trying to pull images from a registry which doesn't provide an appropriate SLO and also help meet compliance needs for your container image supply chain.
 
 This deployment creates an SLA-backed Azure Container Registry for your cluster's needs. Your organization may have a central container registry for you to use, or your registry may be tied specifically to your application's infrastructure (as demonstrated in this implementation). **Only use container registries that satisfy the availability and compliance needs of your workload.**
 
 ## Import the wildcard certificate for the AKS ingress controller to Azure Key Vault
 
-Once web traffic hits Azure Application Gateway (deployed in a future step), public-facing TLS is terminated. This supports WAF inspection rules and other request manipulation features of Azure Application Gateway. The next hop for this traffic is to the internal layer 4 load balancer and then to the in-cluster ingress controller. Starting at Application Gateway, all subsequent network hops are done via your private virtual network and is no longer traversing any public networks. That said, we still desire to provide TLS as an added layer of protection when traversing between Azure Application Gateway and our ingress controller. That'll bring TLS encryption _into_ your cluster from Application Gateway.
+Once web traffic hits Azure Application Gateway (deployed in a future step), public-facing TLS is terminated. This supports WAF inspection rules and other request manipulation features of Azure Application Gateway. The next hop for this traffic is to the internal Layer 4 Load Balancer and then to the in-cluster ingress controller. Starting at Application Gateway, all subsequent network hops are done via your private virtual network and is no longer traversing any public networks. That said, we still desire to provide TLS as an added layer of protection when traversing between Azure Application Gateway and our ingress controller. That'll bring TLS encryption *into* your cluster from Application Gateway.
 
 ### Steps
 
@@ -177,7 +177,7 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
 
 ## GitOps Kubernetes manifest updates
 
-Your cluster will be bootstrapped using the Microsoft-provided GitOps extension, and this happens automatically after the cluster is deployed.  This means you need to prepare the source repo that contains the manifest files. The following instructions will update a few .yaml files with values specific to your deployment/environment.
+Your cluster will be bootstrapped using the Microsoft-provided GitOps extension, and this happens automatically after the cluster is deployed. This means you need to prepare the source repo that contains the manifest files. The following instructions will update a few .yaml files with values specific to your deployment/environment.
 
 ### Steps
 

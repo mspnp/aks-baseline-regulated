@@ -4,30 +4,30 @@ In the prior step, you [procured TLS certificates](./02-ca-certificates.md) for 
 
 ## Nomenclature
 
-We are giving this cluster a generic identifier that we'll use to build relationships between various resources. We'll assume that _Business Unit 0001_ is building a regulated workload identified internally as _App ID 0005_ in their service tree. To that end, you will see references to `bu0001a0005` throughout the rest of this implementation. Naming conventions are an important organization technique for your resources. For your final implementation, please use what is appropriate for your team/organization.
+We are giving this cluster a generic identifier that we'll use to build relationships between various resources. We'll assume that *Business Unit 0001* is building a regulated workload identified internally as *App ID 0005* in their service tree. To that end, you will see references to `bu0001a0005` throughout the rest of this implementation. Naming conventions are an important organization technique for your resources. For your final implementation, use what is appropriate for your team/organization.
 
 ## Microsoft Entra tenant selection
 
 AKS allows for a separation between Azure management control plane access control and Kubernetes control plane access control. This deployment process, creating and associating Azure resources with each other, is an example of Azure management control plane access. This is a relationship between your Microsoft Entra tenant associated with your Azure subscription and is what grants you the permissions to create networks, clusters, managed identities, and create relationships between them. Kubernetes has it's own control plane, exposed via the Kubernetes Cluster API endpoint, and honors the Kubernetes RBAC authorization model. This endpoint is where `kubectl` commands are executed against, for example.
 
-AKS allows for disparate Microsoft Entra tenants between these two control planes; one tenant can be used for Azure management control plane and another for Kuberentes Cluster API authorization. You can also use the same tenant for both. Some regulated environments may prefer a clear tenant separation to address impact radius and potential lateral movement; at the _significant_ added complexity and cost of managing multiple identity stores. This reference implementation will work with either model. Most customers, even in regulated environments, use a single Microsoft Entra tenant model with added features such as Conditional Access Policies. Ensure your final implementation is aligned with how your organization and compliance requirements dictate identity management.
+AKS allows for disparate Microsoft Entra tenants between these two control planes; one tenant can be used for Azure management control plane and another for Kuberentes Cluster API authorization. You can also use the same tenant for both. Some regulated environments may prefer a clear tenant separation to address impact radius and potential lateral movement; at the *significant* added complexity and cost of managing multiple identity stores. This reference implementation will work with either model. Most customers, even in regulated environments, use a single Microsoft Entra tenant model with added features such as Conditional Access Policies. Ensure your final implementation is aligned with how your organization and compliance requirements dictate identity management.
 
 ## Expected results
 
-Following the steps below will result in a Microsoft Entra configuration that will be used for Kubernetes control plane (Cluster API) authorization.
+These steps will result in a Microsoft Entra configuration that will be used for Kubernetes control plane (Cluster API) authorization.
 
 | Object                         | Purpose                                                 |
 |--------------------------------|---------------------------------------------------------|
 | A Cluster Admin Security Group | Will be mapped to `cluster-admin` Kubernetes role.      |
 | A Cluster Admin User           | Represents at least one break-glass cluster admin user. |
-| Cluster Admin Group Membership | Association between the Cluster Admin User(s) and the Cluster Admin Security Group. Ideally there would be NO standing group membership associations made, but for the purposes of this material, you should have assigned the admin user(s) created above. |
-| _Additional Security Groups_   | _Optional._ A security group (and its memberships) for the other built-in and custom Kubernetes roles you plan on using. |
+| Cluster Admin Group Membership | Association between the cluster admin user(s) and the cluster admin security group. Ideally there would be NO standing group membership associations made, but for the purposes of this material, you should have assigned the admin user(s) created above. |
+| *Additional Security Groups*   | *Optional.* A security group (and its memberships) for the other built-in and custom Kubernetes roles you plan on using. |
 
 ## Steps
 
 1. Log in to the tenant where Kubernetes Cluster API authorization will be associated with. 🛑
 
-   Capture the Microsoft Entra tenant ID that will be associated with your cluster's Kubernetes RBAC for Cluster API access. This is _typically_ the same tenant as your Azure RBAC, see [Microsoft Entra tenant selection](#Microsoft-Entra-tenant-selection) above for more details. However, if you do not have access to manage Microsoft Entra groups and permissions, you may create a temporary tenant specifically for this walkthrough so that you're not blocked at this point.
+   Capture the Microsoft Entra tenant ID that will be associated with your cluster's Kubernetes RBAC for Cluster API access. This is *typically* the same tenant as your Azure RBAC, see [Microsoft Entra tenant selection](#Microsoft-Entra-tenant-selection) above for more details. However, if you do not have access to manage Microsoft Entra groups and permissions, you may create a temporary tenant specifically for this walkthrough so that you're not blocked at this point.
 
    ```bash
    az login -t <Replace-With-ClusterApi-MicrosoftEntra-TenantId> --allow-no-subscriptions
@@ -38,7 +38,7 @@ Following the steps below will result in a Microsoft Entra configuration that wi
 
    If you already have a security group that is appropriate for your cluster's admin service accounts, use that group and skip this step. If using your own group or your Microsoft Entra administrator created one for you to use; you will need to update the group name throughout the reference implementation.
 
-   > :warning: This cluster role is the highest-privileged role available in Kubernetes. Members of this group will have _complete access throughout the cluster_. Generally speaking, there should be **no standing access** at this level; and access is [implemented using Just-In-Time Microsoft Entra group membership](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad#configure-just-in-time-cluster-access-with-microsoft-entra-id-and-aks) (_Requires Microsoft Entra PIM found in Premium P2 SKU._). In the next step, you'll create a dedicated account for this highly-privileged, administrative role for this walkthrough. Ensure your all of your cluster's RBAC assignments and memberships are maliciously managed and auditable; aligning to minimal or no standing admin permissions and all other organization & compliance requirements.
+   > :warning: This cluster role is the highest-privileged role available in Kubernetes. Members of this group will have *complete access throughout the cluster*. Generally speaking, there should be **no standing access** at this level; and access is [implemented using Just-In-Time Microsoft Entra group membership](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad#configure-just-in-time-cluster-access-with-microsoft-entra-id-and-aks) (*Requires Microsoft Entra PIM found in Premium P2 SKU.*). In the next step, you'll create a dedicated account for this highly-privileged, administrative role for this walkthrough. Ensure your all of your cluster's RBAC assignments and memberships are maliciously managed and auditable; aligning to minimal or no standing admin permissions and all other organization and compliance requirements.
 
    ```bash
    OBJECTNAME_GROUP_CLUSTERADMIN=cluster-admins-bu0001a000500
@@ -47,7 +47,7 @@ Following the steps below will result in a Microsoft Entra configuration that wi
 
 1. Create a "break-glass" cluster administrator user for your AKS cluster.
 
-   This steps creates a dedicated account that you can use for cluster administrative access. This account should have no standing permissions on any Azure resources; a compromise of this account then cannot be parlayed into Azure management control plane access. If using the same tenant that your Azure resources are managed with, some organizations employ an alt-account strategy. In that case, your cluster admins' alt account(s) might satisfy this step.
+   This steps creates a dedicated account that you can use for cluster administrative access. This account should have no standing permissions on any Azure resources; a compromise of this account then cannot be parlayed into Azure management control plane access. If using the same tenant that your Azure resources are managed with, some organizations employ an alt-account strategy. In that case, your cluster admins' alt account might satisfy this step.
 
    ```bash
    TENANTDOMAIN_K8SRBAC=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
@@ -61,18 +61,17 @@ Following the steps below will result in a Microsoft Entra configuration that wi
    az ad group member add -g $OBJECTID_GROUP_CLUSTERADMIN --member-id $OBJECTID_USER_CLUSTERADMIN
    ```
 
-1. Create/identify additional security groups to map onto other Kubernetes RBAC roles. _Optional._
+1. Create/identify additional security groups to map onto other Kubernetes RBAC roles. *Optional.*
 
-   Kubernetes has [built-in, user-facing roles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles) like _admin_, _edit_, and _view_, generally to be applied at namespace levels, which can also be mapped to various Microsoft Entra groups. Likewise, if you know you'll have additional _custom_ Kubernetes roles created as part of your [separation of duties authentication schema](../rbac-suggestions.md), you can create those security groups now as well. For this walk through, you do NOT need to map any of these additional roles.
+   Kubernetes has [built-in, user-facing roles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles) like *admin*, *edit*, and *view*, generally to be applied at namespace levels, which can also be mapped to various Microsoft Entra groups. Likewise, if you know you'll have additional *custom* Kubernetes roles created as part of your [separation of duties authentication schema](../rbac-suggestions.md), you can create those security groups now as well. For this walk through, you do NOT need to map any of these additional roles.
 
-   In the [`cluster-rbac.yaml` file](/cluster-manifests/cluster-rbac.yaml) and the various namespaced [`rbac.yaml files`](/cluster-manifests/cluster-baseline-settings/rbac.yaml), you can uncomment what you wish and replace the `<replace-with-a-microsoft-entra-group-object-id…>` placeholders with corresponding new or existing Microsoft Entra groups that map to their purpose for this cluster or namespace. You do not need to perform this action for this walk through; they are only here for your reference. By default, in this implementation, no additional _cluster_ roles will be bound other than `cluster-admin`. For your final implementation, create custom kubernetes roles to align specifically with those job functions of your team, and create role assignments as needed. Handle [JIT access](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/concept-pim-for-groups) at the group membership level in Microsoft Entra ID via Privileged Identity Management, and leverage conditional access policies where possible. Always strive to minimize standing permissions, especially on identities that have access to in-scope components.
+   In the [`cluster-rbac.yaml` file](/cluster-manifests/cluster-rbac.yaml) and the various namespaced [`rbac.yaml files`](/cluster-manifests/cluster-baseline-settings/rbac.yaml), you can uncomment what you wish and replace the `<replace-with-a-microsoft-entra-group-object-id…>` placeholders with corresponding new or existing Microsoft Entra groups that map to their purpose for this cluster or namespace. You do not need to perform this action for this walk through; they are only here for your reference. By default, in this implementation, no additional *cluster* roles will be bound other than `cluster-admin`. For your final implementation, create custom Kubernetes roles to align specifically with those job functions of your team, and create role assignments as needed. Handle [JIT access](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/concept-pim-for-groups) at the group membership level in Microsoft Entra ID via Privileged Identity Management, and use conditional access policies where possible. Always strive to minimize standing permissions, especially on identities that have access to in-scope components.
 
-1. Set up Microsoft Entra Conditional Access policies. _Optional. Requires Microsoft Entra ID P1 or P2._
+1. Set up Microsoft Entra Conditional Access policies. *Optional. Requires Microsoft Entra ID P1 or P2.*
 
-   To support an even stronger authentication model, consider [setting up Conditional Access Policies in Microsoft Entra ID for your cluster](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad). This allows you to further apply restrictions on access to the Kubernetes control plane (e.g. management commands executed through `kubectl`). With conditional access policies in place, you can for example, _require_ multi-factor authentication, restrict authentication to devices that are managed by your Microsoft Entra tenant, or block non-typical sign-in attempts. You will want to apply this to Microsoft Entra groups that are assigned to your cluster with permissions you deem warrant the extra policies (most notability the cluster admin group created above). You will not be setting that up as part of this walkthrough.
+   To support an even stronger authentication model, consider [setting up Conditional Access Policies in Microsoft Entra ID for your cluster](https://learn.microsoft.com/azure/aks/access-control-managed-azure-ad). This allows you to further apply restrictions on access to the Kubernetes control plane (such as management commands executed through `kubectl`). With conditional access policies in place, you can for example, *require* multifactor authentication, restrict authentication to devices that are managed by your Microsoft Entra tenant, or block non-typical sign-in attempts. You will want to apply this to Microsoft Entra groups that are assigned to your cluster with permissions you deem warrant the extra policies (most notability the cluster admin group created above). You will not be setting that up as part of this walkthrough.
 
-   > :notebook: See [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 8.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-82).
-   
+   > :notebook: For more information, see [Azure Architecture Center guidance for PCI-DSS 3.2.1 Requirement 8.2 in AKS](https://learn.microsoft.com/azure/architecture/reference-architectures/containers/aks-pci/aks-pci-identity#requirement-82).
 
 ### Next step
 
