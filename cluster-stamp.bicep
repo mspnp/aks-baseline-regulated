@@ -12,7 +12,8 @@ param clusterAdminEntraGroupObjectId string
 @description('Your AKS control plane Cluster API authentication tenant')
 param k8sControlPlaneAuthorizationTenantId string
 
-@description('The certificate data for app gateway TLS termination. It is base64')
+@description('The PFX certificate for app gateway TLS termination. It is base64')
+@secure()
 param appGatewayListenerCertificate string
 
 @allowed([
