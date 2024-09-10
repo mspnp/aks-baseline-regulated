@@ -106,13 +106,13 @@ var pdEnforceImageSourceId = tenantResourceId('Microsoft.Authorization/policyDef
 @description('Spoke resource group')
 resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   scope: subscription()
-  name: '${split(targetVnetResourceId, '/')[4]}'
+  name: split(targetVnetResourceId, '/')[4]
 }
 
 @description('The Spoke virtual network')
 resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: spokeResourceGroup
-  name: '${last(split(targetVnetResourceId, '/'))}'
+  name: last(split(targetVnetResourceId, '/'))
 
   // Spoke virutual network's subnet for application gateway
   resource snetApplicationGateway 'subnets' existing = {
@@ -276,7 +276,6 @@ resource lawAllPrometheus 'Microsoft.OperationalInsights/workspaces/savedSearche
   parent: la
   name: 'AllPrometheus'
   properties: {
-    eTag: '*'
     category: 'Prometheus'
     displayName: 'All collected Prometheus information'
     query: 'InsightsMetrics | where Namespace == "prometheus"'
@@ -288,7 +287,6 @@ resource lawForbiddenReponsesOnIngress 'Microsoft.OperationalInsights/workspaces
   parent: la
   name: 'ForbiddenReponsesOnIngress'
   properties: {
-    eTag: '*'
     category: 'Prometheus'
     displayName: 'Increase number of forbidden response on the Ingress Controller'
     query: 'let value = toscalar(InsightsMetrics | where Namespace == "prometheus" and Name == "nginx_ingress_controller_requests" | where parse_json(Tags).status == 403 | summarize Value = avg(Val) by bin(TimeGenerated, 5m) | summarize min = min(Value)); InsightsMetrics | where Namespace == "prometheus" and Name == "nginx_ingress_controller_requests" | where parse_json(Tags).status == 403 | summarize AggregatedValue = avg(Val)-value by bin(TimeGenerated, 5m) | order by TimeGenerated | render barchart'
@@ -300,7 +298,6 @@ resource lawNodeRebootRequested 'Microsoft.OperationalInsights/workspaces/savedS
   parent: la
   name: 'NodeRebootRequested'
   properties: {
-    eTag: '*'
     category: 'Prometheus'
     displayName: 'Nodes reboot required by kured'
     query: 'InsightsMetrics | where Namespace == "prometheus" and Name == "kured_reboot_required" | where Val > 0'
@@ -1165,13 +1162,12 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     nodeResourceGroup: 'rg-${clusterName}-nodepools'
     enableRBAC: true
     enablePodSecurityPolicy: false
-    maxAgentPools: 3
     networkProfile: {
       networkPlugin: 'azure'
       networkPolicy: 'azure'
       outboundType: 'userDefinedRouting'
       loadBalancerSku: 'standard'
-      loadBalancerProfile: json('null')
+      loadBalancerProfile: null
       serviceCidr: '172.16.0.0/16'
       dnsServiceIP: '172.16.0.10'
       dockerBridgeCidr: '172.18.0.1/16'
