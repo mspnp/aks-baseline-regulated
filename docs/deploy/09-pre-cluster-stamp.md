@@ -95,8 +95,9 @@ Using a security agent that is container-aware and can operate from within the c
    To see the scan results in Microsoft Defender for Cloud, perform the following actions:
 
    1. Open the [Microsoft Defender for Cloud's **Recommendations** page](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/5).
-   1. Under **Controls** expand **Remediate vulnerabilities**.
+   1. Click **Add filter** and select **Azure Container Registry**.
    1. Click on **Vulnerabilities in Azure Container Registry images should be remediated (powered by Qualys)**.
+   1. Click **View recommendations for all resources**.
    1. Expand **Affected resources**.
    1. Click on your Azure container registry name under one of the **registries** tabs.
 
