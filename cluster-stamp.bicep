@@ -16,27 +16,6 @@ param k8sControlPlaneAuthorizationTenantId string
 @secure()
 param appGatewayListenerCertificate string
 
-@allowed([
-  'australiaeast'
-  'canadacentral'
-  'centralus'
-  'eastus'
-  'eastus2'
-  'westus2'
-  'francecentral'
-  'germanywestcentral'
-  'northeurope'
-  'southafricanorth'
-  'southcentralus'
-  'uksouth'
-  'westeurope'
-  'japaneast'
-  'southeastasia'
-])
-@description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
-@minLength(4)
-param location string = 'eastus2'
-
 @description('The Azure resource ID of a VM image that will be used for the jump box.')
 @minLength(70)
 param jumpBoxImageResourceId string
@@ -54,6 +33,9 @@ param gitOpsBootstrappingRepoHttpsUrl string
 param gitOpsBootstrappingRepoBranch string = 'main'
 
 /*** VARIABLES ***/
+
+@description('AKS Service, Node Pool, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters. This defaults to the resource group\'s location for higher reliability.')
+var location string = resourceGroup().location
 
 var kubernetesVersion = '1.27.3'
 
