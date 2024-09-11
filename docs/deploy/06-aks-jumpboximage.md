@@ -37,10 +37,10 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
 1. Create the AKS jump box image builder network spoke.
 
    ```bash
-   RESOURCEID_VNET_HUB=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-region.v0 --query properties.outputs.hubVnetId.value -o tsv)
+   RESOURCEID_VNET_HUB=$(az deployment group show -g rg-enterprise-networking-hubs-centralus -n hub-region.v0 --query properties.outputs.hubVnetId.value -o tsv)
 
    # [This takes about one minute to run.]
-   az deployment group create -g rg-enterprise-networking-spokes -f networking/spoke-BU0001A0005-00.bicep -p location=eastus2 hubVnetResourceId="${RESOURCEID_VNET_HUB}"
+   az deployment group create -g rg-enterprise-networking-spokes-centralus -f networking/spoke-BU0001A0005-00.bicep -p hubVnetResourceId="${RESOURCEID_VNET_HUB}"
    ```
 
 1. Update the regional hub deployment to account for the requirements of the spoke.
@@ -50,10 +50,10 @@ You are going to be using Azure Image Builder to generate a Kubernetes-specific 
    > :eyes: If you're curious to see what changed in the regional hub, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v0.bicep&r=https://raw.githubusercontent.com/mspnp/aks-baseline-regulated/main/networking/hub-region.v1.bicep).
 
    ```bash
-   RESOURCEID_SUBNET_AIB=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-00 --query properties.outputs.imageBuilderSubnetResourceId.value -o tsv)
+   RESOURCEID_SUBNET_AIB=$(az deployment group show -g rg-enterprise-networking-spokes-centralus -n spoke-BU0001A0005-00 --query properties.outputs.imageBuilderSubnetResourceId.value -o tsv)
 
    # [This takes about five minutes to run.]
-   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-region.v1.bicep -p location=eastus2 aksImageBuilderSubnetResourceId="${RESOURCEID_SUBNET_AIB}"
+   az deployment group create -g rg-enterprise-networking-hubs-centralus -f networking/hub-region.v1.bicep -p aksImageBuilderSubnetResourceId="${RESOURCEID_SUBNET_AIB}"
    ```
 
 ### Build and deploy the jump box image
@@ -88,7 +88,7 @@ Now that we have our image building network created, egressing through our hub, 
    ROLEID_IMGDEPLOY=$(az deployment sub show -n DeployAibRbacRoles --query 'properties.outputs.roleResourceIds.value.customImageBuilderImageCreationRole.guid' -o tsv)
 
    # [This takes about one minute to run.]
-   az deployment group create -g rg-bu0001a0005 -f jumpbox/azuredeploy.bicep -p buildInSubnetResourceId=${RESOURCEID_SUBNET_AIB} location=eastus2 imageBuilderNetworkingRoleGuid="${ROLEID_NETWORKING}" imageBuilderImageCreationRoleGuid="${ROLEID_IMGDEPLOY}" -n CreateJumpBoxImageTemplate
+   az deployment group create -g rg-bu0001a0005-centralus -f jumpbox/azuredeploy.bicep -p buildInSubnetResourceId=${RESOURCEID_SUBNET_AIB} imageBuilderNetworkingRoleGuid="${ROLEID_NETWORKING}" imageBuilderImageCreationRoleGuid="${ROLEID_IMGDEPLOY}" -n CreateJumpBoxImageTemplate
    ```
 
 1. Build the general-purpose AKS jump box image.
@@ -96,13 +96,13 @@ Now that we have our image building network created, egressing through our hub, 
    Now you'll build the actual VM golden image you will use for your jump box. This uses the image template created in the prior step and is executed by Azure Image Builder under the authority of the managed identity (and its role assignments) also created in the prior step.
 
    ```bash
-   IMAGE_TEMPLATE_NAME=$(az deployment group show -g rg-bu0001a0005 -n CreateJumpBoxImageTemplate --query 'properties.outputs.imageTemplateName.value' -o tsv)
+   IMAGE_TEMPLATE_NAME=$(az deployment group show -g rg-bu0001a0005-centralus -n CreateJumpBoxImageTemplate --query 'properties.outputs.imageTemplateName.value' -o tsv)
 
    # [This takes about >> 30 minutes << to run.]
-   az image builder run -n $IMAGE_TEMPLATE_NAME -g rg-bu0001a0005
+   az image builder run -n $IMAGE_TEMPLATE_NAME -g rg-bu0001a0005-centralus
    ```
 
-   > A successful run of the command above is typically shown with no output or a success message. An error state will be typically be presented if there was an error. To see whether your image was built successfully, you can go to the **rg-bu0001a0005** resource group in the portal and look for a created VM Image resource. It will have the same name as the Image Template resource created in Step 2.
+   > A successful run of the command above is typically shown with no output or a success message. An error state will be typically be presented if there was an error. To see whether your image was built successfully, you can go to the **rg-bu0001a0005-centralus** resource group in the portal and look for a created VM Image resource. It will have the same name as the Image Template resource created in Step 2.
 
    :coffee: This does take a significant amount of time to run. While the image building is happening, feel free to read ahead, but you should not proceed until this is complete. If you need to perform this reference implementation walk through multiple times, we suggest you create this image in a place that can survive the deleting and re-creating of this reference implementation to save yourself this time in a future execution of this guide.
 

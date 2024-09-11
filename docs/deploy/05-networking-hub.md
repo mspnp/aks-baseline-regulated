@@ -29,7 +29,7 @@ Since this walkthrough is expected to be deployed isolated from existing infrast
 
    ```bash
    # [This takes about eight minutes to run.]
-   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-region.v0.bicep -p location=eastus2
+   az deployment group create -g rg-enterprise-networking-hubs-centralus -f networking/hub-region.v0.bicep
    ```
 
    The hub deployment will output the following:
