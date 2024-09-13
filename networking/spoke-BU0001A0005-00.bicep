@@ -12,7 +12,7 @@ param deployFlowLogResources bool = true
 /*** VARIABLES ***/
 
 @description('The spokes\'s regional affinity, must be the same as the hub\'s location. All resources tied to this spoke will also be homed in this region. The network team maintains this approved regional list which is a subset of zones with Availability Zone support.')
-var location string = resourceGroup().location
+var location = resourceGroup().location
 
 /*** EXISTING RESOURCES ***/
 

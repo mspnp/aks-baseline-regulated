@@ -32,7 +32,7 @@ param deployFlowLogResources bool = true
 /*** VARIABLES ***/
 
 @description('The hub\'s regional affinity. All resources tied to this hub will also be homed in this region. The network team maintains an approved regional list which is a subset of zones with Availability Zone support. Defaults to the resource group\'s location for higher availability.')
-var location string = = resourceGroup().location
+var location = resourceGroup().location
 
 
 /*** EXISTING RESOURCES ***/
