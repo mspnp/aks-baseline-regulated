@@ -7,27 +7,6 @@ targetScope = 'resourceGroup'
 param targetVnetResourceId string
 
 @allowed([
-  'australiaeast'
-  'canadacentral'
-  'centralus'
-  'eastus'
-  'eastus2'
-  'westus2'
-  'francecentral'
-  'germanywestcentral'
-  'northeurope'
-  'southafricanorth'
-  'southcentralus'
-  'uksouth'
-  'westeurope'
-  'japaneast'
-  'southeastasia'
-])
-@description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
-@minLength(4)
-param location string = 'eastus2'
-
-@allowed([
   'australiasoutheast'
   'canadaeast'
   'eastus2'
@@ -59,6 +38,8 @@ param geoRedundancyLocation string = 'centralus'
 param aksIngressControllerCertificate string
 
 /*** VARIABLES ***/
+@description('AKS Service, Node Pools, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters.')
+var location = resourceGroup().location
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
