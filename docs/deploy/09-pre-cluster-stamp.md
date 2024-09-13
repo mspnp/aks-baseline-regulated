@@ -95,13 +95,12 @@ Using a security agent that is container-aware and can operate from within the c
    To see the scan results in Microsoft Defender for Cloud, perform the following actions:
 
    1. Open the [Microsoft Defender for Cloud's **Recommendations** page](https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/5).
-   1. Click **Add filter** and select **Azure Container Registry**.
-   1. Click on **Vulnerabilities in Azure Container Registry images should be remediated (powered by Qualys)**.
+   1. Click **Add filter**, select `Resource Type` and check **Container Images**.
+   1. Click on the first listed recommendation with title **Container images in Azure registry should have vulnerability findings resolved**.
    1. Click **View recommendations for all resources**.
    1. Expand **Affected resources**.
-   1. Click on your Azure container registry name under one of the **registries** tabs.
 
-   In here, you can see which container images are **Unhealthy** (had a scan detection), **Healthy** (was scanned, but didn't result in any alerts), and **Unverified** (was unable to be scanned). Unfortunately, Microsoft Defender for containers is [unable to scan all artifacts types](https://learn.microsoft.com/azure/security-center/defender-for-container-registries-introduction#availability). Also, because your container registry is exposed exclusively through Private Link, you won't get a list of those Unverified images listed here. Microsoft Defender for containers is only full-featured with non-network restricted container registries.
+   In here, you can see which container images are **Unhealthy** (had a scan detection), and **Healthy** (was scanned, but didn't result in any alerts), **Unverified** (was unable to be scanned), and **Not applicable resources** (was unable to be scanned for a particular reason). Unfortunately, Microsoft Defender for containers is [unable to scan all artifacts types](https://learn.microsoft.com/azure/security-center/defender-for-container-registries-introduction#availability). Also, because your container registry is exposed exclusively through Private Link, you won't get a list of those Unverified images listed here. Microsoft Defender for containers is only full-featured with non-network restricted container registries.
 
    As with any Microsoft Defender for Cloud product, you can set up alerts or via your connected SIEM to be identified when an issue is detected. Periodically checking and discovering security alerts via the Azure Portal is not the expected method to consume these security status notifications. No Microsoft Defender for Cloud alerts are currently configured for this walkthrough.
 
