@@ -81,13 +81,13 @@ resource keyVaultReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01'
 @description('Spoke resource group')
 resource spokeResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   scope: subscription()
-  name: '${split(targetVnetResourceId, '/')[4]}'
+  name: split(targetVnetResourceId, '/')[4]
 }
 
 @description('The Spoke virtual network')
 resource vnetSpoke 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
   scope: spokeResourceGroup
-  name: '${last(split(targetVnetResourceId, '/'))}'
+  name: last(split(targetVnetResourceId, '/'))
 
   // Spoke virutual network's subnet for all private endpoints
   resource snetPrivatelinkendpoints 'subnets' existing = {
