@@ -8,7 +8,7 @@ The regional spoke network in which your cluster is laid into acts as the first 
 
 ## Expected results
 
-Your `rg-enterprise-networking-spokes` will be populated with the dedicated regional spoke network in which your cluster (and its direct adjacent resources will be connected to). This spoke will have limited Internet exposure and will support Network Security Groups (NSGs) at various levels to further limit network traffic as necessary.
+Your `rg-enterprise-networking-spokes-centralus` will be populated with the dedicated regional spoke network in which your cluster (and its direct adjacent resources will be connected to). This spoke will have limited Internet exposure and will support Network Security Groups (NSGs) at various levels to further limit network traffic as necessary.
 
 - The network spoke will be called `vnet-spoke-bu0001a0005-01` and have a range of `10.240.0.0/16`.
 - The spoke is broken into multiple subnets, each with a clearly defined purpose, appropriate IP range, and maximally restrictive NSG.

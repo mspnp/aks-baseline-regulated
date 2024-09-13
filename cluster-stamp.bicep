@@ -37,7 +37,7 @@ param gitOpsBootstrappingRepoBranch string = 'main'
 var kubernetesVersion = '1.30'
 
 @description('AKS Service, Node Pool, and supporting services (KeyVault, App Gateway, etc) region. This needs to be the same region as the vnet provided in these parameters. This defaults to the resource group\'s location for higher reliability.')
-var location string = resourceGroup().location
+var location = resourceGroup().location
 
 var subRgUniqueString = uniqueString('aks', subscription().subscriptionId, resourceGroup().id)
 var clusterName = 'aks-${subRgUniqueString}'
