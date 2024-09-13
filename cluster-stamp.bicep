@@ -993,7 +993,6 @@ module ensureClusterIdentityHasRbacToSelfManagedResources 'modules/ensureCluster
     miClusterControlPlanePrincipalId: miClusterControlPlane.properties.principalId
     clusterControlPlaneIdentityName: miClusterControlPlane.name
     vnetSpokeName: vnetSpoke.name
-    location: location
   }
 }
 
