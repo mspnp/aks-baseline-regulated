@@ -100,7 +100,11 @@ Using a security agent that is container-aware and can operate from within the c
    1. Click **View recommendations for all resources**.
    1. Expand **Affected resources**.
 
-   In here, you can see which container images are **Unhealthy** (had a scan detection), and **Healthy** (was scanned, but didn't result in any alerts), **Unverified** (was unable to be scanned), and **Not applicable resources** (was unable to be scanned for a particular reason). Unfortunately, Microsoft Defender for containers is [unable to scan all artifacts types](https://learn.microsoft.com/azure/security-center/defender-for-container-registries-introduction#availability). Also, because your container registry is exposed exclusively through Private Link, you won't get a list of those Unverified images listed here. Microsoft Defender for containers is only full-featured with non-network restricted container registries.
+   In here, you can see the status of each container images:
+    - **Unhealthy**, which means a scan detected a problem with the image.
+    - **Healthy**, which means the image was scanned, but didn't result in any problems.
+    - **Unverified**, which means the image couldn't be scanned.
+    - **Not applicable resources**, which means that the image was unable to be scanned. For more information on images that can't be scanned, see [Registries and images support for Azure](/azure/defender-for-cloud/support-matrix-defender-for-containers#registries-and-images-support-for-azure---vulnerability-assessment-powered-by-microsoft-defender-vulnerability-management).
 
    As with any Microsoft Defender for Cloud product, you can set up alerts or via your connected SIEM to be identified when an issue is detected. Periodically checking and discovering security alerts via the Azure Portal is not the expected method to consume these security status notifications. No Microsoft Defender for Cloud alerts are currently configured for this walkthrough.
 
