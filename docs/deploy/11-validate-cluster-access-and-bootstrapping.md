@@ -19,7 +19,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
    If this is the first time you've used Azure Bastion, here is a detailed walk through of this process.
 
    1. Open the [Azure Portal](https://portal.azure.com).
-   1. Navigate to the **rg-bu0001a0005** resource group.
+   1. Navigate to the **rg-bu0001a0005-centralus** resource group.
    1. Click on the virtual machine Scale Set resource named **vmss-jumpboxes**.
    1. Click **Instances**.
    1. Click the name of any of the two listed instances. Such as **vmss-jumpboxes_0**
@@ -39,7 +39,7 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 
    ```bash
    az login
-   # This will give you a link to https://microsoft.com/devicelogin where you can enter 
+   # This will give you a link to https://microsoft.com/devicelogin where you can enter
    # the provided code and perform authentication.
 
    # Ensure you're on the correct subscription
@@ -54,9 +54,9 @@ Your cluster was deployed with Azure Policy and the Flux GitOps extension. You'l
 1. *From your Azure Bastion connection*, get your AKS credentials and set your `kubectl` context to your cluster.
 
    ```bash
-   AKS_CLUSTER_NAME=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)
+   AKS_CLUSTER_NAME=$(az deployment group show -g rg-bu0001a0005-centralus -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)
 
-   az aks get-credentials -g rg-bu0001a0005 -n $AKS_CLUSTER_NAME
+   az aks get-credentials -g rg-bu0001a0005-centralus -n $AKS_CLUSTER_NAME
    ```
 
 1. *From your Azure Bastion connection*, test cluster access and authenticate as a cluster admin user.

@@ -2,27 +2,6 @@ targetScope = 'resourceGroup'
 
 /*** PARAMETERS ***/
 
-@allowed([
-  'australiaeast'
-  'canadacentral'
-  'centralus'
-  'eastus'
-  'eastus2'
-  'westus2'
-  'francecentral'
-  'germanywestcentral'
-  'northeurope'
-  'southafricanorth'
-  'southcentralus'
-  'uksouth'
-  'westeurope'
-  'japaneast'
-  'southeastasia'
-])
-@description('The hub\'s regional affinity. All resources tied to this hub will also be homed in this region.  The network team maintains this approved regional list which is a subset of zones with Availability Zone support.')
-@minLength(4)
-param location string
-
 @description('A /24 to contain the regional firewall, management, and gateway subnet')
 @minLength(10)
 @maxLength(18)
@@ -45,6 +24,11 @@ param azureBastionSubnetAddressSpace string = '10.200.0.96/27'
 
 @description('Flow Logs are enabled by default, if for some reason they cause conflicts with flow log policies already in place in your subscription, you can disable them by passing "false" to this parameter.')
 param deployFlowLogResources bool = true
+
+/*** VARIABLES ***/
+
+@description('The hub\'s regional affinity. All resources tied to this hub will also be homed in this region. The network team maintains an approved regional list which is a subset of zones with Availability Zone support. Defaults to the resource group\'s location for higher availability.')
+var location = resourceGroup().location
 
 /*** EXISTING RESOURCES ***/
 
@@ -361,7 +345,7 @@ resource pipAzureBastion 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   zones: [
     '1'
     '2'
-    '3'    
+    '3'
   ]
   properties: {
     publicIPAllocationMethod: 'Static'
