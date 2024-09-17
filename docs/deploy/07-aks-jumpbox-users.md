@@ -21,19 +21,19 @@ Following these steps, you'll end up with an SSH public-key-based solution that 
    1. `lock_passwd:` - Leave at `True`. This disables password login, and as such the user can only connect via an SSH authorized key. Your jump box should enforce this as well on its SSH daemon. If you deployed using the image builder in the prior step, it does this enforcement there as well.
    1. In `ssh-authorized-keys` replace the `<public-ssh-rsa-for-...>` placeholder with an actual public ssh public key for the user. This must be an RSA key of at least 2048 bits and **must be secured with a passphrase**. This key will be added to that user's `~/.ssh/authorized_keys` file on the jump box via the cloud-init bootstrap process.
 
-1. Generate a key pair for this walk through
+1. Generate an SSH key pair to use in this walkthrough.
 
    ```bash
    ssh-keygen -t rsa -b 4096 -f opsuser01.key
    ```
 
-   **Enter a passphrase when requested** (*do not leave empty*) and note where the public and private key file was saved. The *public* key file *contents* (`opsuser01.key.pub` in the example above) is what is added to the `ssh-authorized-keys` array in `jumpBoxCloudInit.yml`. You'll need the username, the private key file (`opsuser01.key`), and passphrase later in this walkthrough.
+   **Enter a passphrase when requested** (*do not leave empty*) and note where the public and private key file was saved. The *public* key file *contents* (`opsuser01.key.pub` in the example above) will be used in the `jumpBoxCloudInit.yml` file. You'll need the username, the private key file (`opsuser01.key`), and passphrase later in this walkthrough.
 
    > On Windows, as an alternative to Bash in WSL, you can use a solution like PuTTYGen found in the [PuTTY installer](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
    >
    > Azure also has an SSH Public Key resources type that allows you to [generate SSH keys](https://learn.microsoft.com/azure/virtual-machines/ssh-keys-portal) and keep public keys available as a managed resource.
 
-1. Manually add/remove/modify users following the information from the previous steps or simply execute the following command to overwrite the `jumpBoxCloudInit.yml` file with a valid user example
+1. Run the following command to overwrite the `jumpBoxCloudInit.yml` file with a new user configuration that uses the SSH key you generated:
 
    ```bash
    cat <<EOF > jumpBoxCloudInit.yml -
