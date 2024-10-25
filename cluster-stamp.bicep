@@ -216,6 +216,90 @@ resource containerRegistryPullRole 'Microsoft.Authorization/roleDefinitions@2022
 
 /*** RESOURCES ***/
 
+resource amw 'Microsoft.Monitor/accounts@2023-04-03' = {
+  name: 'amw-${clusterName}'
+  location: location
+  properties: {
+    publicNetworkAccess: 'Enabled'
+ }
+}
+
+// A data collection endpoint to process Prometheus scraped metrics so they can be ingested by Azure Monitor
+resource dce 'Microsoft.Insights/dataCollectionEndpoints@2023-03-11' = {
+  name: 'MSProm-${location}-${clusterName}'
+  location: location
+  kind: 'Linux'
+  properties: {
+    networkAcls: {
+      publicNetworkAccess: 'Enabled'
+    }
+  }
+}
+
+// A data collection rule that collects PrometheusMetrics from pods, nodes and cluster and configure Azure monitor workspace as destination  
+resource dcr 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
+  name: 'MSProm-${location}-${clusterName}'
+  kind: 'Linux'
+  location: location
+  properties: {
+    dataCollectionEndpointId: dce.id
+    dataSources: {
+      prometheusForwarder: [
+        {
+          name: 'PrometheusDataSource'
+          streams: [
+            'Microsoft-PrometheusMetrics'
+          ]
+          labelIncludeFilter: {}
+        }
+      ]
+    }
+    destinations: {
+      monitoringAccounts: [
+        {
+          accountResourceId: amw.id
+          name: amw.name
+        }
+      ]
+    }
+    dataFlows: [
+      {
+        streams: [
+          'Microsoft-PrometheusMetrics'
+        ]
+        destinations: [
+          amw.name
+        ]
+      }
+    ]
+  }
+}
+
+// A diagnostic setting for all Prometheus DCR logs to be sent to log analytics
+resource dcr_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: dcr
+  name: 'default'
+  properties: {
+    workspaceId: la.id
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Associate a data collection rule to the AKS Cluster
+resource dcrAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
+  name: 'MSProm-${location}-${clusterName}'
+  scope: mc
+  properties: {
+    dataCollectionRuleId: dcr.id
+  }
+}
+
+
 @description('The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)')
 resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'mi-${clusterName}-controlplane'
