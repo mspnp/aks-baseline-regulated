@@ -79,6 +79,9 @@ module allowedResourcespolicyAssignment 'resourceGroupPolicyAssignment.bicep' = 
                     'Microsoft.OperationsManagement/solutions'
                     'Microsoft.VirtualMachineImages/imageTemplates'
                     'Microsoft.Insights/dataCollectionRules'
+                    'Microsoft.Insights/dataCollectionEndpoints'
+                    'Microsoft.Monitor/accounts'
+                    'Microsoft.Insights/dataCollectionRuleAssociations'
                 ]
             }
         }
