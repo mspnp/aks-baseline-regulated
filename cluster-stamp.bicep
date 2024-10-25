@@ -1301,6 +1301,30 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
     autoUpgradeProfile: {
       upgradeChannel: 'stable'
     }
+    azureMonitorProfile: {
+      metrics: {
+        enabled: true
+        kubeStateMetrics: {
+          // https://learn.microsoft.com/azure/azure-monitor/containers/kubernetes-monitoring-enable
+          // https://github.com/kubernetes/kube-state-metrics
+
+          // Comma-separated list of Kubernetes annotations keys used in the resource's kube_resource_annotations metric.
+          // For example, kube_pod_annotations is the annotations metric for the pods resource.
+          // By default, this metric contains only name and namespace labels. To include more annotations,
+          // provide a list of resource names in their plural form and Kubernetes annotation keys that you want to allow for them.
+          // A single * can be provided for each resource to allow any annotations, but this has severe performance implications
+          // https://github.com/prometheus-community/helm-charts/blob/e68c764aa6c764ec5934c6812ff0eaa0877ba275/charts/kube-state-metrics/values.yaml#L342
+          metricAnnotationsAllowList: ''
+
+          // Comma-separated list of more Kubernetes label keys that is used in the resource's kube_resource_labels metric kube_resource_labels metric.
+          // For example, kube_pod_labels is the labels metric for the pods resource. By default this metric contains only name and namespace labels.
+          // To include more labels, provide a list of resource names in their plural form and Kubernetes label keys that you want to allow for them.
+          // A single * can be provided for each resource to allow any labels, but i this has severe performance implications.
+          // https://github.com/prometheus-community/helm-charts/blob/e68c764aa6c764ec5934c6812ff0eaa0877ba275/charts/kube-state-metrics/values.yaml#L326
+          metricLabelsAllowlist: ''
+        }
+      }
+    }
     disableLocalAccounts: true
     securityProfile: {
       workloadIdentity: {
@@ -1328,6 +1352,8 @@ resource mc 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
   dependsOn: [
     omsContainerInsights
     ensureClusterIdentityHasRbacToSelfManagedResources
+
+    dcr
 
     // You want policies created before cluster because they take some time to be made available and we want them
     // to apply to your cluster as soon as possible. Nothing in this cluster "technically" depends on these existing,
