@@ -635,7 +635,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
             }
             {
               name: 'azure-monitor-addon'
-              description: 'All required for Azure Monitor for containers per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your cluster\'s log analytics instances.'
+              description: 'All required for Azure Monitor for containers per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers and Managed Prometheus (data collection endpoint) - Optionally you can restrict the ods and oms wildcards to JUST your cluster\'s log analytics instances.'
               sourceIpGroups: [
                 aks_ipgroup.id
               ]
@@ -650,6 +650,7 @@ resource hubFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
                 '*.oms.opinsights.azure.com'
                 '${location}.monitoring.azure.com'
                 '*.handler.control.monitor.azure.com'
+                '*.metrics.ingest.monitor.azure.com'
               ]
             }
             {
