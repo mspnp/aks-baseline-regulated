@@ -48,6 +48,8 @@ Following these steps, you'll end up with an SSH public-key-based solution that 
    EOF
    ```
 
+   > Alternatively, you can manually modify the existing `jumpBoxCloudInit.yml` file to add/remove users and ssh authorized keys.
+
 1. *Optional 🛑.* Remove the `- default` line to remove the default admin user from the jump box.
 
    If you leave the `- default` line in the file, then the default admin user (defined in the cluster's ARM template as pseudo-random name to discourage usage) will also exist on this jump box. We do not provide any instructions on setting up this default user to be a valid user you can access, and as such you might wish to simply remove it from the jump box. That user has unrestricted sudo access, by default. Unfortunately, you cannot directly deploy the jump box infrastructure with this user removed, so removing it via cloud-init is a common resolution -- by not including `- default` in this file.
