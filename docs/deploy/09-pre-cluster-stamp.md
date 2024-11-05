@@ -31,7 +31,7 @@ An Azure user managed identity is going to be deployed. This identity is the ing
    > :book: The app team will be deploying to a spoke Virtual Network, that was already provisioned by the network team.
 
    ```bash
-   export RESOURCEID_VNET_CLUSTERSPOKE=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0005-01 --query properties.outputs.clusterVnetResourceId.value -o tsv)
+   export RESOURCEID_VNET_CLUSTERSPOKE=$(az deployment group show -g rg-enterprise-networking-spokes-centralus -n spoke-BU0001A0005-01 --query properties.outputs.clusterVnetResourceId.value -o tsv)
    echo RESOURCEID_VNET_CLUSTERSPOKE: $RESOURCEID_VNET_CLUSTERSPOKE
    ```
 
@@ -39,7 +39,7 @@ An Azure user managed identity is going to be deployed. This identity is the ing
 
    ```bash
    # [This takes about eight minutes.]
-   az deployment group create -g rg-bu0001a0005 -f pre-cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64} location=eastus2
+   az deployment group create -g rg-bu0001a0005-centralus -f pre-cluster-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} aksIngressControllerCertificate=${INGRESS_CONTROLLER_CERTIFICATE_BASE64}
    ```
 
 ## Quarantine pattern
@@ -74,7 +74,7 @@ Using a security agent that is container-aware and can operate from within the c
    # Get your quarantine Azure Container Registry service name
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
-   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
+   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005-centralus -n pre-cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
    az acr import --source docker.io/falcosecurity/falco-no-driver:0.36.0 -t quarantine/falcosecurity/falco-no-driver:0.36.0 -n $ACR_NAME_QUARANTINE         && \
@@ -114,7 +114,7 @@ Using a security agent that is container-aware and can operate from within the c
 
    ```bash
    # Get your live Azure Container Registry service name
-   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   ACR_NAME=$(az deployment group show -g rg-bu0001a0005-centralus -n pre-cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
 
    # [Combined this takes about eight minutes.]
    az acr import --source quarantine/falcosecurity/falco-no-driver:0.36.0 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco-no-driver:0.36.0 -n $ACR_NAME         && \
@@ -149,7 +149,7 @@ Once web traffic hits Azure Application Gateway (deployed in a future step), pub
 1. Obtain the Azure Key Vault details and give the current user permissions and network access to import certificates.
 
    ```bash
-   KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
+   KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005-centralus -n pre-cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
    TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT=$(az role assignment create --role a4417e6f-fecd-4de8-b567-7b0420556985 --assignee-principal-type user --assignee-object-id $(az ad signed-in-user show --query 'id' -o tsv) --scope $(az keyvault show --name $KEYVAULT_NAME --query 'id' -o tsv) --query 'id' -o tsv)
    echo TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT: $TEMP_ROLEASSIGNMENT_TO_UPLOAD_CERT
 
@@ -204,7 +204,7 @@ Your cluster will be bootstrapped using the Microsoft-provided GitOps extension,
    You'll be using the [Secrets Store CSI Driver for Kubernetes](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.
 
    ```bash
-   INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005 -n pre-cluster-stamp --query properties.outputs.ingressClientid.value -o tsv)
+   INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01=$(az deployment group show --resource-group rg-bu0001a0005-centralus -n pre-cluster-stamp --query properties.outputs.ingressClientid.value -o tsv)
    echo INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01: $INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01
 
    sed -i -e "s/KEYVAULT_NAME/${KEYVAULT_NAME}/" -e "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" -e "s/INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01/${INGRESS_CONTROLLER_WORKLOAD_IDENTITY_CLIENT_ID_BU0001A0005_01}/" ingress-nginx/akv-tls-provider.yaml

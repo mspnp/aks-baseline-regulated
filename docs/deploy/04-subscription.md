@@ -12,12 +12,12 @@ This reference implementation is split across several resource groups in a singl
 
 The following four resource groups will be created in these steps.
 
-| Name                            | Purpose                                   |
-|---------------------------------|-------------------------------------------|
-| rg-enterprise-networking-hubs   | Contains all of your organization's regional hubs. A regional hub resources in this implementation include the hub Virtual Network, egress firewall, Azure Bastion, and Log Analytics for network logging. They may also contain your VPN Gateways, which are not addressed in this implementation. |
-| rg-enterprise-networking-spokes | Contains all of your organization's regional spokes and related networking resources. All spokes will peer with their regional hub and subnets will egress through the regional firewall in the hub. |
-| rg-bu0001a0005                  | Contains the regulated cluster resources. |
-| networkWatcherRG                | Contains regional Network Watchers. *(Most subscriptions already have this.)* |
+| Name                                      | Purpose                                   |
+|-------------------------------------------|-------------------------------------------|
+| rg-enterprise-networking-hubs-centralus   | Contains all of your organization's regional hubs. A regional hub resources in this implementation include the hub Virtual Network, egress firewall, Azure Bastion, and Log Analytics for network logging. They may also contain your VPN Gateways, which are not addressed in this implementation. |
+| rg-enterprise-networking-spokes-centralus | Contains all of your organization's regional spokes and related networking resources. All spokes will peer with their regional hub and subnets will egress through the regional firewall in the hub. |
+| rg-bu0001a0005-centralus                  | Contains the regulated cluster resources. |
+| networkWatcherRG                          | Contains regional Network Watchers. *(Most subscriptions already have this.)* |
 
 Both Azure Kubernetes Service and Azure Image Builder Service use a concept of a dynamically-created *infrastructure* resource group. So in addition to the four resource groups mentioned above, as you follow these instructions, you'll end up with six resource groups; two of which are automatically created and their lifecycle tied to their owning service. You will not see these two infrastructure resource groups get created until later in the walkthrough when their owning service is created.
 
