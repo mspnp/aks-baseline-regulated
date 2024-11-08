@@ -15,26 +15,44 @@ Following these steps, you'll end up with an SSH public-key-based solution that 
 ## Steps
 
 1. Open `jumpBoxCloudInit.yml` in your preferred editor.
-1. Add/remove/modify users following the two examples in that file. You need **one** user defined in this file to complete this walk through (*more than one user is fine*, but not necessary). 🛑
+1. Inspect the two users examples in that file. You need **one** user defined in this file to complete this walk through (*more than one user is fine*, but not necessary). 🛑
    1. `name:` set to whatever you login account name you wish. (You'll need to remember this later.)
    1. `sudo:` - Suggested to leave at `False`. This means the user cannot `sudo`. If this user needs sudo access, use [sudo rule strings](https://cloudinit.readthedocs.io/en/latest/topics/examples.html?highlight=sudo#including-users-and-groups) to restrict what sudo access is allowed.
    1. `lock_passwd:` - Leave at `True`. This disables password login, and as such the user can only connect via an SSH authorized key. Your jump box should enforce this as well on its SSH daemon. If you deployed using the image builder in the prior step, it does this enforcement there as well.
-   1. In `ssh-authorized-keys` replace the example public key for the user. This must be an RSA key of at least 2048 bits and **must be secured with a passphrase**. This key will be added to that user's `~/.ssh/authorized_keys` file on the jump box via the cloud-init bootstrap process. If you need to generate a key pair you can execute this command:
+   1. In `ssh-authorized-keys` replace the `<public-ssh-rsa-for-...>` placeholder with an actual public ssh public key for the user. This must be an RSA key of at least 2048 bits and **must be secured with a passphrase**. This key will be added to that user's `~/.ssh/authorized_keys` file on the jump box via the cloud-init bootstrap process.
 
-      ```bash
-      ssh-keygen -t rsa -b 4096 -f opsuser01.key
-      cat opsuser01.key.pub
-      ```
+1. Generate an SSH key pair to use in this walkthrough.
 
-      **Enter a passphrase when requested** (*do not leave empty*) and note where the public and private key file was saved. The *public* key file *contents* (`opsuser01.key.pub` in the example above) is what is added to the `ssh-authorized-keys` array in `jumpBoxCloudInit.yml`. You'll need the username, the private key file (`opsuser01.key`), and passphrase later in this walkthrough.
+   ```bash
+   ssh-keygen -t rsa -b 4096 -f opsuser01.key
+   ```
 
-      > On Windows, as an alternative to Bash in WSL, you can use a solution like PuTTYGen found in the [PuTTY installer](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
-      >
-      > Azure also has an SSH Public Key resources type that allows you to [generate SSH keys](https://learn.microsoft.com/azure/virtual-machines/ssh-keys-portal) and keep public keys available as a managed resource.
+   **Enter a passphrase when requested** (*do not leave empty*) and note where the public and private key file was saved. The *public* key file *contents* (`opsuser01.key.pub` in the example above) will be used in the `jumpBoxCloudInit.yml` file. You'll need the username, the private key file (`opsuser01.key`), and passphrase later in this walkthrough.
+
+   > On Windows, as an alternative to Bash in WSL, you can use a solution like PuTTYGen found in the [PuTTY installer](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
+   >
+   > Azure also has an SSH Public Key resources type that allows you to [generate SSH keys](https://learn.microsoft.com/azure/virtual-machines/ssh-keys-portal) and keep public keys available as a managed resource.
+
+1. Run the following command to overwrite the `jumpBoxCloudInit.yml` file with a new user configuration that uses the SSH key you generated:
+
+   ```bash
+   cat <<EOF > jumpBoxCloudInit.yml -
+   #cloud-config
+   users:
+     - default
+     - name: opsuser01
+       sudo: False
+       lock_passwd: True
+       ssh-authorized-keys:
+         - $(cat opsuser01.key.pub)
+   EOF
+   ```
+
+   > Alternatively, you can manually modify the existing `jumpBoxCloudInit.yml` file to add/remove users and ssh authorized keys.
+
 1. *Optional 🛑.* Remove the `- default` line to remove the default admin user from the jump box.
 
    If you leave the `- default` line in the file, then the default admin user (defined in the cluster's ARM template as pseudo-random name to discourage usage) will also exist on this jump box. We do not provide any instructions on setting up this default user to be a valid user you can access, and as such you might wish to simply remove it from the jump box. That user has unrestricted sudo access, by default. Unfortunately, you cannot directly deploy the jump box infrastructure with this user removed, so removing it via cloud-init is a common resolution -- by not including `- default` in this file.
-1. Save the `jumpBoxCloudInit.yml` file. You *cannot* use the provided example keys in this file as you do not have the private key to go with them, **you must update this file following the instructions above or you will not be able to complete this walkthrough.**
 1. You can commit this file change if you wish, as the only values in here are public keys, which are not secrets. **Never commit any private SSH keys.**
 
 ### Next step
