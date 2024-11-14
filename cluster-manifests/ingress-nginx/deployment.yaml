@@ -414,6 +414,8 @@ spec:
           runAsUser: 101
           readOnlyRootFilesystem: false
           runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
           - name: webhook-cert
             mountPath: /usr/local/certificates/
