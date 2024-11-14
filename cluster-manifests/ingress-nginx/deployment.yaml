@@ -412,6 +412,7 @@ spec:
             drop:
             - ALL
           runAsUser: 101
+          readOnlyRootFilesystem: false
         volumeMounts:
           - name: webhook-cert
             mountPath: /usr/local/certificates/
