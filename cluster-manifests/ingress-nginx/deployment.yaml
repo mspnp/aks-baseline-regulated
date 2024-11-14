@@ -471,6 +471,7 @@ webhooks:
       name: ingress-nginx-controller-admission
       namespace: ingress-nginx
       path: /networking/v1/ingresses
+      port: 443
   failurePolicy: Fail
   matchPolicy: Equivalent
   name: validate.nginx.ingress.kubernetes.io
