@@ -359,7 +359,7 @@ spec:
               fieldPath: metadata.namespace
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
-        image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.11.3
+          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.11.3@sha256:d56f135b6462cfc476447cfe564b83a45e8bb7da2774963b00d12161112270b7
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
