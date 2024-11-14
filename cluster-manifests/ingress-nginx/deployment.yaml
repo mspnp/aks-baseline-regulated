@@ -405,7 +405,7 @@ spec:
             cpu: 500m
             memory: 300Mi
         securityContext:
-          allowPrivilegeEscalation: true
+          allowPrivilegeEscalation: false
           capabilities:
             add:
             - NET_BIND_SERVICE
