@@ -488,6 +488,7 @@ webhooks:
   sideEffects: None
 ---
 apiVersion: v1
+automountServiceAccountToken: true
 kind: ServiceAccount
 metadata:
   labels:
