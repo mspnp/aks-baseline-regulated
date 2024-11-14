@@ -413,6 +413,7 @@ spec:
             - ALL
           runAsUser: 101
           readOnlyRootFilesystem: false
+          runAsNonRoot: true
         volumeMounts:
           - name: webhook-cert
             mountPath: /usr/local/certificates/
