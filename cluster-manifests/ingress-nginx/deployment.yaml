@@ -359,7 +359,7 @@ spec:
               fieldPath: metadata.namespace
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
-          image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.11.3@sha256:d56f135b6462cfc476447cfe564b83a45e8bb7da2774963b00d12161112270b7
+        image: YOUR_ACR.azurecr.io/live/ingress-nginx/controller:v1.11.3
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -613,7 +613,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: YOUR_ACR.azurecr.io/live/ingress-nginx/kube-webhook-certgen:v1.4.4@sha256:a9f03b34a3cbfbb26d103a14046ab2c5130a80c3d69d526ff8063d2b37b9fd3f
+        image: YOUR_ACR.azurecr.io/live/ingress-nginx/kube-webhook-certgen:v1.4.4
         imagePullPolicy: IfNotPresent
         name: create
         securityContext:
@@ -678,7 +678,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: YOUR_ACR.azurecr.io/live/ingress-nginx/kube-webhook-certgen:v1.4.4@sha256:a9f03b34a3cbfbb26d103a14046ab2c5130a80c3d69d526ff8063d2b37b9fd3f
+        image: YOUR_ACR.azurecr.io/live/ingress-nginx/kube-webhook-certgen:v1.4.4
         imagePullPolicy: IfNotPresent
         name: patch
         securityContext:
