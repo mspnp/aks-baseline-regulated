@@ -20,7 +20,7 @@ data:
   # the ingress controller directly is AAG.
   whitelist-source-range: 10.240.5.0/24
   ssl-redirect: "false"
-  allow-snippet-annotations: "false"
+  allow-snippet-annotations: "true"
 kind: ConfigMap
 metadata:
   labels:
