@@ -7,7 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/name: falco
     app.kubernetes.io/instance: falco
-    app.kubernetes.io/version: "0.36.0"
+    app.kubernetes.io/version: "0.39.2"
     pci-scope: out-of-scope
 spec:
   selector:
@@ -23,7 +23,7 @@ spec:
         app.kubernetes.io/instance: falco
         pci-scope: out-of-scope
       annotations:
-        checksum/config: e31566d8f2092f8ea9dd0f3f57da240353e3178c25d6c52db09998a735548e34
+        checksum/config: 9fdf6051d0be1361e41aa3ae61cea45954bf0777200234c198d3fb7e2e74b71a
         checksum/rules: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         checksum/certs: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     spec:
@@ -35,7 +35,7 @@ spec:
           key: node-role.kubernetes.io/control-plane
       containers:
         - name: falco
-          image: docker.io/falcosecurity/falco-no-driver:0.36.0
+          image: docker.io/falcosecurity/falco-no-driver:0.39.2
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -47,19 +47,21 @@ spec:
           securityContext:
             privileged: true
           args:
-            - /usr/bin/falco  
+            - /usr/bin/falco
+            - --cri
+            - /var/run/docker.sock
             - --cri
             - /run/containerd/containerd.sock
             - --cri
             - /run/crio/crio.sock
-            - -K
-            - /var/run/secrets/kubernetes.io/serviceaccount/token
-            - -k
-            - https://$(KUBERNETES_SERVICE_HOST)
-            - --k8s-node
-            - "$(FALCO_K8S_NODE_NAME)"
             - -pk
           env:
+            - name: HOST_ROOT
+              value: /host
+            - name: FALCO_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: FALCO_K8S_NODE_NAME
               valueFrom:
                 fieldRef:
@@ -82,32 +84,38 @@ spec:
           volumeMounts:
             - mountPath: /etc/falco
               name: rulesfiles-install-dir
+            - mountPath: /usr/share/falco/plugins
+              name: plugins-install-dir
+            - mountPath: /etc/falco/config.d
+              name: specialized-falco-configs
             - mountPath: /root/.falco
               name: root-falco-fs
             - mountPath: /host/proc
               name: proc-fs
+            - mountPath: /host/etc
+              name: etc-fs
+              readOnly: true
             - mountPath: /host/dev
               name: dev-fs
               readOnly: true
             - name: sys-fs
-              mountPath: /sys/module/falco
-            - mountPath: /host/var/run/docker.sock
+              mountPath: /sys/module
+            - mountPath: /host/var/run/
               name: docker-socket
-            - mountPath: /host/run/containerd/containerd.sock
+            - mountPath: /host/run/containerd/
               name: containerd-socket
-            - mountPath: /host/run/crio/crio.sock
+            - mountPath: /host/run/crio/
               name: crio-socket
             - mountPath: /etc/falco/falco.yaml
               name: falco-yaml
               subPath: falco.yaml
-            
         - name: falcoctl-artifact-follow
-          image: docker.io/falcosecurity/falcoctl:0.6.2
+          image: docker.io/falcosecurity/falcoctl:0.10.1
           imagePullPolicy: IfNotPresent
           args:
             - artifact
             - follow
-            - --verbose
+            - --log-format=json
           securityContext:
           volumeMounts:
             - mountPath: /plugins
@@ -119,7 +127,7 @@ spec:
           env:
       initContainers:
         - name: falco-driver-loader
-          image: docker.io/falcosecurity/falco-driver-loader:0.36.0
+          image: docker.io/falcosecurity/falco-driver-loader:0.39.2
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
@@ -140,14 +148,24 @@ spec:
             - mountPath: /host/etc
               name: etc-fs
               readOnly: true
+            - mountPath: /etc/falco/config.d
+              name: specialized-falco-configs
           env:
+            - name: HOST_ROOT
+              value: /host
+            - name: FALCOCTL_DRIVER_CONFIG_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: FALCOCTL_DRIVER_CONFIG_CONFIGMAP
+              value: falco
         - name: falcoctl-artifact-install
-          image: docker.io/falcosecurity/falcoctl:0.6.2
+          image: docker.io/falcosecurity/falcoctl:0.10.1
           imagePullPolicy: IfNotPresent
           args: 
             - artifact
             - install
-            - --verbose
+            - --log-format=json
           securityContext:
           volumeMounts:
             - mountPath: /plugins
@@ -158,6 +176,8 @@ spec:
               name: falcoctl-config-volume
           env:
       volumes:
+        - name: specialized-falco-configs
+          emptyDir: {}
         - name: plugins-install-dir
           emptyDir: {}
         - name: rulesfiles-install-dir
@@ -181,16 +201,16 @@ spec:
             path: /dev
         - name: sys-fs
           hostPath:
-            path: /sys/module/falco
+            path: /sys/module
         - name: docker-socket
           hostPath:
-            path: /var/run/docker.sock
+            path: /var/run
         - name: containerd-socket
           hostPath:
-            path: /run/containerd/containerd.sock
+            path: /run/containerd
         - name: crio-socket
           hostPath:
-            path: /run/crio/crio.sock
+            path: /run/crio
         - name: proc-fs
           hostPath:
             path: /proc
