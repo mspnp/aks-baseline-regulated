@@ -7,10 +7,10 @@ resources:
 - resource-quota.yaml
 - clusterrole.yaml
 - clusterrolebinding.yaml
-- serviceaccount.yaml
 - configmap.yaml
 - daemonset.yaml
 - falcoctl-configmap.yaml
+- serviceaccount.yaml
 images:
 - name: docker.io/falcosecurity/falco-no-driver
   newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/falcosecurity/falco-no-driver

@@ -7,13 +7,31 @@ metadata:
   labels:
     app.kubernetes.io/name: falco
     app.kubernetes.io/instance: falco
-    app.kubernetes.io/version: "0.36.0"
+    app.kubernetes.io/version: "0.39.2"
 data:
   falco.yaml: |-
+    append_output: []
     base_syscalls:
       custom_set: []
       repair: false
     buffered_outputs: false
+    config_files:
+    - /etc/falco/config.d
+    engine:
+      ebpf:
+        buf_size_preset: 4
+        drop_failed_exit: false
+        probe: ${HOME}/.falco/falco-bpf.o
+      kind: modern_ebpf
+      kmod:
+        buf_size_preset: 4
+        drop_failed_exit: false
+      modern_ebpf:
+        buf_size_preset: 4
+        cpus_for_each_buffer: 2
+        drop_failed_exit: false
+    falco_libs:
+      thread_table_size: 262144
     file_output:
       enabled: false
       filename: ./events.txt
@@ -27,15 +45,17 @@ data:
     http_output:
       ca_bundle: ""
       ca_cert: ""
-      ca_path: /etc/ssl/certs
-      client_cert: /etc/ssl/certs/client.crt
-      client_key: /etc/ssl/certs/client.key
+      ca_path: /etc/falco/certs/
+      client_cert: /etc/falco/certs/client/client.crt
+      client_key: /etc/falco/certs/client/client.crt
       echo: false
       enabled: false
       insecure: false
+      keep_alive: false
       mtls: false
       url: ""
       user_agent: falcosecurity/falco
+    json_include_message_property: false
     json_include_output_property: true
     json_include_tags_property: true
     json_output: false
@@ -46,25 +66,19 @@ data:
     log_level: info
     log_stderr: true
     log_syslog: true
-    metadata_download:
-      chunk_wait_us: 1000
-      max_mb: 100
-      watch_freq_sec: 1
     metrics:
       convert_memory_to_mb: true
       enabled: false
       include_empty_values: false
       interval: 1h
       kernel_event_counters_enabled: true
+      kernel_event_counters_per_cpu_enabled: false
       libbpf_stats_enabled: true
       output_rule: true
       resource_utilization_enabled: true
-    modern_bpf:
-      cpus_for_each_syscall_buffer: 2
+      rules_counters_enabled: true
+      state_counters_enabled: true
     output_timeout: 2000
-    outputs:
-      max_burst: 1000
-      rate: 0
     outputs_queue:
       capacity: 0
       recovery: exit
@@ -84,14 +98,12 @@ data:
       keep_alive: false
       program: 'jq ''{text: .output}'' | curl -d @- -X POST https://hooks.slack.com/services/XXX'
     rule_matching: first
-    rules_file:
+    rules_files:
     - /etc/falco/falco_rules.yaml
     - /etc/falco/falco_rules.local.yaml
     - /etc/falco/rules.d
     stdout_output:
       enabled: true
-    syscall_buf_size_preset: 4
-    syscall_drop_failed_exit: false
     syscall_event_drops:
       actions:
       - log
@@ -110,7 +122,8 @@ data:
       enabled: true
       k8s_healthz_endpoint: /healthz
       listen_port: 8765
+      prometheus_metrics_enabled: false
       ssl_certificate: /etc/falco/falco.pem
       ssl_enabled: false
-      threadiness: 0
+      threadiness: 0    
 ---
